@@ -2120,7 +2120,7 @@ ui.copyCode.addEventListener("click",async()=>{
 });
 
 const rememberedName=localStorage.getItem("stocklab_guest_username");
-if(rememberedName) { ui.usernameInput.value=rememberedName; ui.profileSettingsName.value=rememberedName; }
+if(rememberedName) { ui.usernameInput.value=rememberedName; if (ui.profileSettingsName) ui.profileSettingsName.value=rememberedName; }
 loadSitePreferences();
 if(!db){
   showNotice("Library Supabase gagal dimuat. Periksa koneksi lalu muat ulang halaman.","error");
