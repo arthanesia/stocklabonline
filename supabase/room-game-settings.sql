@@ -1298,9 +1298,21 @@ BEGIN
 
   IF v_status='waiting' THEN
     IF v_room.host_id=v_user_id THEN
-      PERFORM set_config('stocklab.auto_timeout','true',true);
-      DELETE FROM public.rooms WHERE id=p_room_id;
-      RETURN jsonb_build_object('deleted_room',true,'reason','host_left_lobby');
+      SELECT count(*)::integer INTO v_remaining
+      FROM public.room_members WHERE room_id=p_room_id AND user_id<>v_user_id;
+      IF v_remaining=0 THEN
+        PERFORM set_config('stocklab.auto_timeout','true',true);
+        DELETE FROM public.rooms WHERE id=p_room_id;
+        RETURN jsonb_build_object('deleted_room',true,'reason','last_player_left_lobby');
+      END IF;
+      SELECT user_id INTO v_new_host
+      FROM public.room_members
+      WHERE room_id=p_room_id AND user_id<>v_user_id
+      ORDER BY seat_no LIMIT 1;
+      DELETE FROM public.room_members WHERE room_id=p_room_id AND user_id=v_user_id;
+      UPDATE public.rooms SET host_id=v_new_host,last_activity_at=now(),updated_at=now()
+      WHERE id=p_room_id;
+      RETURN jsonb_build_object('deleted_room',false,'left_room',true,'new_host_id',v_new_host);
     END IF;
     DELETE FROM public.room_members WHERE room_id=p_room_id AND user_id=v_user_id;
     RETURN jsonb_build_object('deleted_room',false,'left_room',true);
