@@ -1113,3 +1113,68 @@ REVOKE ALL ON FUNCTION private.resolve_economy_v3_impl(uuid) FROM PUBLIC, anon, 
 GRANT EXECUTE ON FUNCTION private.resolve_economy_v3_impl(uuid) TO authenticated;
 REVOKE ALL ON FUNCTION public.resolve_economy(uuid) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.resolve_economy(uuid) TO authenticated;
+
+-- Let players leave an archived finished room without deleting the match history.
+CREATE OR REPLACE FUNCTION private.leave_room_impl(p_room_id uuid)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+DECLARE
+  v_user_id uuid:=auth.uid();
+  v_host_id uuid;
+  v_status text;
+  v_members integer;
+BEGIN
+  IF v_user_id IS NULL THEN
+    RAISE EXCEPTION 'Authentication required' USING errcode='28000';
+  END IF;
+
+  SELECT host_id,status INTO v_host_id,v_status
+  FROM public.rooms
+  WHERE id=p_room_id
+  FOR UPDATE;
+
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'Room not found' USING errcode='P0002';
+  END IF;
+
+  IF v_status NOT IN ('waiting','finished') THEN
+    RAISE EXCEPTION 'Cannot leave a game while it is in progress' USING errcode='55000';
+  END IF;
+
+  IF NOT EXISTS(
+    SELECT 1 FROM public.room_members
+    WHERE room_id=p_room_id AND user_id=v_user_id
+  ) THEN
+    RAISE EXCEPTION 'You are not a member of this room' USING errcode='42501';
+  END IF;
+
+  IF v_status='finished' THEN
+    DELETE FROM public.room_members
+    WHERE room_id=p_room_id AND user_id=v_user_id;
+    RETURN jsonb_build_object('deleted_room',false,'left_finished_room',true);
+  END IF;
+
+  SELECT count(*) INTO v_members
+  FROM public.room_members
+  WHERE room_id=p_room_id;
+
+  IF v_host_id=v_user_id AND v_members>1 THEN
+    RAISE EXCEPTION 'Host cannot leave while other players remain. Ask everyone to leave first.' USING errcode='55000';
+  END IF;
+
+  IF v_host_id=v_user_id THEN
+    DELETE FROM public.rooms WHERE id=p_room_id;
+    RETURN jsonb_build_object('deleted_room',true,'left_finished_room',false);
+  END IF;
+
+  DELETE FROM public.room_members
+  WHERE room_id=p_room_id AND user_id=v_user_id;
+
+  RETURN jsonb_build_object('deleted_room',false,'left_finished_room',false);
+END;
+$function$;
+REVOKE ALL ON FUNCTION private.leave_room_impl(uuid) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION private.leave_room_impl(uuid) TO authenticated;
