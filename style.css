@@ -2920,3 +2920,67 @@ body[data-interface-theme="forest"] #create-room-panel { background:linear-gradi
   .guide-phase-card { grid-template-columns:38px 1fr; gap:10px; padding:12px; }
   .guide-phase-number { width:35px; height:35px; }
 }
+
+
+/* Standalone navigation for Aturan and Tentang pages. */
+.guide-page-nav { display:flex; align-items:center; gap:7px; }
+.guide-page-nav a {
+  display:inline-flex; align-items:center; min-height:34px; padding:0 12px;
+  border:1px solid transparent; border-radius:9px; color:#b6c2d8;
+  text-decoration:none; font-size:10px; font-weight:650; transition:.15s ease;
+}
+.guide-page-nav a:hover { border-color:#354362; background:#1b2845; color:#fff; }
+.guide-page-nav a.is-current {
+  border-color:#806d47; background:linear-gradient(110deg,#3a3440,#2a2d42);
+  color:#e9c677;
+}
+/* Keep the preference form on the home page without the removed information-card grid. */
+.dashboard-settings-section {
+  width:min(760px,100%); margin:30px 0 12px; scroll-margin-top:22px;
+}
+.dashboard-settings-section .dashboard-info-card { width:100%; box-sizing:border-box; }
+.dashboard-settings-section .profile-settings-form { max-width:520px; }
+/* About page */
+.about-status-pill {
+  position:relative; z-index:1; display:inline-flex; align-items:center; gap:9px;
+  margin-top:10px; padding:8px 12px; border:1px solid #856c42; border-radius:30px;
+  background:#27283a; color:#e7c77d; font-size:9px; font-weight:800; letter-spacing:.08em;
+}
+.about-status-pill span { width:7px; height:7px; border-radius:50%; background:#e6b95e; box-shadow:0 0 0 4px #e6b95e22; }
+.about-content-grid { display:grid; grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr); gap:14px; margin-top:22px; }
+.about-profile-card,.about-beta-card {
+  padding:23px; border:1px solid #2e3d5f; border-radius:17px;
+  background:linear-gradient(145deg,#192441,#151f39);
+}
+.about-avatar {
+  display:grid; place-items:center; width:58px; height:58px; margin:14px 0;
+  border:1px solid #8c754b; border-radius:17px;
+  background:linear-gradient(145deg,#e5bd6e,#b78c45); color:#171d31;
+  font:800 25px Arial,sans-serif;
+}
+.about-profile-card h2,.about-beta-card h2 { margin:0 0 8px; color:#f1f3f9; font-size:19px; letter-spacing:-.03em; }
+.about-profile-card p:not(.guide-section-kicker),.about-beta-card p,.about-project-note>p {
+  color:#b3bfd3; font-size:11px; line-height:1.8;
+}
+.about-role { color:#e2c47b !important; font-weight:700; }
+.about-beta-card { border-color:#786542; background:linear-gradient(145deg,#28283b,#1c243b); }
+.about-beta-card h2 { color:#f0d38b; }
+.about-beta-card ul { margin:13px 0; padding-left:19px; color:#c4c9d4; font-size:10px; line-height:1.9; }
+.about-beta-card li { padding-left:3px; margin:4px 0; }
+.about-project-note { padding:20px; border:1px solid #2e3d5f; border-radius:16px; background:#151f39; }
+.about-project-note>p { max-width:850px; margin:0 0 16px; }
+.about-links { display:flex; flex-wrap:wrap; gap:10px; }
+.about-links a {
+  padding:9px 12px; border:1px solid #806d47; border-radius:9px;
+  color:#e5c47a; text-decoration:none; font-size:10px; font-weight:750;
+}
+.about-links a:hover { background:#2d2c3b; }
+@media(max-width:650px) {
+  .guide-page-nav { gap:2px; }
+  .guide-page-nav a { min-height:31px; padding:0 8px; font-size:9px; }
+  .guide-brand { font-size:14px; gap:7px; }
+  .guide-brand-mark { width:27px; height:27px; }
+  .about-content-grid { grid-template-columns:1fr; }
+  .about-profile-card,.about-beta-card { padding:18px; }
+  .dashboard-settings-section { margin-top:22px; }
+}
