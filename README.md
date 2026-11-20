@@ -134,6 +134,14 @@ Pengujian otomatis dilakukan pada transaksi database terisolasi dan room tes dih
 
 Pengujian transaksi ini membuktikan alur backend dan simulasi permainan; bukan jaminan bebas bug. Uji langsung pada beberapa browser/perangkat serta koneksi Realtime selama pemain nyata masih diperlukan.
 
+## Halaman website
+
+- [index.html](index.html): Beranda, daftar room, Quick Join, dan pengaturan preferensi lokal.
+- [guide.html](guide.html): halaman Aturan dan StockLab Guide, terpisah dari halaman beranda.
+- [about.html](about.html): halaman Tentang, kredit pembuat, afiliasi kelompok studi, dan pemberitahuan masa beta.
+
+Menu Aturan dan Tentang di sidebar membuka halaman tersendiri; keduanya tidak lagi ditampilkan sebagai panel di bagian bawah beranda.
+
 ## Akses
 
 - Panduan permainan: [guide.html](guide.html), ringkasan booklet National StockLab Competition 2025.
