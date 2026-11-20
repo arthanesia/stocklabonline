@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#f4f2ec">
   <meta name="description" content="StockLab Online — buat meja dan main bersama teman.">
   <title>StockLab Online</title>
-  <link rel="stylesheet" href="style.css?v=20261121-navy-card-table-v6">
+  <link rel="stylesheet" href="style.css?v=20261121-room-privacy-debt-assets-v8">
 </head>
 <body>
   <header class="topbar">
@@ -82,8 +82,8 @@
                 <option value="5" selected>5 pemain</option>
               </select>
               <label for="create-password">Password room</label>
-              <input id="create-password" name="roomPassword" type="password" minlength="6" maxlength="32"
-                placeholder="Buat password 6–32 karakter" autocomplete="new-password" required>
+              <input id="create-password" name="roomPassword" type="password"
+                placeholder="Kosongkan jika room tidak memakai password" autocomplete="new-password">
               <div class="room-timing-fields">
                 <label for="create-bidding-seconds">Durasi bidding</label>
                 <select id="create-bidding-seconds">
@@ -115,8 +115,8 @@
               <input id="room-code-input" name="roomCode" type="text" minlength="6" maxlength="6"
                 placeholder="Contoh: A7K2QP" autocomplete="off" autocapitalize="characters" required>
               <label for="join-password">Password room</label>
-              <input id="join-password" name="roomPassword" type="password" minlength="6" maxlength="32"
-                placeholder="Masukkan password room" autocomplete="off" required>
+              <input id="join-password" name="roomPassword" type="password"
+                placeholder="Isi hanya jika room memakai password" autocomplete="off">
               <button class="button primary full-width" id="join-room-button" type="submit">Masuk ke lobby</button>
             </form>
             <section class="available-panel">
@@ -240,10 +240,6 @@
                 </div>
               </section>
             </div>
-            <section class="board-section table-assets-board">
-              <div class="board-section-heading"><h4>Kartu aset pemain</h4><span>Kepemilikan saham terbuka untuk semua pemain</span></div>
-              <div class="table-asset-players" id="table-asset-players" aria-live="polite"></div>
-            </section>
           </div>
 
           <div class="game-bottom-strip">
@@ -253,12 +249,6 @@
                 <div><span>Uang</span><strong id="own-coins">15</strong><small>koin</small></div>
                 <div><span>Saham + Reksa Dana</span><strong id="own-shares">0</strong><small>unit</small></div>
               </div>
-              <button class="button secondary debt-button" id="debt-button" type="button" hidden>Balik satu saham untuk +10 koin</button>
-              <form id="debt-form" class="debt-form" hidden>
-                <p class="debt-card-instruction">Pilih satu kartu saham yang akan dibalik menjadi utang.</p>
-                <div class="debt-sector-options" id="debt-sector-options"></div>
-                <button class="button primary" id="debt-submit" type="submit" disabled>Balik kartu pilihan</button>
-              </form>
               <div class="private-peek" id="private-peek" hidden></div>
             </div>
             <details class="portfolio-details">
@@ -289,6 +279,6 @@
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.2/dist/umd/supabase.js"></script>
-  <script src="app.js?v=20261121-navy-card-table-v6"></script>
+  <script src="app.js?v=20261121-room-privacy-debt-assets-v8"></script>
 </body>
 </html>
