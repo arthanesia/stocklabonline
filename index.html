@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#f4f2ec">
   <meta name="description" content="StockLab Online — buat meja dan main bersama teman.">
   <title>StockLab Online</title>
-  <link rel="stylesheet" href="style.css?v=20261121-tabletop-final">
+  <link rel="stylesheet" href="style.css?v=20261121-market-feed-v2">
 </head>
 <body>
   <header class="topbar">
@@ -207,6 +207,7 @@
               <strong id="game-phase">Bidding</strong>
             </div>
             <p id="game-phase-description">Penentuan urutan bermain.</p>
+            <div class="phase-active-player"><span>SEDANG BERJALAN</span><strong id="phase-active-player">Menunggu pemain</strong></div>
             <div class="phase-clock"><span>WAKTU TERSISA</span><strong id="phase-timer">--:--</strong></div>
           </div>
 
@@ -214,14 +215,9 @@
             <div class="game-player-seats" id="game-player-seats" aria-live="polite"></div>
             <div class="table-felt-core">
               <div class="board-section market-section">
-                <div class="board-section-heading"><h4>Pasar saham</h4><span>Nilai saham setiap sektor</span></div>
-                <div class="market-grid" id="market-grid"></div>
-                <div class="mutual-fund-wrap">
-                  <div class="mutual-fund-heading">
-                    <span>REKSA DANA</span>
-                    <strong>Harga unit <b id="mutual-fund-price">—</b></strong>
-                  </div>
-                  <div class="mutual-fund-board" id="mutual-fund-board" aria-label="Reksa Dana dan dua saham penentunya"></div>
+                <div class="board-section-heading"><h4>Pasar saham</h4><span>Empat saham dan Reksa Dana dalam satu blok · ▲ naik · ▼ turun</span></div>
+                <div class="market-unified-board">
+                  <div class="market-grid market-unified-grid" id="market-grid" aria-label="Pasar saham StockLab"></div>
                 </div>
               </div>
               <section class="phase-controls" id="phase-controls" aria-live="polite">
@@ -237,7 +233,17 @@
                 <div id="economy-reveal" class="economy-reveal"></div>
                 <div id="economy-effect-summary" class="economy-effect-summary" hidden></div>
               </section>
+              <section class="board-section activity-log-section">
+                <div class="board-section-heading"><h4>Aktivitas meja</h4><span>Aksi dan transaksi terbaru</span></div>
+                <div class="activity-feed" id="activity-feed" aria-live="polite">
+                  <p class="activity-empty">Belum ada aktivitas.</p>
+                </div>
+              </section>
             </div>
+            <section class="board-section table-assets-board">
+              <div class="board-section-heading"><h4>Kartu aset pemain</h4><span>Kepemilikan saham terbuka untuk semua pemain</span></div>
+              <div class="table-asset-players" id="table-asset-players" aria-live="polite"></div>
+            </section>
           </div>
 
           <div class="game-bottom-strip">
@@ -283,6 +289,6 @@
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.2/dist/umd/supabase.js"></script>
-  <script src="app.js?v=20261121-tabletop-final"></script>
+  <script src="app.js?v=20261121-market-feed-v2"></script>
 </body>
 </html>
