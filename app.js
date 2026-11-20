@@ -643,7 +643,9 @@ function renderPortfolio(players, drawingOrderCards = false) {
     const isTurn = player.user_id === (sessionState.gameView && sessionState.gameView.active_user_id);
     const row = makeElement("tr", isTurn ? "portfolio-active-player" : "");
     const name = makeElement("td", "", player.display_name + (player.user_id === sessionState.user.id ? " (kamu)" : ""));
-    const order = " · Urutan " + (drawingOrderCards && !player.order_card_id ? "?" : player.order_no || "?");
+    const order = drawingOrderCards
+      ? " · Kartu urutan " + (player.order_card_number || "?")
+      : " · Giliran " + (player.order_no || "?") + " · Kartu " + (player.order_card_number || "?");
     name.textContent += order;
     row.append(name);
     for (const key of SHARE_KEYS) row.append(makeElement("td", "", Number(player.shares && player.shares[key] || 0)));
