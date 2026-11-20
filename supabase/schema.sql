@@ -286,3 +286,198 @@ alter publication supabase_realtime add table public.rooms;
 alter publication supabase_realtime add table public.room_members;
 alter publication supabase_realtime add table public.games;
 alter publication supabase_realtime add table public.game_events;
+
+
+-- Guest-only room experience (Supabase Anonymous Auth; no email/password UI).
+create or replace function private.create_room_impl(p_display_name text, p_max_players smallint default 5)
+returns jsonb
+language plpgsql
+security definer
+set search_path = pg_catalog, public, auth, private
+as $$
+declare
+  v_user_id uuid := auth.uid();
+  v_room_id uuid;
+  v_code text;
+  v_alphabet constant text := 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+begin
+  if v_user_id is null then
+    raise exception 'Authentication required' using errcode = '28000';
+  end if;
+  if p_display_name is null or char_length(trim(p_display_name)) not between 2 and 24 then
+    raise exception 'Username must be 2 to 24 characters' using errcode = '22023';
+  end if;
+  if p_max_players is null or p_max_players not between 2 and 5 then
+    raise exception 'Room capacity must be between 2 and 5' using errcode = '22023';
+  end if;
+
+  insert into public.profiles(id, display_name, updated_at)
+  values (v_user_id, trim(p_display_name), now())
+  on conflict (id) do update
+  set display_name = excluded.display_name, updated_at = now();
+
+  for attempt in 1..10 loop
+    select string_agg(substr(v_alphabet, (floor(random() * length(v_alphabet))::int + 1), 1), '')
+    into v_code
+    from generate_series(1,6);
+
+    insert into public.rooms(invite_code, host_id, max_players)
+    values (v_code, v_user_id, p_max_players)
+    on conflict (invite_code) do nothing
+    returning id into v_room_id;
+
+    if v_room_id is not null then
+      exit;
+    end if;
+  end loop;
+
+  if v_room_id is null then
+    raise exception 'Could not allocate a unique room code. Try again.' using errcode = '55000';
+  end if;
+
+  insert into public.room_members(room_id, user_id, seat_no, is_ready)
+  values (v_room_id, v_user_id, 1, true);
+
+  return jsonb_build_object(
+    'room_id', v_room_id,
+    'invite_code', v_code,
+    'seat_no', 1,
+    'max_players', p_max_players
+  );
+end;
+$$;
+revoke all on function private.create_room_impl(text,smallint) from public, anon;
+grant execute on function private.create_room_impl(text,smallint) to authenticated;
+
+create or replace function public.create_room(p_display_name text, p_max_players smallint default 5)
+returns jsonb
+language sql
+security invoker
+set search_path = pg_catalog, public, private, auth
+as $$
+  select private.create_room_impl(p_display_name, p_max_players);
+$$;
+revoke all on function public.create_room(text,smallint) from public, anon;
+grant execute on function public.create_room(text,smallint) to authenticated;
+
+create or replace function private.list_open_rooms_impl()
+returns jsonb
+language plpgsql
+security definer
+set search_path = pg_catalog, public, auth, private
+as $$
+declare
+  v_user_id uuid := auth.uid();
+  v_result jsonb;
+begin
+  if v_user_id is null then
+    raise exception 'Authentication required' using errcode = '28000';
+  end if;
+
+  select coalesce(
+    jsonb_agg(
+      jsonb_build_object(
+        'id', q.id,
+        'invite_code', q.invite_code,
+        'host_name', q.host_name,
+        'member_count', q.member_count,
+        'max_players', q.max_players,
+        'created_at', q.created_at
+      ) order by q.created_at desc
+    ),
+    '[]'::jsonb
+  )
+  into v_result
+  from (
+    select r.id, r.invite_code,
+      coalesce(p.display_name, 'Pemain') as host_name,
+      count(rm.id)::integer as member_count,
+      r.max_players, r.created_at
+    from public.rooms r
+    left join public.profiles p on p.id = r.host_id
+    left join public.room_members rm on rm.room_id = r.id
+    where r.status = 'waiting'
+    group by r.id, r.invite_code, p.display_name, r.max_players, r.created_at
+    order by r.created_at desc
+    limit 50
+  ) q;
+
+  return v_result;
+end;
+$$;
+revoke all on function private.list_open_rooms_impl() from public, anon;
+grant execute on function private.list_open_rooms_impl() to authenticated;
+
+create or replace function public.list_open_rooms()
+returns jsonb
+language sql
+security invoker
+set search_path = pg_catalog, public, private, auth
+as $$
+  select private.list_open_rooms_impl();
+$$;
+revoke all on function public.list_open_rooms() from public, anon;
+grant execute on function public.list_open_rooms() to authenticated;
+
+create or replace function private.leave_room_impl(p_room_id uuid)
+returns jsonb
+language plpgsql
+security definer
+set search_path = pg_catalog, public, auth, private
+as $$
+declare
+  v_user_id uuid := auth.uid();
+  v_host_id uuid;
+  v_members integer;
+begin
+  if v_user_id is null then
+    raise exception 'Authentication required' using errcode = '28000';
+  end if;
+
+  select host_id into v_host_id
+  from public.rooms
+  where id = p_room_id and status = 'waiting'
+  for update;
+
+  if not found then
+    raise exception 'Waiting room not found' using errcode = 'P0002';
+  end if;
+
+  if not exists (
+    select 1 from public.room_members
+    where room_id = p_room_id and user_id = v_user_id
+  ) then
+    raise exception 'You are not a member of this room' using errcode = '42501';
+  end if;
+
+  select count(*) into v_members
+  from public.room_members where room_id = p_room_id;
+
+  if v_host_id = v_user_id and v_members > 1 then
+    raise exception 'Host cannot leave while other players remain. Ask everyone to leave first.' using errcode = '55000';
+  end if;
+
+  if v_host_id = v_user_id then
+    delete from public.rooms where id = p_room_id;
+    return jsonb_build_object('deleted_room', true);
+  end if;
+
+  delete from public.room_members
+  where room_id = p_room_id and user_id = v_user_id;
+
+  return jsonb_build_object('deleted_room', false);
+end;
+$$;
+revoke all on function private.leave_room_impl(uuid) from public, anon;
+grant execute on function private.leave_room_impl(uuid) to authenticated;
+
+create or replace function public.leave_room(p_room_id uuid)
+returns jsonb
+language sql
+security invoker
+set search_path = pg_catalog, public, private, auth
+as $$
+  select private.leave_room_impl(p_room_id);
+$$;
+revoke all on function public.leave_room(uuid) from public, anon;
+grant execute on function public.leave_room(uuid) to authenticated;
