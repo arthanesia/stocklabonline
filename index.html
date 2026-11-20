@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#f4f2ec">
   <meta name="description" content="StockLab Online — buat meja dan main bersama teman.">
   <title>StockLab Online</title>
-  <link rel="stylesheet" href="style.css?v=20261121-room-flow">
+  <link rel="stylesheet" href="style.css?v=20261121-tabletop-v2">
 </head>
 <body>
   <header class="topbar">
@@ -85,7 +85,24 @@
               <label for="create-password">Password room</label>
               <input id="create-password" name="roomPassword" type="password" minlength="6" maxlength="32"
                 placeholder="Buat password 6–32 karakter" autocomplete="new-password" required>
-              <small class="field-note">Setelah room dibuat, bagikan kode room dan password kepada teman.</small>
+              <div class="room-timing-fields">
+                <label for="create-bidding-seconds">Durasi bidding</label>
+                <select id="create-bidding-seconds">
+                  <option value="30">30 detik</option><option value="60">1 menit</option>
+                  <option value="90" selected>1 menit 30 detik</option><option value="120">2 menit</option><option value="180">3 menit</option>
+                </select>
+                <label for="create-turn-seconds">Durasi setiap giliran</label>
+                <select id="create-turn-seconds">
+                  <option value="15">15 detik</option><option value="30">30 detik</option>
+                  <option value="45" selected>45 detik</option><option value="60">1 menit</option><option value="90">1 menit 30 detik</option>
+                </select>
+                <label for="create-idle-minutes">Room bubar jika tidak aktif</label>
+                <select id="create-idle-minutes">
+                  <option value="5">5 menit</option><option value="10">10 menit</option>
+                  <option value="15">15 menit</option><option value="30" selected>30 menit</option><option value="60">1 jam</option>
+                </select>
+              </div>
+              <small class="field-note">Host bisa mengubah durasi ini lagi dari lobby sebelum permainan dimulai.</small>
               <button class="button primary full-width" id="create-room-button" type="submit">Buat room</button>
             </form>
           </section>
@@ -128,6 +145,33 @@
               <button id="copy-code-button" type="button">Salin kode</button>
             </div>
           </div>
+          <form class="room-settings-form" id="room-settings-form" hidden>
+            <div class="room-settings-title">
+              <strong>Pengaturan room</strong>
+              <small>Host dapat mengubah durasi sebelum mulai.</small>
+            </div>
+            <div class="room-settings-fields">
+              <label>Durasi bidding
+                <select id="lobby-bidding-seconds">
+                  <option value="30">30 detik</option><option value="60">1 menit</option>
+                  <option value="90">1 menit 30 detik</option><option value="120">2 menit</option><option value="180">3 menit</option><option value="300">5 menit</option><option value="600">10 menit</option>
+                </select>
+              </label>
+              <label>Durasi tiap giliran
+                <select id="lobby-turn-seconds">
+                  <option value="15">15 detik</option><option value="30">30 detik</option>
+                  <option value="45">45 detik</option><option value="60">1 menit</option><option value="90">1 menit 30 detik</option><option value="120">2 menit</option><option value="180">3 menit</option><option value="300">5 menit</option>
+                </select>
+              </label>
+              <label>Bubar saat tidak aktif
+                <select id="lobby-idle-minutes">
+                  <option value="5">5 menit</option><option value="10">10 menit</option>
+                  <option value="15">15 menit</option><option value="30">30 menit</option><option value="60">1 jam</option><option value="120">2 jam</option>
+                </select>
+              </label>
+              <button class="button secondary" id="save-room-settings" type="submit">Simpan pengaturan</button>
+            </div>
+          </form>
           <div class="roster-heading">
             <h4>Pemain</h4>
             <span id="lobby-count">0 / 5</span>
@@ -151,7 +195,10 @@
               <p class="section-subtitle" id="game-subtitle">Permainan dimulai.</p>
               <a class="tutorial-link" href="https://www.youtube.com/watch?v=0bd47voPuUs" target="_blank" rel="noopener noreferrer">▶ Lihat tutorial cara bermain StockLab</a>
             </div>
-            <div class="round-label"><span>RONDE</span><strong id="game-round">01</strong></div>
+            <div class="game-heading-actions">
+              <div class="round-label"><span>RONDE</span><strong id="game-round">01</strong></div>
+              <button class="button text-button leave-game-button" id="leave-game-button" type="button">Keluar room</button>
+            </div>
           </div>
 
           <div class="phase-banner">
@@ -160,26 +207,45 @@
               <strong id="game-phase">Bidding</strong>
             </div>
             <p id="game-phase-description">Penentuan urutan bermain.</p>
+            <div class="phase-clock"><span>WAKTU TERSISA</span><strong id="phase-timer">--:--</strong></div>
           </div>
 
-          <div class="game-overview">
-            <div class="board-section market-section">
-              <div class="board-section-heading"><h4>Papan saham & tumpukan ekonomi</h4><span>Gunakan visual kartu sektor</span></div>
-              <div class="market-grid" id="market-grid"></div>
-              <div class="mutual-fund-board" id="mutual-fund-board">
-                <img src="./assets/cards/boards/papan-reksa-dana.webp" alt="Papan Reksa Dana StockLab" loading="lazy" decoding="async">
-                <div class="mutual-fund-copy">
-                  <span>REKSA DANA</span>
-                  <strong id="mutual-fund-price">—</strong>
-                  <small>Nilai unit saat ini</small>
+          <div class="game-tabletop" id="game-tabletop">
+            <div class="game-player-seats" id="game-player-seats" aria-live="polite"></div>
+            <div class="table-felt-core">
+              <div class="board-section market-section">
+                <div class="board-section-heading"><h4>Pasar saham</h4><span>Nilai saham setiap sektor</span></div>
+                <div class="market-grid" id="market-grid"></div>
+                <div class="mutual-fund-wrap">
+                  <div class="mutual-fund-heading">
+                    <span>REKSA DANA</span>
+                    <strong>Harga unit <b id="mutual-fund-price">—</b></strong>
+                  </div>
+                  <div class="mutual-fund-board" id="mutual-fund-board" aria-label="Reksa Dana dan dua saham penentunya"></div>
                 </div>
               </div>
+              <section class="phase-controls" id="phase-controls" aria-live="polite">
+                <div class="empty-state">Memuat fase permainan…</div>
+              </section>
+              <section class="board-section action-market-section" id="action-market-section" hidden>
+                <div class="board-section-heading"><h4>Kartu aksi di meja</h4><span id="action-market-count"></span></div>
+                <p class="card-table-hint">Saat giliranmu tiba, pilih kartu asli dari meja untuk disimpan atau diaktifkan.</p>
+                <div id="action-market" class="action-market" aria-live="polite"></div>
+              </section>
+              <section class="board-section economy-section" id="economy-section" hidden>
+                <div class="board-section-heading"><h4>Kartu ekonomi terakhir</h4><span>Terbuka untuk semua pemain</span></div>
+                <div id="economy-reveal" class="economy-reveal"></div>
+                <div id="economy-effect-summary" class="economy-effect-summary" hidden></div>
+              </section>
             </div>
+          </div>
+
+          <div class="game-bottom-strip">
             <div class="board-section wallet-section">
               <div class="board-section-heading"><h4>Aset kamu</h4><span id="own-debt">Tanpa utang</span></div>
               <div class="player-assets" id="player-assets">
                 <div><span>Uang</span><strong id="own-coins">15</strong><small>koin</small></div>
-                <div><span>Saham</span><strong id="own-shares">0</strong><small>lembar</small></div>
+                <div><span>Saham + Reksa Dana</span><strong id="own-shares">0</strong><small>unit</small></div>
               </div>
               <button class="button secondary debt-button" id="debt-button" type="button" hidden>Balik satu saham untuk +10 koin</button>
               <form id="debt-form" class="debt-form" hidden>
@@ -189,35 +255,16 @@
               </form>
               <div class="private-peek" id="private-peek" hidden></div>
             </div>
+            <details class="portfolio-details">
+              <summary>Detail portofolio semua pemain <span id="game-player-count"></span></summary>
+              <div class="portfolio-wrap">
+                <table class="portfolio-table">
+                  <thead><tr><th>Pemain</th><th>Keuangan</th><th>Konsumer</th><th>Agrikultur</th><th>Tambang</th><th>Reksa Dana</th></tr></thead>
+                  <tbody id="game-players"></tbody>
+                </table>
+              </div>
+            </details>
           </div>
-
-          <div class="board-section">
-            <div class="board-section-heading"><h4>Portofolio pemain</h4><span id="game-player-count"></span></div>
-            <div class="portfolio-wrap">
-              <table class="portfolio-table">
-                <thead>
-                  <tr><th>Pemain</th><th>Keuangan</th><th>Konsumer</th><th>Agrikultur</th><th>Tambang</th><th>Reksa Dana</th></tr>
-                </thead>
-                <tbody id="game-players"></tbody>
-              </table>
-            </div>
-          </div>
-
-          <section class="phase-controls" id="phase-controls" aria-live="polite">
-            <div class="empty-state">Memuat fase permainan…</div>
-          </section>
-
-          <section class="board-section" id="action-market-section" hidden>
-            <div class="board-section-heading"><h4>Kartu aksi di meja</h4><span id="action-market-count"></span></div>
-            <p class="card-table-hint">Pilih kartu bergambar. Simpan untuk menambah saham, atau aktifkan untuk menjalankan efeknya.</p>
-            <div id="action-market" class="action-market" aria-live="polite"></div>
-          </section>
-
-          <section class="board-section economy-section" id="economy-section" hidden>
-            <div class="board-section-heading"><h4>Kartu ekonomi terakhir</h4><span>Terbuka untuk semua pemain</span></div>
-            <div id="economy-reveal" class="economy-reveal"></div>
-            <div id="economy-effect-summary" class="economy-effect-summary" hidden></div>
-          </section>
 
           <section class="board-section final-section" id="final-section" hidden>
             <div class="board-section-heading"><h4>Hasil akhir</h4><span>Peringkat berdasarkan total aset</span></div>
@@ -236,6 +283,6 @@
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.2/dist/umd/supabase.js"></script>
-  <script src="app.js?v=20261121-room-flow"></script>
+  <script src="app.js?v=20261121-tabletop-v2"></script>
 </body>
 </html>
