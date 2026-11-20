@@ -348,3 +348,64 @@ $new$        v_sale_price:=(v_market->>v_sell_sector)::integer;$new$);
   EXECUTE v_def;
 END
 $trading_fee_sale_guard$;
+
+
+-- I. Preserve the original order-card number permanently as the bid tie-breaker.
+DO $tie_patch$
+DECLARE v_def text;
+BEGIN
+  SELECT pg_get_functiondef('private.start_game_impl(uuid)'::regprocedure) INTO v_def;
+  v_def:=replace(v_def,
+    '''is_host'',q.user_id=v_room.host_id,''order_no'',q.order_no,',
+    '''is_host'',q.user_id=v_room.host_id,''order_no'',q.order_no,''order_card_number'',NULL,');
+  IF position('order_card_number' in v_def)=0 THEN
+    RAISE EXCEPTION 'start_game order_card_number patch incomplete';
+  END IF;
+  EXECUTE v_def;
+
+  SELECT pg_get_functiondef('private.choose_order_card_impl(uuid,text)'::regprocedure) INTO v_def;
+  v_def:=replace(v_def,
+$old$      jsonb_set(
+        jsonb_set(p.value,'{order_no}',to_jsonb(v_order_no),true),
+        '{order_card_id}',to_jsonb(p_card_id),true
+      )$old$,
+$new$      jsonb_set(
+        jsonb_set(
+          jsonb_set(p.value,'{order_no}',to_jsonb(v_order_no),true),
+          '{order_card_number}',to_jsonb(v_order_no),true
+        ),
+        '{order_card_id}',to_jsonb(p_card_id),true
+      )$new$);
+  IF position('order_card_number' in v_def)=0 THEN
+    RAISE EXCEPTION 'choose_order_card immutable number patch incomplete';
+  END IF;
+  EXECUTE v_def;
+
+  SELECT pg_get_functiondef('private.get_game_view_impl(uuid)'::regprocedure) INTO v_def;
+  v_def:=replace(v_def,
+    'ELSE jsonb_set(p.value,''{order_no}'',''null''::jsonb,true) END',
+    'ELSE jsonb_set(jsonb_set(p.value,''{order_no}'',''null''::jsonb,true),''{order_card_number}'',''null''::jsonb,true) END');
+  IF position('order_card_number' in v_def)=0 THEN
+    RAISE EXCEPTION 'get_game_view tiebreak mask patch incomplete';
+  END IF;
+  EXECUTE v_def;
+
+  SELECT pg_get_functiondef('private.submit_bid_impl(uuid,integer)'::regprocedure) INTO v_def;
+  v_def:=replace(v_def,
+    '(p.value->>''order_no'')::integer ASC',
+    '(p.value->>''order_card_number'')::integer ASC');
+  IF position('order_card_number' in v_def)=0 THEN
+    RAISE EXCEPTION 'submit_bid stable tie-break patch incomplete';
+  END IF;
+  EXECUTE v_def;
+
+  SELECT pg_get_functiondef('private.advance_expired_turn_impl(uuid)'::regprocedure) INTO v_def;
+  v_def:=replace(v_def,
+    '(x.value->>''order_no'')::integer ASC',
+    '(x.value->>''order_card_number'')::integer ASC');
+  IF position('order_card_number' in v_def)=0 THEN
+    RAISE EXCEPTION 'auto-timeout stable tie-break patch incomplete';
+  END IF;
+  EXECUTE v_def;
+END
+$tie_patch$;
