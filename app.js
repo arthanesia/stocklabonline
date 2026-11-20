@@ -1,4 +1,4 @@
-// StockLab Online — multiplayer rooms and six-round digital game engine.
+// StockLab Online — room-first multiplayer interface and six-round digital game engine.
 const SUPABASE_URL = "https://euzilxlmhuxftycgaqwh.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_YGViDDZQTaXVpUFJDeHDtA_jfZxWy9m";
 
@@ -11,12 +11,19 @@ const db = typeof supabaseFactory === "function"
 
 const byId = (id) => document.getElementById(id);
 const ui = {
+  welcome: byId("home"), multiplayer: byId("multiplayer"),
   enterForm: byId("enter-form"), usernameInput: byId("username-input"), enterButton: byId("enter-button"),
   guestEntry: byId("guest-entry"), workspace: byId("room-workspace"), locked: byId("workspace-locked"),
   notice: byId("app-notice"), connection: byId("connection-indicator"),
   playerPill: byId("player-pill"), playerAvatar: byId("player-avatar"), playerName: byId("player-name-label"),
-  createForm: byId("create-room-form"), createButton: byId("create-room-button"), maxPlayers: byId("max-players"),
-  joinForm: byId("join-room-form"), joinInput: byId("room-code-input"), joinButton: byId("join-room-button"),
+  roomHub: byId("room-hub"), roomModeGrid: byId("room-mode-grid"),
+  showCreatePanel: byId("show-create-panel"), showJoinPanel: byId("show-join-panel"),
+  createPanel: byId("create-room-panel"), backFromCreate: byId("back-from-create"),
+  joinPanel: byId("join-room-panel"), backFromJoin: byId("back-from-join"),
+  createForm: byId("create-room-form"), createButton: byId("create-room-button"),
+  maxPlayers: byId("max-players"), createPassword: byId("create-password"),
+  joinForm: byId("join-room-form"), joinInput: byId("room-code-input"),
+  joinPassword: byId("join-password"), joinButton: byId("join-room-button"),
   roomList: byId("room-list"), refreshRooms: byId("refresh-rooms"),
   lobby: byId("room-lobby"), lobbyTitle: byId("lobby-title"), lobbySubtitle: byId("lobby-subtitle"),
   lobbyCode: byId("lobby-code"), lobbyCount: byId("lobby-count"), roster: byId("player-roster"),
@@ -160,10 +167,35 @@ async function savePlayerProfile(username) {
   return cleanName;
 }
 
+function showRoomHub() {
+  ui.roomHub.hidden = false;
+  ui.roomModeGrid.hidden = false;
+  ui.createPanel.hidden = true;
+  ui.joinPanel.hidden = true;
+  ui.lobby.hidden = true;
+  ui.gameTable.hidden = true;
+}
+function openCreatePanel() {
+  ui.roomModeGrid.hidden = true;
+  ui.createPanel.hidden = false;
+  ui.joinPanel.hidden = true;
+  ui.createPassword.value = "";
+}
+function openJoinPanel(code = "") {
+  ui.roomModeGrid.hidden = true;
+  ui.createPanel.hidden = true;
+  ui.joinPanel.hidden = false;
+  ui.joinInput.value = String(code || "").toUpperCase();
+  ui.joinPassword.value = "";
+  if (code) ui.joinPassword.focus();
+}
 function showWorkspace() {
+  ui.welcome.hidden = true;
+  ui.multiplayer.hidden = false;
   ui.guestEntry.hidden = true;
   ui.workspace.hidden = false;
   ui.locked.hidden = true;
+  showRoomHub();
 }
 
 function showGuestSetupError() {
@@ -259,7 +291,7 @@ async function refreshOpenRooms() {
     const join = makeElement("button", "small-join", Number(room.member_count) >= Number(room.max_players) ? "Penuh" : "Gabung");
     join.type = "button";
     join.disabled = Number(room.member_count) >= Number(room.max_players);
-    join.addEventListener("click", () => joinRoom(room.invite_code, join));
+    join.addEventListener("click", () => openJoinPanel(room.invite_code));
     item.append(details, code, join);
     ui.roomList.append(item);
   }
@@ -268,17 +300,25 @@ async function refreshOpenRooms() {
 async function createRoom(event) {
   event.preventDefault();
   if (!sessionState.user) return;
-  setBusy(ui.createButton, true, "Membuat…");
+  const password = String(ui.createPassword.value || "");
+  if (password.length < 6 || password.length > 32) {
+    showNotice("Password room harus 6–32 karakter.", "warning");
+    return;
+  }
+  setBusy(ui.createButton, true, "Membuat room…");
   clearNotice();
   try {
     await savePlayerProfile(sessionState.username);
     const { data, error } = await db.rpc("create_room", {
-      p_display_name: sessionState.username, p_max_players: Number(ui.maxPlayers.value)
+      p_display_name: sessionState.username,
+      p_max_players: Number(ui.maxPlayers.value),
+      p_password: password
     });
     if (error) throw error;
+    ui.createPassword.value = "";
     await openRoom(data.room_id, data.invite_code);
     await refreshOpenRooms();
-    showNotice("Meja berhasil dibuat. Bagikan kode undangan kepada teman.", "success");
+    showNotice("Room siap. Bagikan kode dan password kepada teman satu meja.", "success");
   } catch (error) {
     console.error("Create room failed:", error);
     showNotice(errorMessage(error), "error");
@@ -287,19 +327,27 @@ async function createRoom(event) {
   }
 }
 
-async function joinRoom(code, button = ui.joinButton) {
+async function joinRoom(code, password, button = ui.joinButton) {
   if (!sessionState.user) return;
   const normalizedCode = String(code || "").trim().toUpperCase();
   if (!/^[A-Z0-9]{6}$/.test(normalizedCode)) {
-    showNotice("Kode undangan harus terdiri dari 6 huruf atau angka.", "warning");
+    showNotice("Kode room harus terdiri dari 6 huruf atau angka.", "warning");
     return;
   }
-  setBusy(button, true, "Menggabungkan…");
+  if (!password || String(password).length < 6 || String(password).length > 32) {
+    showNotice("Masukkan password room (6–32 karakter).", "warning");
+    return;
+  }
+  setBusy(button, true, "Masuk room…");
   clearNotice();
   try {
     await savePlayerProfile(sessionState.username);
-    const { data, error } = await db.rpc("join_room_by_code", { p_code: normalizedCode });
+    const { data, error } = await db.rpc("join_room_by_code", {
+      p_code: normalizedCode,
+      p_password: String(password)
+    });
     if (error) throw error;
+    ui.joinPassword.value = "";
     await openRoom(data.room_id, normalizedCode);
     await refreshOpenRooms();
   } catch (error) {
@@ -313,20 +361,23 @@ async function joinRoom(code, button = ui.joinButton) {
 async function openRoom(roomId, inviteCode) {
   sessionState.roomId = roomId;
   sessionState.roomCode = inviteCode;
-  ui.lobby.hidden = false;
   const { data: room, error } = await db.from("rooms")
     .select("id,invite_code,host_id,max_players,status")
     .eq("id", roomId).maybeSingle();
   if (error) throw error;
-  if (!room) throw new Error("Meja tidak ditemukan atau akses sudah berakhir.");
+  if (!room) throw new Error("Room tidak ditemukan atau akses sudah berakhir.");
   sessionState.roomMeta = room;
   sessionState.roomCode = room.invite_code;
+  ui.roomHub.hidden = true;
+  ui.lobby.hidden = room.status !== "waiting";
+  ui.gameTable.hidden = room.status === "waiting";
   ui.lobbyCode.textContent = room.invite_code;
-  ui.lobbyTitle.textContent = "Meja " + room.invite_code;
-  ui.lobbySubtitle.textContent = room.status === "waiting" ? "Bagikan kode ini agar teman bisa bergabung." : "Permainan sedang berlangsung.";
-  await refreshLobby();
-  if (room.status === "in_progress" || room.status === "finished") await loadActiveGame();
-  else ui.gameTable.hidden = true;
+  ui.lobbyTitle.textContent = "Room " + room.invite_code;
+  ui.lobbySubtitle.textContent = room.status === "waiting"
+    ? "Bagikan kode dan password room kepada teman."
+    : "Permainan sedang berlangsung.";
+  if (room.status === "waiting") await refreshLobby();
+  else await loadActiveGame();
   subscribeToRoom();
 }
 
@@ -401,10 +452,14 @@ async function syncRoomState() {
     .select("id,invite_code,host_id,max_players,status").eq("id", sessionState.roomId).maybeSingle();
   if (error || !room) return;
   sessionState.roomMeta = room;
-  ui.lobbySubtitle.textContent = room.status === "waiting" ? "Bagikan kode ini agar teman bisa bergabung." : "Permainan sedang berlangsung.";
-  await refreshLobby();
-  if (room.status === "in_progress" || room.status === "finished") await loadActiveGame();
-  else ui.gameTable.hidden = true;
+  ui.lobbySubtitle.textContent = room.status === "waiting"
+    ? "Bagikan kode dan password room kepada teman."
+    : "Permainan sedang berlangsung.";
+  ui.roomHub.hidden = true;
+  ui.lobby.hidden = room.status !== "waiting";
+  ui.gameTable.hidden = room.status === "waiting";
+  if (room.status === "waiting") await refreshLobby();
+  else await loadActiveGame();
   await refreshOpenRooms();
 }
 
@@ -1155,6 +1210,7 @@ async function leaveRoom() {
     sessionState.roomId=null;sessionState.roomCode="";sessionState.roomMeta=null;
     sessionState.members=[];sessionState.gameView=null;
     ui.lobby.hidden=true;ui.gameTable.hidden=true;
+    showRoomHub();
     setConnection("Terhubung",true);
     await refreshOpenRooms();
   }catch(error){showNotice(errorMessage(error),"error");}
@@ -1162,8 +1218,15 @@ async function leaveRoom() {
 }
 
 ui.enterForm.addEventListener("submit",enterAsGuest);
+ui.showCreatePanel.addEventListener("click",openCreatePanel);
+ui.showJoinPanel.addEventListener("click",() => { openJoinPanel(); refreshOpenRooms(); });
+ui.backFromCreate.addEventListener("click",showRoomHub);
+ui.backFromJoin.addEventListener("click",showRoomHub);
 ui.createForm.addEventListener("submit",createRoom);
-ui.joinForm.addEventListener("submit",(event)=>{event.preventDefault();joinRoom(ui.joinInput.value);});
+ui.joinForm.addEventListener("submit",(event)=>{
+  event.preventDefault();
+  joinRoom(ui.joinInput.value,ui.joinPassword.value);
+});
 ui.refreshRooms.addEventListener("click",refreshOpenRooms);
 ui.readyButton.addEventListener("click",toggleReady);
 ui.startButton.addEventListener("click",startGame);
