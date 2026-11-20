@@ -2378,3 +2378,149 @@ main { max-width: 1460px; }
   .room-mode-grid { grid-template-columns: 1fr; }
   .room-mode-card { min-height: 150px; }
 }
+
+
+/* I-VEST competition identity: navy boards, black card fields and restrained gold edging. */
+:root {
+  --page:#111a3d; --paper:#f4eedc; --paper-soft:#e9e0ca; --ink:#171b2b;
+  --muted:#6f6b60; --line:#b6a16a; --green:#26356d; --green-dark:#171f4e;
+  --green-pale:#e6dfc8; --orange:#b6944e; --danger:#8c3535;
+}
+body{background:#111a3d;color:#f1e6c4}
+.topbar,footer{background:#10183d;border-color:#87713e;color:#cfc18d}
+.brand,.brand-name{color:#f1e3b7}.brand-mark{border-color:#b59b58;color:#e3cb81}
+.connection-dot{color:#d1c28d}.connection-dot i{background:#b79a54}
+.connection-dot.connected i{background:#83a47b}.player-pill{color:#efe2b7}
+.avatar{border-radius:0;background:#242f68;color:#e4cb7b;border:1px solid #9d854e}
+.welcome{color:#f1e5c5;border-color:#8c7846;background:#18214f}
+.welcome h1{color:#f1e3b8}.welcome h1 span,.welcome-copy .eyebrow{color:#cfad5f}
+.welcome-copy>p:last-child{color:#c2bb9d}
+.guest-entry{border:1px solid #b59b5b;border-radius:0;background:#080b1a;color:#f0e4c5;box-shadow:none}
+.guest-entry label{color:#d5c38c}
+.guest-entry input,.room-form input,.room-form select{border:1px solid #a28a52;border-radius:0;background:#f4eedc;color:#171b2b;box-shadow:none}
+.button,.text-button,.small-join,.icon-button{border-radius:0;box-shadow:none}
+.primary{background:#27356f;border-color:#c1a35e;color:#f5e9c5}
+.primary:hover:not(:disabled){background:#354584}
+.secondary{background:#e8dfc9;border-color:#9e8750;color:#20264b}
+.secondary:hover:not(:disabled){background:#f5eacb;border-color:#c2a35b}
+.app-notice{border-radius:0}
+.room-hub{border:1px solid #b69a59;border-radius:0;background:#1a2457;box-shadow:none;color:#f0e4c1}
+.room-hub-title h2,.room-setup-panel h2{color:#f2e3b7}
+.room-hub-title p:last-child,.room-form-copy{color:#c3bb9b}
+.room-mode-card{border:1px solid #aa9254;border-radius:0;background:#080b1a;color:#f2e4bd;box-shadow:none}
+.room-mode-card:hover{border-color:#dfc37b;background:#141d49;box-shadow:none;transform:none}
+.room-mode-card strong{color:#f1e3b8}.room-mode-card small{color:#c4ba99}
+.mode-symbol{border-radius:0;background:#252f68;border-color:#b99d5a}
+.room-setup-panel .eyebrow,.back-link{color:#d4b66c}
+.available-panel,.room-item{border:1px solid #887545;border-radius:0;background:#0c1027;color:#eadcb3}
+.available-heading h3,.room-item-details strong{color:#f0e1b6}
+.available-heading p,.room-item-details span{color:#bbb18f}
+.room-item code{color:#d0b76f}
+.small-join{border-color:#b39a5b;background:#26336b;color:#f1e4be}
+.lobby-panel{border:1px solid #b49a5a;border-radius:0;background:#080b1a;box-shadow:none}
+.lobby-panel h3,.lobby-panel h4{color:#f0dfac}
+.lobby-panel .section-subtitle,.lobby-panel p{color:#c6bb93}
+.roster-player{border-radius:0;background:#1c2759;border-color:#857344}
+.invite-code{border-radius:0}
+.phase-banner{border:1px solid #a88e50;border-left:4px solid #d0af5f;border-radius:0;background:#080b1a;color:#f1e4bf}
+.phase-banner span{color:#d6ba73}.phase-banner strong{color:#f1e4bf}.phase-banner p{color:#c2b996}
+.phase-clock strong{color:#e3cb82}
+.game-tabletop{border:2px solid #c0a15b;outline:1px solid #6d5b35;outline-offset:-7px;border-radius:0;background:#1b2556;box-shadow:none;padding:20px 16px}
+.table-felt-core{border:1px dashed #c9ad68;border-radius:0;background:#080b1a;color:#f1e5c5;box-shadow:none;padding:15px}
+.table-felt-core .board-section-heading h4{color:#ecdba9;font:600 14px Georgia,serif}
+.table-felt-core .board-section-heading span{color:#bbb18f}
+.game-player-seat{border:1px solid #b79b58;border-radius:0;background:#080b1a;color:#f1e3bd;box-shadow:none}
+.game-player-seat.is-you{background:#252f68}
+.game-player-seat.is-active-turn{border:2px solid #e2c477;outline:1px solid #806a3b;box-shadow:none}
+.seat-avatar{border-radius:0;background:#26336d;color:#ebd38e;border:1px solid #917b48}
+.seat-identity strong{color:#f0e2bb}.seat-tags,.seat-own-coins{color:#d5b96b}
+.seat-assets{border-color:#5d573f;color:#c9c09f}
+.market-unified-board{border:1px solid #b89e60;border-radius:0;background:#1b2556;padding:6px}
+.table-felt-core .market-unified-grid{min-width:670px;gap:7px;padding:2px}
+.market-unit-card{border:1px solid #c0aa70;border-radius:0;background:#eee7d6;color:#222945;box-shadow:none}
+.market-unit-heading strong{color:#222945;font:800 10px Georgia,serif}
+.market-unit-heading small,.market-unit-caption,.mf-unit-caption{color:#746745}
+.market-unit-art{background:#e0d7bf;border-color:#c5b58b;border-radius:0}
+.market-unit-art .market-board-image{max-height:105px}
+.market-unit-price{border-radius:0;background:#ded5bc}
+.market-unit-price strong{color:#25366e;font-family:Georgia,serif}
+.mutual-fund-unit-card{background:#e5ddc7;border:2px solid #b79b56}
+.mf-center-art{background:#d8cfb7}
+.phase-controls{border:1px solid #b79b58;border-radius:0;background:#121a42;color:#efe3c0;box-shadow:none}
+.phase-panel{color:#efe3c0}.phase-panel h4{color:#f0dfad;font:600 19px Georgia,serif}
+.muted-text,.turn-status{color:#c6bd9d}.game-input,input.game-input{border-radius:0}
+.action-market-section,.economy-section,.activity-log-section,.table-assets-board,
+.game-bottom-strip .wallet-section,.portfolio-details,.game-board>.final-section{
+  border:1px solid #98814b;border-radius:0;background:#11183c;color:#eee1bc;box-shadow:none
+}
+.table-felt-core .board-section-heading h4,.board-section-heading h4{color:#ecdbaa}
+.card-table-hint{color:#c4b996}
+.action-card{border:1px solid #b89d5b;border-radius:0;background:#eee7d6;color:#202747;box-shadow:none}
+.action-card.is-picked{outline:2px solid #d6b866;outline-offset:2px}
+.action-card-header,.action-card-header .action-title{color:#202747}
+.action-card-header .action-title{font-family:Georgia,serif}
+.action-hint{color:#665b42}.action-card-image{border-radius:0}
+.action-card-buttons{border-top:1px solid #bba777}
+.card-interaction,.activation-form{border:1px solid #baa162;border-radius:0;background:#11183c;color:#f0e5c5;box-shadow:none}
+.card-interaction-heading strong,.interaction-instruction,.interaction-label{color:#f0e2b8}
+.sector-choice-tile,.quickbuy-choice-card,.asset-choice-card,.acquisition-target-card{
+  border:1px solid #b69b5e;border-radius:0;background:#eee7d6;color:#1f284c;box-shadow:none
+}
+.sector-choice-tile.is-selected,.quickbuy-choice-card.is-selected,.asset-choice-card.is-selected,.acquisition-target-card.is-selected{
+  border:2px solid #d5b568;background:#e4d6ad;box-shadow:none
+}
+.sector-choice-meta strong,.quickbuy-choice-card strong,.asset-choice-card strong,.acquisition-target-card strong{color:#20294f}
+.sector-choice-meta small,.quickbuy-choice-card small,.asset-choice-card small,.acquisition-target-card small{color:#706344}
+.quantity-stepper,.stepper-button{border-radius:0}
+.stepper-button{border:1px solid #a88d52;background:#eee4c9;color:#20294f}
+.sale-preview,.trading-fee-equation{color:#f2e2b5;border-color:#937c48}
+.rumor-mode-tab,.rumor-direction,.rumor-selection-list span{border-radius:0}
+.rumor-mode-tab,.rumor-direction{border:1px solid #b79b5a;background:#ece4d0;color:#242b50}
+.rumor-mode-tab.is-selected{background:#d9c58f;border-color:#e0c579}
+.table-player-assets{border:1px solid #a48d54;border-left:3px solid #d2b56d;border-radius:0;background:#090d22}
+.table-player-assets.is-active-player{background:#1e2859;border-left-color:#e0c477}
+.table-player-assets-heading strong{color:#f0e3c1}
+.table-player-order{border-radius:0;background:#29346d;color:#ead28b}
+.ownership-stack-title{color:#e7d7a8}
+.stock-unit-card{border-radius:0;box-shadow:none}
+.activity-feed{color:#e9dfbd}.activity-feed p,.activity-empty{color:#c2b894}
+.table-event-spotlight{border:1px solid #b69b5c;border-radius:0;background:#11183c;color:#f1e3bd;box-shadow:none}
+.spotlight-heading{color:#f0dfad}.spotlight-message,.spotlight-time{color:#c5ba94}
+.economy-card,.score-card{border:1px solid #b69b5b;border-radius:0;background:#eee7d6;color:#222849;box-shadow:none}
+.economy-card strong,.score-card strong{color:#232a4f}.economy-effect{color:#685a38}
+.player-assets{border-color:#938052}
+.player-assets span,.player-assets small{color:#c2b894}.player-assets strong{color:#ebd58f}
+.game-bottom-strip .wallet-section h4,.portfolio-details summary{color:#ecdba9}
+.game-bottom-strip .wallet-section .board-section-heading span,.portfolio-details summary span{color:#c5b58a}
+.portfolio-details .portfolio-table th{background:#272f66;color:#eddfb6}
+.portfolio-details .portfolio-table td{border-color:#4d5270;color:#e6ddbf}
+.portfolio-details .portfolio-table tbody tr.portfolio-active-player{background:#333b70}
+.game-board>.game-note{color:#c9c09f}
+.order-draw-panel{border:0;background:transparent}
+.order-draw-progress{display:flex;align-items:center;justify-content:space-between;gap:15px;color:#eadba9;font-size:10px}
+.order-progress-track{display:block;flex:1;height:5px;background:#3b4164;border:1px solid #8b7848}
+.order-progress-fill{display:block;height:100%;background:#d0b365;transition:width .25s ease}
+.order-draw-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(108px,1fr));gap:13px;margin-top:13px}
+.order-draw-card{position:relative;display:grid;justify-items:center;align-content:center;gap:7px;min-height:165px;padding:9px;border:1px solid #b79b59;border-radius:0;background:#090d22;color:#eddfb7;cursor:pointer;box-shadow:none}
+.order-draw-card.is-face-down:hover:not(:disabled){border:2px solid #e3c77c;transform:translateY(-3px)}
+.order-draw-card:disabled{opacity:.7;cursor:default}
+.order-card-back{display:block;width:100%;max-width:104px;height:127px;object-fit:contain}
+.order-draw-card.is-revealed{background:#f1e8d4;color:#21294e}
+.order-card-caption{color:#806c3c;font-size:8px;letter-spacing:.16em;font-weight:800}
+.order-card-number{color:#202b69;font:700 52px Georgia,serif;line-height:1}
+.order-card-owner{color:#6d6249;font-size:9px}
+.order-card-pick-label{color:#e4cf8b;font:600 11px Georgia,serif}
+.order-draw-card.is-mine{outline:2px solid #d6b96c;outline-offset:2px}
+.order-draw-waiting{margin-bottom:0;color:#c6ba96;font-size:10px}
+@media(max-width:760px){
+  .game-tabletop{display:flex;flex-direction:column;padding:11px}
+  .game-player-seats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+  .game-player-seat.seat-bottom,.game-player-seat.seat-top,.game-player-seat.seat-left,.game-player-seat.seat-right,
+  .game-player-seat.seat-top-left,.game-player-seat.seat-top-right{grid-column:auto;grid-row:auto;max-width:none;width:auto}
+  .table-felt-core{width:100%}.game-bottom-strip{grid-template-columns:1fr}
+  .order-draw-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(prefers-reduced-motion:reduce){
+  .order-progress-fill{transition:none}
+  .order-draw-card.is-face-down:hover:not(:disabled){transform:none}
+}
