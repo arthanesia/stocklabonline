@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#f4f2ec">
   <meta name="description" content="StockLab Online — buat meja dan main bersama teman.">
   <title>StockLab Online</title>
-  <link rel="stylesheet" href="style.css?v=20261120-gameplay">
+  <link rel="stylesheet" href="style.css?v=20261120-cards">
 </head>
 <body>
   <header class="topbar">
@@ -134,6 +134,7 @@
               <p class="eyebrow">MEJA PERMAINAN</p>
               <h3>StockLab</h3>
               <p class="section-subtitle" id="game-subtitle">Permainan dimulai.</p>
+              <a class="tutorial-link" href="https://www.youtube.com/watch?v=0bd47voPuUs" target="_blank" rel="noopener noreferrer">▶ Lihat tutorial cara bermain StockLab</a>
             </div>
             <div class="round-label"><span>RONDE</span><strong id="game-round">01</strong></div>
           </div>
@@ -148,8 +149,16 @@
 
           <div class="game-overview">
             <div class="board-section market-section">
-              <div class="board-section-heading"><h4>Harga saham</h4><span>Harga per lembar</span></div>
+              <div class="board-section-heading"><h4>Papan saham & tumpukan ekonomi</h4><span>Gunakan visual kartu sektor</span></div>
               <div class="market-grid" id="market-grid"></div>
+              <div class="mutual-fund-board" id="mutual-fund-board">
+                <img src="./assets/cards/boards/papan-reksa-dana.webp" alt="Papan Reksa Dana StockLab" loading="lazy" decoding="async">
+                <div class="mutual-fund-copy">
+                  <span>REKSA DANA</span>
+                  <strong id="mutual-fund-price">—</strong>
+                  <small>Nilai unit saat ini</small>
+                </div>
+              </div>
             </div>
             <div class="board-section wallet-section">
               <div class="board-section-heading"><h4>Aset kamu</h4><span id="own-debt">Tanpa utang</span></div>
@@ -185,7 +194,8 @@
 
           <section class="board-section" id="action-market-section" hidden>
             <div class="board-section-heading"><h4>Kartu aksi di meja</h4><span id="action-market-count"></span></div>
-            <div id="action-market" class="action-market"></div>
+            <p class="card-table-hint">Pilih kartu bergambar. Simpan untuk menambah saham, atau aktifkan untuk menjalankan efeknya.</p>
+            <div id="action-market" class="action-market" aria-live="polite"></div>
           </section>
 
           <section class="board-section economy-section" id="economy-section" hidden>
@@ -211,6 +221,6 @@
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.2/dist/umd/supabase.js"></script>
-  <script src="app.js?v=20261120-gameplay"></script>
+  <script src="app.js?v=20261120-cards"></script>
 </body>
 </html>
