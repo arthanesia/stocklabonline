@@ -30,7 +30,7 @@ Website memakai **56 gambar WebP yang diekstrak dari paket aset StockLab yang di
 
 Repository menyimpan paket `stocklab-assets-upload.zip` di root. Workflow `.github/workflows/deploy-pages.yml` mengekstrak 56 gambar ke folder hasil build sebelum mengunggah artefak GitHub Pages.
 
-**Satu kali pengaturan repository:** buka Settings → Pages → Build and deployment → Source, lalu pilih **GitHub Actions**. Ini diperlukan agar workflow `actions/deploy-pages` dapat menerbitkan hasil ekstraksi aset. Petunjuk resmi GitHub: https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site
+Workflow GitHub Actions sudah berhasil membangun dan menerbitkan halaman dari artefak hasil ekstraksi. Pada build terverifikasi, 56 file WebP ikut masuk ke artefak `github-pages`; tidak perlu mengekstrak ZIP secara manual. Dokumentasi alur deploy: https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages
 
 Panduan tata cara permainan yang dijadikan referensi: [Tutorial Bermain StockLab — KSPM FEB ULM](https://www.youtube.com/watch?v=0bd47voPuUs). UI mengikuti alur empat fase Bidding → Aksi → Jual → Ekonomi, dengan presentasi meja kartu digital.
 
