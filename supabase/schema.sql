@@ -513,7 +513,7 @@ create table public.bidding_submissions (
   primary key (game_id, round_number, user_id)
 );
 comment on table public.bidding_submissions is
-  'Sealed per-player bids by round. RLS exposes only the caller\'s own bid; do not add this table to supabase_realtime.';
+  'Sealed per-player bids by round. RLS exposes only the caller''s own bid; do not add this table to supabase_realtime.';
 alter table public.bidding_submissions enable row level security;
 create policy bidding_submissions_select_own on public.bidding_submissions
 for select to authenticated
