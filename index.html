@@ -30,7 +30,6 @@
         <h1>Susun strategi.<br><span>Kelola portofolio.</span></h1>
         <p>Masuk dengan username, buat meja, lalu undang teman. Tidak perlu email atau password.</p>
       </div>
-
       <div class="guest-entry" id="guest-entry">
         <form id="enter-form">
           <label for="username-input">Nama pemain</label>
@@ -114,13 +113,11 @@
               <button id="copy-code-button" type="button">Salin kode</button>
             </div>
           </div>
-
           <div class="roster-heading">
             <h4>Pemain</h4>
             <span id="lobby-count">0 / 5</span>
           </div>
           <div id="player-roster" class="player-roster" aria-live="polite"></div>
-
           <div class="lobby-footer">
             <p id="lobby-hint">Menunggu pemain bergabung.</p>
             <div class="lobby-actions">
@@ -149,20 +146,53 @@
             <p id="game-phase-description">Penentuan urutan bermain.</p>
           </div>
 
-          <div class="board-section">
-            <div class="board-section-heading"><h4>Harga saham</h4><span>Harga awal</span></div>
-            <div class="market-grid" id="market-grid"></div>
+          <div class="game-overview">
+            <div class="board-section market-section">
+              <div class="board-section-heading"><h4>Harga saham</h4><span>Harga per lembar</span></div>
+              <div class="market-grid" id="market-grid"></div>
+            </div>
+            <div class="board-section wallet-section">
+              <div class="board-section-heading"><h4>Aset kamu</h4><span id="own-debt">Tanpa utang</span></div>
+              <div class="player-assets" id="player-assets">
+                <div><span>Uang</span><strong id="own-coins">15</strong><small>koin</small></div>
+                <div><span>Saham</span><strong id="own-shares">0</strong><small>lembar</small></div>
+              </div>
+              <button class="button secondary debt-button" id="debt-button" type="button" hidden>Ambil kartu utang (+10 koin)</button>
+              <div class="private-peek" id="private-peek" hidden></div>
+            </div>
           </div>
 
           <div class="board-section">
-            <div class="board-section-heading"><h4>Pemain di meja</h4><span id="game-player-count"></span></div>
-            <div class="game-players" id="game-players"></div>
+            <div class="board-section-heading"><h4>Portofolio pemain</h4><span id="game-player-count"></span></div>
+            <div class="portfolio-wrap">
+              <table class="portfolio-table">
+                <thead>
+                  <tr><th>Pemain</th><th>Keuangan</th><th>Konsumer</th><th>Agrikultur</th><th>Tambang</th><th>Reksa Dana</th></tr>
+                </thead>
+                <tbody id="game-players"></tbody>
+              </table>
+            </div>
           </div>
 
-          <div class="player-assets" id="player-assets">
-            <div><span>Modal kamu</span><strong id="own-coins">15</strong><small>koin</small></div>
-            <div><span>Portofolio saham</span><strong id="own-shares">0</strong><small>lembar</small></div>
-          </div>
+          <section class="phase-controls" id="phase-controls" aria-live="polite">
+            <div class="empty-state">Memuat fase permainan…</div>
+          </section>
+
+          <section class="board-section" id="action-market-section" hidden>
+            <div class="board-section-heading"><h4>Kartu aksi di meja</h4><span id="action-market-count"></span></div>
+            <div id="action-market" class="action-market"></div>
+          </section>
+
+          <section class="board-section economy-section" id="economy-section" hidden>
+            <div class="board-section-heading"><h4>Kartu ekonomi terakhir</h4><span>Terbuka untuk semua pemain</span></div>
+            <div id="economy-reveal" class="economy-reveal"></div>
+          </section>
+
+          <section class="board-section final-section" id="final-section" hidden>
+            <div class="board-section-heading"><h4>Hasil akhir</h4><span>Peringkat berdasarkan total aset</span></div>
+            <div id="final-scores" class="final-scores"></div>
+          </section>
+
           <p class="game-note" id="game-note"></p>
         </section>
       </div>
