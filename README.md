@@ -1,26 +1,26 @@
 # StockLab Online
 
-Permainan StockLab multiplayer berbasis browser. Pemain masuk dengan username tamu, membuat meja, lalu bermain bersama 2–5 orang.
+Permainan StockLab multiplayer berbasis browser. Pemain masuk dengan username tamu, membuat meja, lalu bermain bersama 3–5 orang.
 
 ## Yang tersedia
 
 - Masuk sebagai pemain tamu tanpa formulir email/password.
-- Buat room 2–5 pemain dengan password, lalu bagikan kode room dan password ke teman.
+- Buat room 3–5 pemain dengan password, lalu bagikan kode room dan password ke teman.
 - Join room dengan memasukkan kode dan password, atau memilih room yang sedang menunggu dari daftar.
 - Lobby realtime dengan kode room, daftar pemain, status siap, dan kontrol mulai khusus host.
 - Meja pertandingan dengan posisi pemain mengelilingi area papan; posisi disusun relatif ke pemain yang sedang melihat.
 - Reksa Dana berada di tengah papan secara vertikal. Dua sektor pengaruh dipilih acak setiap game; harga unit adalah rata-rata harga dua sektor tersebut.
-- Trading Fee kartu saham sektor mengenakan 1 koin untuk setiap saham sektor biasa yang dimiliki (tidak hanya saham yang sama dengan sektor kartu). Kartu Trading Fee keluarga Reksa Dana mengenakan 1 koin per unit Reksa Dana.
+- Trading Fee dihitung dari jumlah unit pada sektor yang tercetak di kartu. Jika kartu Trading Fee disimpan, kartu itu ikut dihitung sebagai satu unit tambahan sebelum pajak dipotong dari saldo.
 - Password room di-hash menggunakan bcrypt dan disimpan di schema privat; password asli tidak disimpan atau ditampilkan melalui daftar room.
 - Host dapat mengatur waktu bidding, waktu tiap giliran, dan batas room tidak aktif sebelum memulai permainan.
 - Bidding yang habis waktu menganggap pemain yang belum menawar memasukkan 0; giliran aksi otomatis menyimpan kartu teratas; giliran jual otomatis dilewati; fase ekonomi dibuka otomatis.
 - Room yang tidak menerima aktivitas manusia akan dibubarkan. Batas tidak aktif dapat diatur host; pemeriksaan berjalan setiap menit.
 - Jika host keluar dari lobby atau pertandingan, host berpindah ke pemain berikutnya. Jika pemain tersisa kurang dari dua saat pertandingan aktif, room dibubarkan.
 - Enam ronde permainan: Bidding, Aksi/Draft, Jual, dan Ekonomi.
-- Bidding tertutup: pemain hanya melihat status bid miliknya sampai seluruh pemain mengirim.
+- Sebelum bidding, setiap pemain memilih satu kartu urutan tertutup. Nomor langsung terbuka untuk semua pemain dan menentukan tie-break saat nilai bidding sama. Bidding tertutup: pemain hanya melihat status bid miliknya sampai seluruh pemain mengirim.
 - Kartu aksi: Info Bursa, Rumor, Quickbuy, Trading Fee, dan Akuisisi.
 - Kartu aksi dapat disimpan sebagai saham atau unit Reksa Dana sesuai keluarga kartu yang diambil.
-- Fase jual mendukung saham sektor maupun Reksa Dana.
+- Fase jual biasa hanya menjual saham sektor; Reksa Dana hanya dapat dijual pada akhir permainan.
 - Fase ekonomi membuka satu kartu dari setiap sektor, menjalankan perubahan harga serta efek khusus.
 - Stock Crash, Stock Split, token split, kartu utang, nilai Reksa Dana, dan penghitungan skor akhir.
 - Hasil pertandingan disimpan; pemain dapat kembali ke lobi setelah permainan selesai.
