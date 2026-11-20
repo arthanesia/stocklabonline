@@ -479,8 +479,19 @@ function renderEconomyLast(state) {
     card.append(title, subtitle, body);
     const effects = Array.isArray(item.effects) ? item.effects : [];
     for (const effect of effects) {
-      card.append(makeElement("small", "economy-effect", sectorName(effect.sector) + ": " +
-        effect.old_price + " → " + effect.new_price + (effect.outcome !== "normal" ? " · " + effect.outcome.replace("_"," ") : "")));
+      const parts = [];
+      const hasPriceChange = Number.isFinite(Number(effect.old_price)) &&
+        Number.isFinite(Number(effect.new_price));
+      if (hasPriceChange) {
+        parts.push(sectorName(effect.sector) + ": " + effect.old_price + " → " + effect.new_price);
+      } else if (effect.sector) {
+        parts.push(sectorName(effect.sector));
+      }
+      if (effect.outcome && effect.outcome !== "normal") {
+        parts.push(String(effect.outcome).replaceAll("_", " "));
+      }
+      if (effect.message) parts.push(effect.message);
+      if (parts.length) card.append(makeElement("small", "economy-effect", parts.join(" · ")));
     }
     ui.economyReveal.append(card);
   }
@@ -921,6 +932,20 @@ function openActivationForm(card, cardElement, own) {
   const confirm = makeElement("button", "button primary", "Konfirmasi aktivasi");
   confirm.type = "submit";
   confirm.disabled = !isChoiceValid;
+  if (card.action === "trading-fee") {
+    const fee = Number(own && own.shares && own.shares[card.sector] || 0);
+    const coins = Number(sessionState.gameView && sessionState.gameView.my_private_state &&
+      sessionState.gameView.my_private_state.coins || 0);
+    if (coins < fee) confirm.disabled = true;
+  }
+  if (card.action === "acquisition") {
+    const sectorSelect = form.querySelector("select");
+    if (sectorSelect && card.sector === "mutual_fund") {
+      sectorSelect.addEventListener("change", () => {
+        window.setTimeout(() => { confirm.disabled = !isChoiceValid; }, 0);
+      });
+    }
+  }
   buttons.append(cancel, confirm);
   form.append(buttons);
 
