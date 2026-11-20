@@ -146,14 +146,15 @@ using (
 );
 
 grant usage on schema public to authenticated;
+revoke all privileges on all tables in schema public from public, anon, authenticated;
+revoke all privileges on all sequences in schema public from public, anon, authenticated;
 grant select, insert, update on public.profiles to authenticated;
 grant select, insert, update, delete on public.rooms to authenticated;
 grant select, insert on public.room_members to authenticated;
 grant update (is_ready) on public.room_members to authenticated;
 grant select on public.games, public.game_events to authenticated;
-grant usage, select on sequence public.game_events_id_seq to authenticated;
 
-create or replace function public.join_room_by_code(p_code text)
+create or replace function private.join_room_by_code_impl(p_code text)
 returns jsonb
 language plpgsql
 security definer
@@ -221,6 +222,19 @@ begin
   return jsonb_build_object('room_id', v_room.id, 'seat_no', v_seat, 'member_count', v_count + 1);
 end;
 $$;
+revoke all on function private.join_room_by_code_impl(text) from public, anon;
+grant execute on function private.join_room_by_code_impl(text) to authenticated;
+
+create or replace function public.join_room_by_code(p_code text)
+returns jsonb
+language sql
+security invoker
+set search_path = pg_catalog, public, private, auth
+as $$
+  select private.join_room_by_code_impl(p_code);
+$$;
+revoke all on function public.join_room_by_code(text) from public, anon;
+grant execute on function public.join_room_by_code(text) to authenticated;
 
 create or replace function public.get_room_lobby(p_room_id uuid)
 returns jsonb
