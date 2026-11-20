@@ -726,7 +726,14 @@ function describeActivityEvent(event, players) {
     return (event.actor_name || "Pemain") + " membuka kartu urutan nomor " + (p.order_no || "—") + ".";
   }
   if (event.event_type === "action_card_used") {
-    if (p.mode === "keep") return actor + " menyimpan 1 kartu saham " + sectorName(p.sector) + ".";
+    if (p.mode === "keep") {
+      if (p.action === "trading-fee") {
+        return actor + " menyimpan kartu Trading Fee " + sectorName(p.sector) +
+          " dan membayar pajak " + Number(p.fee_paid || 0) + " koin atas " +
+          Number(p.fee_units || 0) + " unit sektor tersebut.";
+      }
+      return actor + " menyimpan 1 kartu saham " + sectorName(p.sector) + ".";
+    }
     if (p.action === "quickbuy") {
       const taken = (Array.isArray(p.quickbuy_cards) ? p.quickbuy_cards : [])
         .map((item) => sectorName(item.sector)).join(" dan ");
