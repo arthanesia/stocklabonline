@@ -718,14 +718,14 @@ function renderActivityFeed(events, players) {
       if (p.action === "quickbuy") {
         const taken = (Array.isArray(p.quickbuy_cards) ? p.quickbuy_cards : [])
           .map((item) => sectorName(item.sector)).join(" dan ");
-        return actor + " mengaktifkan Quickbuy dan mengambil " + (taken || "2 kartu saham") + ".";
+        return actor + " mengaktifkan Quickbuy: mendapat saham " + (taken || "dari 2 kartu pilihan") + " dari kartu yang dipilih.";
       }
       if (p.action === "trading-fee") {
         const sale = Number(p.sell_quantity || 0) + " " + sectorName(p.sell_sector);
         const proceeds = Number(p.sale_proceeds || 0);
         return actor + " membayar " + Number(p.fee_paid || 0) +
-          " koin Trading Fee karena memiliki " + Number(p.fee_units || 0) +
-          " saham/unit, lalu menjual " + sale + " dan menerima " + proceeds + " koin.";
+          " koin Trading Fee karena memiliki total " + Number(p.fee_units || 0) +
+          " saham sektor, lalu menjual " + sale + " dan menerima " + proceeds + " koin.";
       }
       if (p.action === "acquisition") {
         const target = p.target_display_name || playerName(p.target_user_id);
