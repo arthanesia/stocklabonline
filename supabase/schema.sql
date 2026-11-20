@@ -689,3 +689,144 @@ COMMENT ON TABLE public.game_events IS
   'Internal audit/event log. Not exposed to anon/authenticated clients or Realtime until event payloads are explicitly sanitized.';
 
 COMMIT;
+
+
+-- Start a waiting room atomically and create the shared board + per-player private wallets.
+CREATE OR REPLACE FUNCTION private.start_game_impl(p_room_id uuid)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $function$
+DECLARE
+  v_user_id uuid := auth.uid();
+  v_room public.rooms%rowtype;
+  v_player_count integer;
+  v_players jsonb;
+  v_state jsonb;
+  v_game_id uuid;
+BEGIN
+  IF v_user_id IS NULL THEN
+    RAISE EXCEPTION 'Authentication required' USING errcode = '28000';
+  END IF;
+
+  SELECT * INTO v_room
+  FROM public.rooms
+  WHERE id = p_room_id
+  FOR UPDATE;
+
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'Room not found' USING errcode = 'P0002';
+  END IF;
+  IF v_room.host_id <> v_user_id THEN
+    RAISE EXCEPTION 'Only the host can start this game' USING errcode = '42501';
+  END IF;
+  IF v_room.status <> 'waiting' THEN
+    RAISE EXCEPTION 'This room is no longer waiting' USING errcode = '55000';
+  END IF;
+
+  SELECT count(*)::integer INTO v_player_count
+  FROM public.room_members
+  WHERE room_id = p_room_id;
+
+  IF v_player_count < 2 THEN
+    RAISE EXCEPTION 'At least two players are required' USING errcode = '22023';
+  END IF;
+  IF EXISTS (
+    SELECT 1 FROM public.room_members
+    WHERE room_id = p_room_id AND is_ready IS NOT TRUE
+  ) THEN
+    RAISE EXCEPTION 'All players in the room must be ready' USING errcode = '55000';
+  END IF;
+
+  SELECT coalesce(
+    jsonb_agg(
+      jsonb_build_object(
+        'user_id', rm.user_id,
+        'display_name', coalesce(nullif(btrim(p.display_name), ''), 'Pemain'),
+        'seat_no', rm.seat_no,
+        'is_host', rm.user_id = v_room.host_id
+      ) ORDER BY rm.seat_no
+    ),
+    '[]'::jsonb
+  )
+  INTO v_players
+  FROM public.room_members rm
+  LEFT JOIN public.profiles p ON p.id = rm.user_id
+  WHERE rm.room_id = p_room_id;
+
+  v_state := jsonb_build_object(
+    'schema_version', 1,
+    'round', 1,
+    'phase', 'bidding',
+    'phase_status', 'awaiting_bids',
+    'players', v_players,
+    'market', jsonb_build_object(
+      'finance', 5,
+      'consumer', 5,
+      'agriculture', 5,
+      'mining', 5
+    ),
+    'auction_card_count', v_player_count * 2,
+    'started_at', now()
+  );
+
+  INSERT INTO public.games (
+    room_id, current_round, phase, active_user_id, state, version
+  )
+  VALUES (
+    p_room_id, 1, 'bidding', NULL, v_state, 1
+  )
+  RETURNING id INTO v_game_id;
+
+  INSERT INTO public.game_private_states (game_id, user_id, private_state)
+  SELECT
+    v_game_id,
+    rm.user_id,
+    jsonb_build_object(
+      'coins', 15,
+      'shares', jsonb_build_object(
+        'finance', 0, 'consumer', 0, 'agriculture', 0,
+        'mining', 0, 'mutual_fund', 0
+      ),
+      'debt', 0,
+      'hand', '[]'::jsonb
+    )
+  FROM public.room_members rm
+  WHERE rm.room_id = p_room_id;
+
+  UPDATE public.rooms
+  SET status = 'in_progress', updated_at = now()
+  WHERE id = p_room_id;
+
+  INSERT INTO public.game_events (game_id, actor_id, event_type, payload)
+  VALUES (
+    v_game_id, v_user_id, 'game_started',
+    jsonb_build_object('room_id', p_room_id, 'player_count', v_player_count)
+  );
+
+  RETURN jsonb_build_object(
+    'game_id', v_game_id,
+    'room_id', p_room_id,
+    'phase', 'bidding',
+    'round', 1,
+    'player_count', v_player_count,
+    'auction_card_count', v_player_count * 2
+  );
+END;
+$function$;
+
+CREATE OR REPLACE FUNCTION public.start_game(p_room_id uuid)
+RETURNS jsonb
+LANGUAGE sql
+SECURITY INVOKER
+SET search_path = ''
+AS $function$
+  SELECT private.start_game_impl(p_room_id);
+$function$;
+
+REVOKE ALL ON FUNCTION private.start_game_impl(uuid) FROM PUBLIC, anon;
+GRANT USAGE ON SCHEMA private TO authenticated;
+GRANT EXECUTE ON FUNCTION private.start_game_impl(uuid) TO authenticated;
+REVOKE ALL ON FUNCTION public.start_game(uuid) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.start_game(uuid) TO authenticated;
