@@ -13,7 +13,6 @@ fetch("assets/manifest.json")
     assets = Array.isArray(data.assets) ? data.assets : [];
     document.querySelector("#total-assets").textContent = assets.length || 0;
     render();
-    checkMissingImages();
   })
   .catch((error) => {
     gallery.innerHTML = '<div class="empty">Katalog belum dapat dimuat. Pastikan assets/manifest.json sudah ada.</div>';
@@ -34,6 +33,7 @@ function render() {
 
   if (!list.length) {
     gallery.innerHTML = '<div class="empty">Tidak ada aset yang cocok dengan pencarian.</div>';
+    checkMissingImages();
     return;
   }
 
@@ -46,7 +46,7 @@ function render() {
       <article class="asset-card">
         <div class="asset-art">
           <img src="${path}" alt="${title}" loading="lazy"
-            onerror="this.remove();this.parentElement.classList.add('missing');this.parentElement.insertAdjacentHTML('afterbegin','<div class=&quot;asset-placeholder&quot;><b>${initial}</b><span>${title}</span></div>')">
+            onerror="this.remove();this.parentElement.classList.add('missing');this.parentElement.insertAdjacentHTML('afterbegin','<div class=&quot;asset-placeholder&quot;><b>${initial}</b><span>${title}</span></div>');checkMissingImages()">
         </div>
         <div class="asset-meta">
           <span class="asset-kind">${escapeHtml(asset.category || "Aset")} · ${group}</span>
@@ -61,12 +61,11 @@ function render() {
 
 function checkMissingImages() {
   const expected = assets.length;
-  const loaded = gallery.querySelectorAll(".asset-art img").length;
   const hasFallback = gallery.querySelectorAll(".asset-art.missing").length;
   const placeholders = gallery.querySelectorAll(".asset-placeholder").length;
   if (expected && (hasFallback > 0 || placeholders > 0)) {
     notice.hidden = false;
-    notice.textContent = "Metadata katalog sudah tersedia. Sebagian/seluruh foto kartu belum diunggah ke assets/cards/. Unggah folder cards dari paket aset agar gambar asli tampil.";
+    notice.textContent = "Metadata katalog sudah tersedia. Sebagian/seluruh foto kartu belum diunggah ke assets/cards/. Unggah paket stocklab-assets-upload.zip ke root repository agar gambar asli ikut diterbitkan.";
   } else {
     notice.hidden = true;
   }
