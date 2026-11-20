@@ -2,24 +2,60 @@ const gallery = document.querySelector("#gallery");
 const search = document.querySelector("#search");
 const filter = document.querySelector("#filter");
 const notice = document.querySelector("#asset-notice");
-let assets = [];
 
-fetch("assets/manifest.json")
-  .then((response) => {
-    if (!response.ok) throw new Error("Manifest belum tersedia.");
-    return response.json();
-  })
-  .then((data) => {
-    assets = Array.isArray(data.assets) ? data.assets : [];
-    document.querySelector("#total-assets").textContent = assets.length || 0;
+let assets = [];
+let imageUrls = new Map();
+let archiveStatus = "loading";
+let archiveError = "";
+let failedImages = 0;
+
+async function initializeCatalog() {
+  try {
+    const response = await fetch("assets/manifest.json");
+    if (!response.ok) throw new Error("Manifest katalog tidak dapat dimuat.");
+    const manifest = await response.json();
+    assets = Array.isArray(manifest.assets) ? manifest.assets : [];
+    document.querySelector("#total-assets").textContent = String(assets.length);
+
+    updateNotice();
+    await loadOriginalAssetArchive();
     render();
-  })
-  .catch((error) => {
-    gallery.innerHTML = '<div class="empty">Katalog belum dapat dimuat. Pastikan assets/manifest.json sudah ada.</div>';
-    notice.hidden = false;
-    notice.textContent = error.message;
+  } catch (error) {
+    archiveStatus = "failed";
+    archiveError = error instanceof Error ? error.message : "Terjadi kesalahan saat memuat katalog.";
+    render();
+    updateNotice();
     console.error(error);
-  });
+  }
+}
+
+async function loadOriginalAssetArchive() {
+  if (!window.JSZip) {
+    throw new Error("Library pembaca arsip tidak tersedia. Periksa koneksi internet lalu muat ulang halaman.");
+  }
+
+  const response = await fetch("stocklab-assets-upload.zip", { cache: "force-cache" });
+  if (!response.ok) {
+    throw new Error("Arsip foto kartu belum tersedia di hosting (HTTP " + response.status + ").");
+  }
+
+  const archive = await window.JSZip.loadAsync(await response.arrayBuffer());
+  const files = await Promise.all(assets.map(async (asset) => {
+    const entry = archive.file(asset.path);
+    if (!entry) return null;
+    const blob = await entry.async("blob");
+    return [asset.path, URL.createObjectURL(blob)];
+  }));
+
+  imageUrls = new Map(files.filter(Boolean));
+  const missing = assets.filter((asset) => !imageUrls.has(asset.path));
+  if (missing.length) {
+    throw new Error("Arsip berhasil dibaca, tetapi " + missing.length + " gambar tidak ditemukan.");
+  }
+
+  archiveStatus = "ready";
+  archiveError = "";
+}
 
 function render() {
   const query = search.value.trim().toLowerCase();
@@ -31,49 +67,96 @@ function render() {
     return matchesCategory && searchable.includes(query);
   });
 
+  failedImages = 0;
+  gallery.replaceChildren();
+
   if (!list.length) {
-    gallery.innerHTML = '<div class="empty">Tidak ada aset yang cocok dengan pencarian.</div>';
-    checkMissingImages();
+    const empty = document.createElement("div");
+    empty.className = "empty";
+    empty.textContent = "Tidak ada aset yang cocok dengan pencarian.";
+    gallery.append(empty);
+    updateNotice();
     return;
   }
 
-  gallery.innerHTML = list.map((asset) => {
-    const title = escapeHtml(asset.title || "Aset StockLab");
-    const group = escapeHtml(asset.group || asset.category || "Komponen");
-    const path = escapeHtml(asset.path || "");
-    const initial = escapeHtml((asset.title || "S").slice(0, 1).toUpperCase());
-    return `
-      <article class="asset-card">
-        <div class="asset-art">
-          <img src="${path}" alt="${title}" loading="lazy"
-            onerror="this.remove();this.parentElement.classList.add('missing');this.parentElement.insertAdjacentHTML('afterbegin','<div class=&quot;asset-placeholder&quot;><b>${initial}</b><span>${title}</span></div>');checkMissingImages()">
-        </div>
-        <div class="asset-meta">
-          <span class="asset-kind">${escapeHtml(asset.category || "Aset")} · ${group}</span>
-          <h3>${title}</h3>
-          <p>Halaman sumber ${Number(asset.page) || "-"}</p>
-          <div class="asset-page">SOURCE PDF · PAGE ${String(asset.page || "-").padStart(2, "0")}</div>
-        </div>
-      </article>`;
-  }).join("");
-  checkMissingImages();
+  for (const asset of list) {
+    const card = document.createElement("article");
+    card.className = "asset-card";
+
+    const art = document.createElement("div");
+    art.className = "asset-art";
+
+    const img = document.createElement("img");
+    img.src = imageUrls.get(asset.path) || asset.path;
+    img.alt = asset.title || "Aset StockLab";
+    img.loading = "lazy";
+    img.addEventListener("error", () => showImageFallback(art, asset, img), { once: true });
+    art.append(img);
+
+    const meta = document.createElement("div");
+    meta.className = "asset-meta";
+
+    const kind = document.createElement("span");
+    kind.className = "asset-kind";
+    kind.textContent = (asset.category || "Aset") + " · " + (asset.group || "Komponen");
+
+    const title = document.createElement("h3");
+    title.textContent = asset.title || "Aset StockLab";
+
+    const page = document.createElement("p");
+    page.textContent = "Halaman sumber " + (Number(asset.page) || "-");
+
+    const source = document.createElement("div");
+    source.className = "asset-page";
+    source.textContent = "SOURCE PDF · PAGE " + String(asset.page || "-").padStart(2, "0");
+
+    meta.append(kind, title, page, source);
+    card.append(art, meta);
+    gallery.append(card);
+  }
+
+  updateNotice();
 }
 
-function checkMissingImages() {
-  const expected = assets.length;
-  const hasFallback = gallery.querySelectorAll(".asset-art.missing").length;
-  const placeholders = gallery.querySelectorAll(".asset-placeholder").length;
-  if (expected && (hasFallback > 0 || placeholders > 0)) {
+function showImageFallback(container, asset, img) {
+  if (img.parentElement !== container) return;
+  img.remove();
+  container.classList.add("missing");
+
+  const fallback = document.createElement("div");
+  fallback.className = "asset-placeholder";
+
+  const initial = document.createElement("b");
+  initial.textContent = (asset.title || "S").slice(0, 1).toUpperCase();
+
+  const title = document.createElement("span");
+  title.textContent = asset.title || "Aset StockLab";
+
+  fallback.append(initial, title);
+  container.append(fallback);
+  failedImages += 1;
+  updateNotice();
+}
+
+function updateNotice() {
+  if (archiveStatus === "loading") {
     notice.hidden = false;
-    notice.textContent = "Metadata katalog sudah tersedia. Sebagian/seluruh foto kartu belum diunggah ke assets/cards/. Unggah paket stocklab-assets-upload.zip ke root repository agar gambar asli ikut diterbitkan.";
-  } else {
-    notice.hidden = true;
+    notice.textContent = "Memuat arsip foto asli StockLab. Pada kunjungan pertama, browser perlu mengunduh arsip sekitar 24,6 MB.";
+    return;
   }
+  if (archiveStatus === "failed") {
+    notice.hidden = false;
+    notice.textContent = archiveError || "Foto asli belum dapat dimuat. Metadata katalog tetap tersedia.";
+    return;
+  }
+  if (failedImages > 0) {
+    notice.hidden = false;
+    notice.textContent = failedImages + " gambar tidak berhasil ditampilkan. Muat ulang halaman atau periksa koneksi.";
+    return;
+  }
+  notice.hidden = true;
 }
-function escapeHtml(value = "") {
-  return String(value).replace(/[&<>"']/g, (character) => ({
-    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
-  })[character]);
-}
+
 search.addEventListener("input", render);
 filter.addEventListener("change", render);
+initializeCatalog();
