@@ -36,10 +36,11 @@ const ui = {
   saveRoomSettings: byId("save-room-settings"),
   gameTable: byId("game-table"), gameSubtitle: byId("game-subtitle"), gameRound: byId("game-round"),
   gamePhase: byId("game-phase"), gamePhaseDescription: byId("game-phase-description"),
+  phaseActivePlayer: byId("phase-active-player"),
   phaseTimer: byId("phase-timer"), leaveGameButton: byId("leave-game-button"),
   gamePlayerSeats: byId("game-player-seats"),
-  marketGrid: byId("market-grid"), mutualFundPrice: byId("mutual-fund-price"),
-  mutualFundBoard: byId("mutual-fund-board"),
+  marketGrid: byId("market-grid"),
+  tableAssetPlayers: byId("table-asset-players"), activityFeed: byId("activity-feed"),
   gamePlayers: byId("game-players"), gamePlayerCount: byId("game-player-count"),
   ownCoins: byId("own-coins"), ownShares: byId("own-shares"), ownDebt: byId("own-debt"),
   debtButton: byId("debt-button"), debtForm: byId("debt-form"),
@@ -511,50 +512,86 @@ async function loadActiveGame() {
 }
 
 function renderMarket(market, state) {
+  if (!ui.marketGrid) return;
   ui.marketGrid.replaceChildren();
-  const remaining = economyCardsRemaining(state);
-  for (const sector of SECTORS) {
-    const cell = makeElement("article", "market-cell market-board-card");
-    const heading = makeElement("div", "market-card-heading");
-    heading.append(makeElement("strong", "", sector.name));
-    heading.append(makeElement("span", "deck-count", remaining > 0 ? "×" + remaining + " kartu" : "Tumpukan habis"));
-    const artWrap = makeElement("div", "market-board-art");
-    appendCardImage(
-      artWrap,
-      sectorBoardAsset(sector.id),
-      "Papan sektor " + sector.name + " dengan tumpukan kartu ekonomi",
-      "market-board-image"
-    );
-    const price = makeElement("div", "market-price-chip");
-    price.append(makeElement("span", "", "HARGA SAHAM"));
-    price.append(makeElement("strong", "", String(Number(market[sector.id] || 5))));
-    cell.append(heading, artWrap, price);
-    ui.marketGrid.append(cell);
-  }
-
   const pair = Array.isArray(state && state.mutual_fund_pair) && state.mutual_fund_pair.length === 2
     ? state.mutual_fund_pair : ["consumer", "agriculture"];
-  const leftSector = SECTORS.find((item) => item.id === pair[0]) || SECTORS[0];
-  const rightSector = SECTORS.find((item) => item.id === pair[1]) || SECTORS[1];
-  const price = Math.floor((Number(market[leftSector.id] || 0) + Number(market[rightSector.id] || 0)) / 2);
-  if (ui.mutualFundPrice) ui.mutualFundPrice.textContent = String(price);
-  if (ui.mutualFundBoard) {
-    ui.mutualFundBoard.replaceChildren();
-    const linkedStock = (sector, side) => {
-      const panel = makeElement("article", "mf-linked-stock " + side);
-      appendCardImage(panel, sectorBoardAsset(sector.id), "Kartu saham " + sector.name + " penentu Reksa Dana", "mf-linked-stock-image");
-      panel.append(makeElement("strong", "", sector.name));
-      panel.append(makeElement("span", "", "Harga " + Number(market[sector.id] || 0)));
-      return panel;
-    };
-    ui.mutualFundBoard.append(linkedStock(leftSector, "left"));
-    const center = makeElement("div", "mutual-fund-center");
-    const artwork = makeElement("div", "mutual-fund-center-art");
-    appendCardImage(artwork, "./assets/cards/boards/papan-reksa-dana.webp", "Papan Reksa Dana StockLab vertikal", "mutual-fund-center-image");
-    center.append(artwork, makeElement("span", "mutual-fund-center-label", "HARGA UNIT"), makeElement("strong", "mutual-fund-center-price", String(price)));
-    ui.mutualFundBoard.append(center, linkedStock(rightSector, "right"));
+  const linked = pair.map((id) => SECTORS.find((sector) => sector.id === id)).filter(Boolean);
+  const unlinked = SECTORS.filter((sector) => !pair.includes(sector.id));
+  const remaining = economyCardsRemaining(state);
+  const events = Array.isArray(state && state.events) ? state.events : [];
+
+  const trendFor = (sectorId) => {
+    for (const event of events) {
+      const payload = event.payload || {};
+      const changes = Array.isArray(payload.price_changes)
+        ? payload.price_changes
+        : event.event_type === "economy_revealed" && Array.isArray(payload.effects)
+          ? payload.effects : [];
+      const found = changes.find((item) => item.sector === sectorId &&
+        Number.isFinite(Number(item.old_price)) && Number.isFinite(Number(item.new_price)));
+      if (found) return Number(found.new_price) - Number(found.old_price);
+    }
+    const historic = Array.isArray(state && state.last_economy_effects) ? state.last_economy_effects : [];
+    const found = historic.find((item) => item.sector === sectorId &&
+      Number.isFinite(Number(item.old_price)) && Number.isFinite(Number(item.new_price)));
+    return found ? Number(found.new_price) - Number(found.old_price) : 0;
+  };
+
+  const makeSectorCard = (sector, isLinked) => {
+    const cell = makeElement("article", "market-unit-card market-sector-card" +
+      (isLinked ? " is-mutual-fund-source" : ""));
+    const heading = makeElement("div", "market-unit-heading");
+    heading.append(makeElement("strong", "", sector.name));
+    heading.append(makeElement("small", "deck-count",
+      remaining > 0 ? "Sisa " + remaining : "Habis"));
+    const art = makeElement("div", "market-unit-art");
+    appendCardImage(art, sectorBoardAsset(sector.id),
+      "Papan sektor " + sector.name, "market-board-image");
+    const price = makeElement("div", "market-unit-price");
+    const delta = trendFor(sector.id);
+    const arrow = makeElement("span", "market-trend " +
+      (delta > 0 ? "trend-up" : delta < 0 ? "trend-down" : "trend-flat"),
+      delta > 0 ? "▲" : delta < 0 ? "▼" : "•");
+    arrow.setAttribute("aria-label", delta > 0 ? "Harga naik" : delta < 0 ? "Harga turun" : "Belum berubah");
+    price.append(arrow, makeElement("strong", "", String(Number(market[sector.id] || 5))));
+    const footer = makeElement("small", "market-unit-caption",
+      isLinked ? "Penentu harga Reksa Dana" : "Harga per saham");
+    cell.append(heading, art, price, footer);
+    return cell;
+  };
+
+  const mutualFundPrice = Math.floor((
+    Number(market[linked[0] && linked[0].id] || 0) +
+    Number(market[linked[1] && linked[1].id] || 0)
+  ) / 2);
+  const mutualFund = makeElement("article", "market-unit-card mutual-fund-unit-card");
+  const mfHeading = makeElement("div", "market-unit-heading");
+  mfHeading.append(makeElement("strong", "", "REKSA DANA"));
+  mfHeading.append(makeElement("small", "mf-formula-tag", "2 saham"));
+  const mfArt = makeElement("div", "mf-center-art");
+  appendCardImage(mfArt, "./assets/cards/boards/papan-reksa-dana.webp",
+    "Papan Reksa Dana StockLab", "mutual-fund-center-image");
+  const mfValue = makeElement("strong", "mf-unit-value", String(mutualFundPrice));
+  const mfFormula = makeElement("small", "mf-unit-caption",
+    sectorName(pair[0]) + " " + Number(market[pair[0]] || 0) + " + " +
+    sectorName(pair[1]) + " " + Number(market[pair[1]] || 0) + " dibagi 2");
+  mutualFund.append(mfHeading, mfArt, mfValue, mfFormula);
+
+  // The two stocks linked to Mutual Fund sit immediately beside it;
+  // the remaining two sectors form the outside edges of the same market block.
+  const order = [
+    { sector: unlinked[0], linked: false },
+    { sector: linked[0], linked: true },
+    { mutualFund: true },
+    { sector: linked[1], linked: true },
+    { sector: unlinked[1], linked: false }
+  ];
+  for (const item of order) {
+    ui.marketGrid.append(item.mutualFund ? mutualFund : makeSectorCard(item.sector, item.linked));
   }
 }
+
 
 function renderGameSeats(players, view, privateState) {
   ui.gamePlayerSeats.replaceChildren();
@@ -607,6 +644,164 @@ function renderPortfolio(players) {
     row.append(name);
     for (const key of SHARE_KEYS) row.append(makeElement("td", "", Number(player.shares && player.shares[key] || 0)));
     ui.gamePlayers.append(row);
+  }
+}
+
+
+function renderTableAssets(players) {
+  if (!ui.tableAssetPlayers) return;
+  ui.tableAssetPlayers.replaceChildren();
+  const labels = {
+    finance: { name: "Keuangan", short: "KEU" },
+    consumer: { name: "Konsumer", short: "KON" },
+    agriculture: { name: "Agrikultur", short: "AGR" },
+    mining: { name: "Tambang", short: "TMB" },
+    mutual_fund: { name: "Reksa Dana", short: "RD" }
+  };
+
+  for (const player of players) {
+    const isTurn = player.user_id === (sessionState.gameView && sessionState.gameView.active_user_id);
+    const isOwn = player.user_id === sessionState.user.id;
+    const portfolio = makeElement("article", "table-player-assets" +
+      (isTurn ? " is-active-player" : "") + (isOwn ? " is-own-player" : ""));
+    const header = makeElement("div", "table-player-assets-heading");
+    header.append(makeElement("span", "table-player-order", "#" + player.order_no));
+    header.append(makeElement("strong", "", (player.display_name || "Pemain") + (isOwn ? " · kamu" : "")));
+    if (isTurn) header.append(makeElement("small", "table-player-turn", "GILIRAN"));
+    portfolio.append(header);
+
+    const stacks = makeElement("div", "table-player-stacks");
+    const shares = player.shares || {};
+    let totalUnits = 0;
+    for (const key of SHARE_KEYS) {
+      const count = Math.max(0, Number(shares[key] || 0));
+      totalUnits += count;
+      if (!count) continue;
+      const info = labels[key];
+      const stack = makeElement("div", "ownership-stack ownership-" + key);
+      const stackTitle = makeElement("strong", "ownership-stack-title", info.name + " ×" + count);
+      const cards = makeElement("div", "stock-unit-stack");
+      const shown = Math.min(count, 7);
+      for (let i = 0; i < shown; i += 1) {
+        const card = makeElement("span", "stock-unit-card", info.short);
+        card.title = info.name + " · kartu " + (i + 1);
+        card.style.zIndex = String(i + 1);
+        cards.append(card);
+      }
+      if (count > shown) cards.append(makeElement("span", "stock-stack-extra", "+" + (count - shown)));
+      stack.append(stackTitle, cards);
+      stacks.append(stack);
+    }
+    if (!totalUnits) stacks.append(makeElement("p", "no-table-assets", "Belum memiliki saham atau Reksa Dana."));
+    portfolio.append(stacks);
+    ui.tableAssetPlayers.append(portfolio);
+  }
+}
+
+function renderActivityFeed(events, players) {
+  if (!ui.activityFeed) return;
+  ui.activityFeed.replaceChildren();
+  const playerName = (id) => {
+    const player = players.find((item) => item.user_id === id);
+    return player ? player.display_name : "pemain";
+  };
+  const priceSummary = (changes) => (Array.isArray(changes) ? changes : [])
+    .filter((item) => item && item.sector && item.old_price != null && item.new_price != null)
+    .map((item) => sectorName(item.sector) + " " + item.old_price + " → " + item.new_price)
+    .join(" · ");
+
+  const describe = (event) => {
+    const p = event.payload || {};
+    const actor = event.actor_name || (event.actor_id ? playerName(event.actor_id) : "Bank");
+    if (event.event_type === "action_card_used") {
+      if (p.mode === "keep") return actor + " menyimpan 1 saham " + sectorName(p.sector) + ".";
+      if (p.action === "quickbuy") {
+        const taken = (Array.isArray(p.quickbuy_cards) ? p.quickbuy_cards : [])
+          .map((item) => sectorName(item.sector)).join(" dan ");
+        return actor + " mengaktifkan Quickbuy dan mengambil " + (taken || "2 kartu saham") + ".";
+      }
+      if (p.action === "trading-fee") {
+        const sale = Number(p.sell_quantity || 0) + " " + sectorName(p.sell_sector);
+        const proceeds = Number(p.sale_proceeds || 0);
+        return actor + " membayar " + Number(p.fee_paid || 0) +
+          " koin Trading Fee karena memiliki " + Number(p.fee_units || 0) +
+          " saham/unit, lalu menjual " + sale + " dan menerima " + proceeds + " koin.";
+      }
+      if (p.action === "acquisition") {
+        const target = p.target_display_name || playerName(p.target_user_id);
+        return actor + " memakai Akuisisi: mengambil 1 saham " +
+          sectorName(p.target_sector || p.sector) + " dari " + target + ".";
+      }
+      if (p.action === "rumor") {
+        const changes = priceSummary(p.price_changes);
+        return actor + " mengaktifkan Rumor" + (changes ? ": " + changes : ". Harga tidak berubah.");
+      }
+      if (p.action === "info-bursa") return actor + " memakai Info Bursa dan melihat 3 kartu ekonomi.";
+      return actor + " mengaktifkan " + (p.card_title || "kartu aksi") + ".";
+    }
+    if (event.event_type === "sell_turn") {
+      const qty = Number(p.quantity || 0);
+      if (!qty) return actor + " melewati kesempatan menjual saham.";
+      return actor + " menjual " + qty + " " + sectorName(p.sector) + " pada harga " +
+        Number(p.unit_price || 0) + " dan menerima " + Number(p.coins_earned || 0) + " koin.";
+    }
+    if (event.event_type === "debt_taken") {
+      return actor + " membalik 1 saham " + sectorName(p.flipped_sector) + " dan menerima 10 koin pinjaman.";
+    }
+    if (event.event_type === "economy_revealed") {
+      const cards = (Array.isArray(p.cards) ? p.cards : [])
+        .map((item) => item.card && item.card.name ? item.card.name : item.name)
+        .filter(Boolean).join(", ");
+      const moves = priceSummary(p.effects);
+      return "Bank membuka kartu ekonomi" + (cards ? ": " + cards : "") +
+        (moves ? " · " + moves : "") + ".";
+    }
+    if (event.event_type === "action_timeout") {
+      if (p.auto_kept_card) return actor + " kehabisan waktu; sistem otomatis menyimpan " + p.auto_kept_card + ".";
+      return "Waktu fase aksi habis; sistem melanjutkan permainan.";
+    }
+    if (event.event_type === "sell_timeout") return "Waktu menjual habis; sistem melewati giliran " + actor + ".";
+    if (event.event_type === "bids_revealed" || event.event_type === "bids_auto_resolved") {
+      const results = Array.isArray(p.results) ? p.results : [];
+      const ranking = results.map((item) =>
+        (item.display_name || playerName(item.user_id)) + " (" + Number(item.bid_amount || 0) + " koin)"
+      ).join(" · ");
+      return "Urutan bermain ditentukan" + (ranking ? ": " + ranking : ".") + ".";
+    }
+    if (event.event_type === "game_started") return "Permainan dimulai. Semua pemain bersiap untuk ronde pertama.";
+    if (event.event_type === "game_finished") return "Permainan selesai. Pemenang: " + (p.winner_name || playerName(p.winner_user_id)) + ".";
+    return actor + " melakukan aktivitas permainan.";
+  };
+
+  const list = Array.isArray(events) ? events.slice(0, 18) : [];
+  if (!list.length) {
+    ui.activityFeed.append(makeElement("p", "activity-empty", "Belum ada aktivitas. Transaksi pemain akan muncul di sini."));
+    return;
+  }
+  for (const event of list) {
+    const item = makeElement("article", "activity-item activity-" + String(event.event_type || "event").replace(/[^a-z0-9_-]/gi, ""));
+    const time = event.created_at
+      ? new Date(event.created_at).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })
+      : "";
+    item.append(makeElement("time", "activity-time", time));
+    item.append(makeElement("p", "activity-message", describe(event)));
+    ui.activityFeed.append(item);
+  }
+}
+
+function renderPhaseActor(view, players) {
+  if (!ui.phaseActivePlayer) return;
+  const hostId = sessionState.roomMeta && sessionState.roomMeta.host_id;
+  const active = players.find((player) => player.user_id === view.active_user_id);
+  const host = players.find((player) => player.user_id === hostId);
+  if (view.phase === "bidding") {
+    ui.phaseActivePlayer.textContent = "Semua pemain mengajukan penawaran";
+  } else if (view.phase === "economy") {
+    ui.phaseActivePlayer.textContent = (host ? host.display_name : "Host") + " · buka kartu ekonomi";
+  } else if (view.phase === "finished") {
+    ui.phaseActivePlayer.textContent = "Permainan selesai";
+  } else {
+    ui.phaseActivePlayer.textContent = active ? active.display_name : "Menunggu giliran";
   }
 }
 
@@ -746,14 +941,17 @@ function renderGame(view) {
   ui.gamePhase.textContent = phaseName(view.phase);
   renderPhaseTimer(view);
   renderGameSeats(players, view, privateState);
+  renderPhaseActor(view, players);
   ui.gameSubtitle.textContent = "Meja " + sessionState.roomCode + " · " + players.length + " pemain";
   ui.gamePhaseDescription.textContent = phaseDescription(view, state);
   ui.ownCoins.textContent = String(coins);
   ui.ownShares.textContent = String(totalShares);
   ui.ownDebt.textContent = debt > 0 ? debt + " kartu utang · penalti akhir " + (debt * 13) : "Tanpa utang";
   ui.gamePlayerCount.textContent = players.length + " pemain";
-  renderMarket(market, { ...state, phase: view.phase, round: view.current_round });
+  renderMarket(market, { ...state, phase: view.phase, round: view.current_round, events: view.events || [] });
   renderPortfolio(players);
+  renderTableAssets(players);
+  renderActivityFeed(view.events || [], players);
   renderEconomyLast(state);
 
   const canFlipShare = SECTORS.some((sector) => Number(shares[sector.id] || 0) > 0);
