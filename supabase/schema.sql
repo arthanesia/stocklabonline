@@ -108,11 +108,7 @@ using (
   )
 );
 create policy "rooms_insert_as_host" on public.rooms
-for insert to authenticated with check (host_id = (select auth.uid()));
-create policy "rooms_update_by_host" on public.rooms
-for update to authenticated
-using (host_id = (select auth.uid()) and status = 'waiting')
-with check (host_id = (select auth.uid()));
+for insert to authenticated with check (host_id = (select auth.uid()) and status = 'waiting');
 create policy "rooms_delete_by_host_while_waiting" on public.rooms
 for delete to authenticated
 using (host_id = (select auth.uid()) and status = 'waiting');
@@ -149,7 +145,7 @@ grant usage on schema public to authenticated;
 revoke all privileges on all tables in schema public from public, anon, authenticated;
 revoke all privileges on all sequences in schema public from public, anon, authenticated;
 grant select, insert, update on public.profiles to authenticated;
-grant select, insert, update, delete on public.rooms to authenticated;
+grant select, insert, delete on public.rooms to authenticated;
 grant select, insert on public.room_members to authenticated;
 grant update (is_ready) on public.room_members to authenticated;
 grant select on public.games, public.game_events to authenticated;
@@ -289,7 +285,7 @@ alter publication supabase_realtime add table public.game_events;
 
 
 -- Guest-only room experience (Supabase Anonymous Auth; no email/password UI).
-create or replace function private.create_room_impl(p_display_name text, p_max_players smallint default 5)
+create or replace function private.create_room_impl(p_display_name text, p_max_players integer default 5)
 returns jsonb
 language plpgsql
 security definer
@@ -346,10 +342,10 @@ begin
   );
 end;
 $$;
-revoke all on function private.create_room_impl(text,smallint) from public, anon;
-grant execute on function private.create_room_impl(text,smallint) to authenticated;
+revoke all on function private.create_room_impl(text,integer) from public, anon;
+grant execute on function private.create_room_impl(text,integer) to authenticated;
 
-create or replace function public.create_room(p_display_name text, p_max_players smallint default 5)
+create or replace function public.create_room(p_display_name text, p_max_players integer default 5)
 returns jsonb
 language sql
 security invoker
@@ -357,8 +353,8 @@ set search_path = pg_catalog, public, private, auth
 as $$
   select private.create_room_impl(p_display_name, p_max_players);
 $$;
-revoke all on function public.create_room(text,smallint) from public, anon;
-grant execute on function public.create_room(text,smallint) to authenticated;
+revoke all on function public.create_room(text,integer) from public, anon;
+grant execute on function public.create_room(text,integer) to authenticated;
 
 create or replace function private.list_open_rooms_impl()
 returns jsonb
@@ -481,3 +477,53 @@ as $$
 $$;
 revoke all on function public.leave_room(uuid) from public, anon;
 grant execute on function public.leave_room(uuid) to authenticated;
+
+
+-- Private game state and sealed bids. These tables are intentionally not in Realtime.
+create table public.game_private_states (
+  game_id uuid not null references public.games(id) on delete cascade,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  private_state jsonb not null default '{}'::jsonb
+    check (jsonb_typeof(private_state) = 'object'),
+  updated_at timestamptz not null default now(),
+  primary key (game_id, user_id)
+);
+comment on table public.game_private_states is
+  'Player-only game data. RLS exposes each row only to its owning room member; writes are reserved for validated game RPCs.';
+alter table public.game_private_states enable row level security;
+create policy game_private_states_select_own on public.game_private_states
+for select to authenticated
+using (
+  user_id = (select auth.uid())
+  and exists (
+    select 1 from public.games g
+    join public.room_members rm on rm.room_id = g.room_id
+    where g.id = game_private_states.game_id
+      and rm.user_id = (select auth.uid())
+  )
+);
+grant select on public.game_private_states to authenticated;
+
+create table public.bidding_submissions (
+  game_id uuid not null references public.games(id) on delete cascade,
+  round_number integer not null check (round_number >= 1),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  bid_amount integer not null check (bid_amount >= 0),
+  submitted_at timestamptz not null default now(),
+  primary key (game_id, round_number, user_id)
+);
+comment on table public.bidding_submissions is
+  'Sealed per-player bids by round. RLS exposes only the caller\'s own bid; do not add this table to supabase_realtime.';
+alter table public.bidding_submissions enable row level security;
+create policy bidding_submissions_select_own on public.bidding_submissions
+for select to authenticated
+using (
+  user_id = (select auth.uid())
+  and exists (
+    select 1 from public.games g
+    join public.room_members rm on rm.room_id = g.room_id
+    where g.id = bidding_submissions.game_id
+      and rm.user_id = (select auth.uid())
+  )
+);
+grant select on public.bidding_submissions to authenticated;
