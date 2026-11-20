@@ -15,6 +15,7 @@ Permainan StockLab multiplayer berbasis browser. Pemain masuk dengan username ta
 - Host dapat mengatur waktu bidding, waktu tiap giliran, dan batas room tidak aktif sebelum memulai permainan.
 - Bidding yang habis waktu menganggap pemain yang belum menawar memasukkan 0; giliran aksi otomatis menyimpan kartu teratas; giliran jual otomatis dilewati; fase ekonomi dibuka otomatis.
 - Room yang tidak menerima aktivitas manusia akan dibubarkan. Batas tidak aktif dapat diatur host; pemeriksaan berjalan setiap menit.
+- Jika host keluar dari lobby atau pertandingan, host berpindah ke pemain berikutnya. Jika pemain tersisa kurang dari dua saat pertandingan aktif, room dibubarkan.
 - Enam ronde permainan: Bidding, Aksi/Draft, Jual, dan Ekonomi.
 - Bidding tertutup: pemain hanya melihat status bid miliknya sampai seluruh pemain mengirim.
 - Kartu aksi: Info Bursa, Rumor, Quickbuy, Trading Fee, dan Akuisisi.
