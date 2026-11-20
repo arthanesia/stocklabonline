@@ -3,73 +3,95 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#f4f2ec">
+  <meta name="theme-color" content="#101831">
   <meta name="description" content="StockLab Online — buat meja dan main bersama teman.">
   <title>StockLab Online</title>
-  <link rel="stylesheet" href="style.css?v=20261121-room-privacy-debt-assets-v8">
+  <link rel="stylesheet" href="style.css?v=20261121-dashboard-ui-v9">
 </head>
 <body>
-  <header class="topbar">
-    <a class="brand" href="./" aria-label="StockLab Online">
-      <span class="brand-mark">S</span>
-      <span class="brand-name">StockLab <span>Online</span></span>
-    </a>
-    <div class="topbar-right">
-      <span class="connection-dot" id="connection-indicator"><i></i><span>Menghubungkan</span></span>
-      <div class="player-pill" id="player-pill" hidden>
-        <span class="avatar" id="player-avatar">P</span>
-        <span id="player-name-label">Pemain</span>
-      </div>
-    </div>
-  </header>
+  <div class="dashboard-shell">
+    <aside class="dashboard-sidebar" aria-label="Navigasi utama">
+      <a class="sidebar-brand" href="#home" aria-label="StockLab Beranda"><span class="sidebar-brand-mark"><i></i><b></b><em></em></span><span>StockLab</span></a>
+      <nav class="sidebar-nav">
+        <a class="side-link is-active" href="#home"><span class="side-icon">⌂</span><span>Beranda</span></a>
+        <a class="side-link" href="#rules-info"><span class="side-icon">▤</span><span>Aturan</span></a>
+        <a class="side-link" href="#about-info"><span class="side-icon">ⓘ</span><span>Tentang</span></a>
+        <a class="side-link" href="#profile-settings"><span class="side-icon">⚙</span><span>Pengaturan</span></a>
+      </nav>
+      <div class="sidebar-bottom"><span>STOCKLAB ONLINE</span><strong>v1.1.0</strong></div>
+    </aside>
+    <div class="dashboard-main">
+      <header class="topbar dashboard-topbar">
+        <a class="mobile-brand" href="#home">Stock<span>Lab</span></a>
+        <div class="topbar-right">
+          <span class="connection-dot" id="connection-indicator"><i></i><span>Menghubungkan</span></span>
+          <div class="player-pill" id="player-pill" hidden>
+            <span class="avatar" id="player-avatar">P</span><span id="player-name-label">Pemain</span><span class="profile-chevron">⌄</span>
+          </div>
+        </div>
+      </header>
 
   <main>
-    <section class="welcome" id="home">
-      <div class="welcome-copy">
-        <p class="eyebrow">STOCKLAB ONLINE</p>
-        <h1>Masukkan <span>nama pemain</span></h1>
-        <p>Masuk ke meja dan mulai bermain bersama teman.</p>
-      </div>
-      <div class="guest-entry" id="guest-entry">
-        <form id="enter-form">
-          <label for="username-input">Nama pemain</label>
-          <div class="entry-row">
-            <input id="username-input" name="username" type="text" minlength="2" maxlength="24"
-              placeholder="Nama yang tampil di meja" autocomplete="nickname" required>
-            <button class="button primary" id="enter-button" type="submit">Masuk</button>
+    <section class="welcome dashboard-hero" id="home">
+      <div class="hero-main">
+        <svg class="hero-market-chart" viewBox="0 0 900 390" preserveAspectRatio="none" aria-hidden="true">
+          <g class="chart-grid"><path d="M0 80H900M0 160H900M0 240H900M0 320H900"/></g>
+          <g class="chart-candles">
+            <path d="M440 205V95M468 180V65M496 160V32M524 174V85M552 143V20M580 129V2M608 112V-5M636 104V-12M664 87V-25M692 80V-30M720 67V-40M748 52V-46M776 45V-55M804 29V-70M832 20V-78"/>
+            <rect x="432" y="125" width="15" height="42"/><rect x="460" y="96" width="15" height="52"/><rect x="488" y="67" width="15" height="50"/><rect x="516" y="108" width="15" height="38"/><rect x="544" y="51" width="15" height="61"/><rect x="572" y="35" width="15" height="54"/><rect x="600" y="23" width="15" height="58"/><rect x="628" y="9" width="15" height="60"/><rect x="656" y="-4" width="15" height="63"/><rect x="684" y="-9" width="15" height="54"/><rect x="712" y="-19" width="15" height="55"/><rect x="740" y="-30" width="15" height="57"/><rect x="768" y="-34" width="15" height="57"/><rect x="796" y="-48" width="15" height="57"/><rect x="824" y="-58" width="15" height="56"/>
+          </g>
+        </svg>
+        <div class="hero-copy">
+          <p class="eyebrow">THE MARKET IS YOUR PLAYGROUND</p>
+          <h1>Stock<span>Lab</span></h1>
+          <p>Rancang strategi, kelola aset,<br>dan jadilah yang terkuat di pasar!</p>
+          <div class="hero-entry">
+            <div class="guest-entry" id="guest-entry">
+              <form id="enter-form">
+                <label for="username-input">Nama pemain</label>
+                <div class="entry-row">
+                  <input id="username-input" name="username" type="text" minlength="2" maxlength="24" placeholder="Nama yang tampil di meja" autocomplete="nickname" required>
+                  <button class="button primary hero-start-button" id="enter-button" type="submit"><span>▶</span> Mulai Bermain</button>
+                </div>
+              </form>
+              <p class="entry-foot">Tidak perlu akun. Cukup nama pemain.</p>
+            </div>
           </div>
-        </form>
-        <p class="entry-foot">Tidak perlu akun. Cukup nama pemain.</p>
+        </div>
+        <div class="hero-art" aria-hidden="true">
+          <div class="hero-art-glow"></div>
+          <div class="hero-card hero-card-back"><img src="./assets/cards/action/tambang-trading-fee.webp" alt=""></div>
+          <div class="hero-card hero-card-middle"><img src="./assets/cards/action/consumer-rumor.webp" alt=""></div>
+          <div class="hero-card hero-card-front"><img src="./assets/cards/action/keuangan-info-bursa.webp" alt=""></div>
+          <div class="hero-art-caption"><span></span> THINK AHEAD. PLAY SMART.</div>
+        </div>
       </div>
+      <aside class="quick-join-card">
+        <div class="quick-join-heading"><span class="quick-join-icon">ϟ</span><h2>Quick Join</h2></div>
+        <p>Masuk ke ruangan dengan kode yang sudah ada.</p>
+        <section class="room-setup-panel quick-join-content" id="join-room-panel">
+          <form id="join-room-form" class="room-form quick-join-form">
+            <label for="room-code-input">Kode ruangan</label>
+            <input id="room-code-input" name="roomCode" type="text" minlength="6" maxlength="6" placeholder="Masukkan kode ruangan..." autocomplete="off" autocapitalize="characters" required>
+            <label for="join-password">Password <span>(jika diperlukan)</span></label>
+            <input id="join-password" name="roomPassword" type="password" placeholder="Opsional untuk room terbuka" autocomplete="off">
+            <button class="button primary quick-join-button" id="join-room-button" type="submit">Gabung</button>
+          </form>
+        </section>
+      </aside>
     </section>
 
     <div id="app-notice" class="app-notice" role="status" hidden></div>
 
-    <section class="section multiplayer" id="multiplayer" hidden>
-      <div class="room-workspace" id="room-workspace" hidden>
+    <section class="section multiplayer dashboard-multiplayer" id="multiplayer">
+      <div class="room-workspace" id="room-workspace">
         <div class="workspace-locked" id="workspace-locked" hidden></div>
         <section class="room-hub" id="room-hub">
-          <div class="room-hub-title">
-            <p class="eyebrow">STOCKLAB MULTIPLAYER</p>
-            <h2>Pilih meja permainan</h2>
-            <p>Masuk ke room teman atau buat meja baru.</p>
+          <div class="room-hub-title dashboard-section-title">
+            <div><p class="eyebrow">FIND YOUR TABLE</p><h2>Daftar Ruangan</h2><p>Pilih meja yang tersedia atau buat ruang bermainmu sendiri.</p></div>
+            <button class="button primary create-room-cta" id="show-create-panel" type="button">Buat Ruangan <span>＋</span></button>
           </div>
-          <div class="room-mode-grid" id="room-mode-grid">
-            <button class="room-mode-card create-mode" id="show-create-panel" type="button">
-              <span class="mode-symbol">＋</span>
-              <strong>Buat Room</strong>
-              <small>Buat meja baru, atur kapasitas, dan tentukan password.</small>
-              <span class="mode-cta">BUAT MEJA <b>→</b></span>
-            </button>
-            <button class="room-mode-card join-mode" id="show-join-panel" type="button">
-              <span class="mode-symbol">↗</span>
-              <strong>Join Room</strong>
-              <small>Masukkan kode room atau pilih meja yang sedang menunggu.</small>
-              <span class="mode-cta">CARI MEJA <b>→</b></span>
-            </button>
-          </div>
-
-          <section class="room-setup-panel" id="create-room-panel" hidden>
+                    <section class="room-setup-panel" id="create-room-panel" hidden>
             <button class="back-link" id="back-from-create" type="button">← Kembali</button>
             <p class="eyebrow">ROOM BARU</p>
             <h2>Buat room permainan</h2>
@@ -105,30 +127,19 @@
               <button class="button primary full-width" id="create-room-button" type="submit">Buat room</button>
             </form>
           </section>
-
-          <section class="room-setup-panel" id="join-room-panel" hidden>
-            <button class="back-link" id="back-from-join" type="button">← Kembali</button>
-            <p class="eyebrow">GABUNG PERMAINAN</p>
-            <h2>Join room</h2>
-            <form id="join-room-form" class="room-form">
-              <label for="room-code-input">Kode room</label>
-              <input id="room-code-input" name="roomCode" type="text" minlength="6" maxlength="6"
-                placeholder="Contoh: A7K2QP" autocomplete="off" autocapitalize="characters" required>
-              <label for="join-password">Password room</label>
-              <input id="join-password" name="roomPassword" type="password"
-                placeholder="Isi hanya jika room memakai password" autocomplete="off">
-              <button class="button primary full-width" id="join-room-button" type="submit">Masuk ke lobby</button>
-            </form>
-            <section class="available-panel">
-              <div class="available-heading">
-                <div><h3>Atau pilih room</h3><p>Room yang masih menunggu pemain.</p></div>
-                <button class="icon-button" id="refresh-rooms" type="button" aria-label="Muat ulang daftar room">↻</button>
-              </div>
-              <div id="room-list" class="room-list" aria-live="polite">
-                <div class="empty-state">Memuat room yang tersedia…</div>
-              </div>
+          <div class="room-dashboard-grid">
+            <section class="available-panel room-catalog">
+              <div class="available-heading"><div><h3>Ruangan tersedia</h3><p>Gabung ke meja yang sedang menunggu pemain.</p></div>
+                <button class="icon-button room-refresh-button" id="refresh-rooms" type="button" aria-label="Muat ulang daftar room">↻</button></div>
+              <div id="room-list" class="room-list room-card-grid" aria-live="polite"><div class="empty-state">Masukkan nama pemain untuk melihat dan bergabung ke ruangan.</div></div>
             </section>
-          </section>
+            <aside class="why-stocklab-card">
+              <div class="why-card-heading"><span>✦</span><h3>Kenapa StockLab?</h3></div>
+              <div class="why-feature"><span class="why-feature-icon">▥</span><p>Gameplay seru<br>dan edukatif</p></div>
+              <div class="why-feature"><span class="why-feature-icon">♟</span><p>Bermain bersama<br>teman-teman</p></div>
+              <div class="why-feature"><span class="why-feature-icon">♜</span><p>Asah strategi<br>investasimu</p></div>
+            </aside>
+          </div>
         </section>
 
         <section class="panel lobby-panel" id="room-lobby" hidden>
@@ -271,14 +282,30 @@
         </section>
       </div>
     </section>
+    <section class="dashboard-info-grid" aria-label="Informasi StockLab">
+      <article class="dashboard-info-card" id="rules-info"><p class="eyebrow">HOW TO PLAY</p><h2>Aturan singkat</h2>
+        <p>StockLab dimainkan dalam enam ronde dengan empat fase utama: Bidding, Aksi, Jual, dan Ekonomi. Kumpulkan aset, kelola saldo, dan atur urutan bermain melalui penawaran.</p>
+        <a href="https://www.youtube.com/watch?v=0bd47voPuUs" target="_blank" rel="noopener noreferrer">Lihat tutorial permainan <span>↗</span></a>
+      </article>
+      <article class="dashboard-info-card" id="about-info"><p class="eyebrow">ABOUT THE GAME</p><h2>Tentang StockLab</h2>
+        <p>Permainan simulasi pasar modal yang mengajak pemain memahami pergerakan harga, strategi kepemilikan aset, dan keputusan investasi melalui permainan bersama.</p>
+        <span class="info-card-foot">STOCKLAB ONLINE · DIGITAL COMMUNITY EDITION</span>
+      </article>
+      <article class="dashboard-info-card profile-settings-card" id="profile-settings"><p class="eyebrow">YOUR PROFILE</p><h2>Pengaturan pemain</h2>
+        <form id="profile-settings-form" class="profile-settings-form">
+          <label for="profile-settings-name">Nama yang tampil di ruangan</label>
+          <input id="profile-settings-name" type="text" minlength="2" maxlength="24" placeholder="Nama pemain" required>
+          <button class="button secondary" type="submit">Simpan nama</button>
+        </form>
+      </article>
+    </section>
   </main>
 
-  <footer>
-    <span>STOCKLAB ONLINE</span>
-    <span>Implementasi digital independen</span>
-  </footer>
+  <footer class="dashboard-footer"><span>STOCKLAB ONLINE</span><span>Implementasi digital independen · v1.1.0</span></footer>
+    </div>
+  </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.2/dist/umd/supabase.js"></script>
-  <script src="app.js?v=20261121-room-privacy-debt-assets-v8"></script>
+  <script src="app.js?v=20261121-dashboard-ui-v9"></script>
 </body>
 </html>
