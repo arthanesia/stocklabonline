@@ -985,6 +985,11 @@ function tradingFeeForCard(card, own) {
   if (card && card.sector === "mutual_fund") return Number(shares.mutual_fund || 0);
   return SECTORS.reduce((total, sector) => total + Number(shares[sector.id] || 0), 0);
 }
+function tradingFeeDescription(card) {
+  return card && card.sector === "mutual_fund"
+    ? "1 koin per unit Reksa Dana"
+    : "1 koin per saham sektor yang kamu miliki";
+}
 
 function displayNameFor(players,userId) {
   const player = (players||[]).find((item)=>item.user_id===userId);
@@ -1017,7 +1022,7 @@ function renderActionMarket(view, own) {
       panel.append(makeElement("small", "action-hint", "Efek: ambil dua kartu lain."));
     } else if (card.action === "trading-fee") {
       const fee = tradingFeeForCard(card, own);
-      panel.append(makeElement("small", "action-hint", "Biaya aktivasi: " + fee + " koin (1 koin per saham sektor yang dimiliki)."));
+      panel.append(makeElement("small", "action-hint", "Biaya aktivasi: " + fee + " koin (" + tradingFeeDescription(card) + ")."));
     } else {
       panel.append(makeElement("small", "action-hint", "Pilih untuk menyimpan atau mengaktifkan."));
     }
@@ -1156,7 +1161,7 @@ function openActivationForm(card, cardElement, own) {
       formWrap.append(makeElement("p", "muted-text", "Kamu belum memiliki saham atau Reksa Dana untuk dijual."));
     }
     const fee = tradingFeeForCard(card, own);
-    formWrap.append(makeElement("p", "muted-text", "Biaya aktivasi: " + fee + " koin (1 koin per saham sektor yang dimiliki). Pastikan saldo mencukupi."));
+    formWrap.append(makeElement("p", "muted-text", "Biaya aktivasi: " + fee + " koin (" + tradingFeeDescription(card) + "). Pastikan saldo mencukupi."));
     getChoice = () => ({ sell_sector: sector.value, quantity: Number(quantity.value) });
   } else if (card.action === "acquisition") {
     const stockOptions = SECTORS.map((s) => ({ value: s.id, label: s.name }));
