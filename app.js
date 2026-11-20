@@ -170,7 +170,7 @@ async function savePlayerProfile(username) {
   if (cleanName.length < 2 || cleanName.length > 24) throw new Error("Username harus terdiri dari 2 sampai 24 karakter.");
   sessionState.username = cleanName;
   localStorage.setItem("stocklab_guest_username", cleanName);
-  ui.profileSettingsName.value = cleanName;
+  if (ui.profileSettingsName) ui.profileSettingsName.value = cleanName;
   ui.playerName.textContent = cleanName;
   ui.playerAvatar.textContent = cleanName.slice(0, 1).toUpperCase();
   ui.playerPill.hidden = false;
@@ -266,7 +266,7 @@ async function restoreExistingGuest() {
     sessionState.user = data.session.user;
     sessionState.username = rememberedName;
     ui.usernameInput.value = rememberedName;
-    ui.profileSettingsName.value = rememberedName;
+    if (ui.profileSettingsName) ui.profileSettingsName.value = rememberedName;
     ui.playerName.textContent = rememberedName;
     ui.playerAvatar.textContent = rememberedName.slice(0, 1).toUpperCase();
     ui.playerPill.hidden = false;
@@ -2062,7 +2062,7 @@ function loadSitePreferences() {
   if (savedName && ui.profileSettingsName) ui.profileSettingsName.value = savedName;
 }
 
-ui.profileSettingsForm.addEventListener("submit", (event) => {
+ui.profileSettingsForm?.addEventListener("submit", (event) => {
   event.preventDefault();
   const name = cleanPlayerName(ui.profileSettingsName.value || "");
   const currentName = cleanPlayerName(sessionState.username || "");
