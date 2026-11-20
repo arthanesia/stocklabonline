@@ -1,3 +1,5 @@
-# Card images
+# Original card images
 
-Extract the supplied StockLab asset ZIP and upload its `assets/cards/` directory here without changing folder names. The manifest already points to the expected paths. Do not create substitute illustrations for original card photos.
+Unggah file `stocklab-assets-upload.zip` ke root repository, satu tingkat dengan `index.html`. Jangan letakkan ZIP di dalam folder `assets/`.
+
+Workflow GitHub Pages akan mengekstrak folder `assets/cards/` dan `assets/manifest.json` dari ZIP selama proses deployment. Foto kartu tidak dibuat ulang atau diganti dengan placeholder; jika file belum diunggah, katalog hanya menampilkan fallback.
