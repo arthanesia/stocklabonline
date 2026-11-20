@@ -1242,18 +1242,32 @@ function renderPhaseControls(view, own, coins) {
   }
 
   if (view.phase === "economy") {
-    const panel = makeElement("div","phase-panel");
+    const panel = makeElement("div","phase-panel economy-card-panel");
     const isHost = sessionState.roomMeta && sessionState.roomMeta.host_id===sessionState.user.id;
-    panel.append(makeElement("h4","","Fase ekonomi"));
+    panel.append(makeElement("h4","","Pembukaan kartu ekonomi"));
     panel.append(makeElement("p","muted-text",isHost
-      ? "Buka satu kartu teratas dari masing-masing tumpukan sektor untuk menerapkan perubahan harga."
-      : "Menunggu host membuka kartu ekonomi."));
-    if (isHost) {
-      const reveal = makeElement("button","button primary","Buka kartu ekonomi");
+      ? "Buka satu kartu dari setiap tumpukan. Klik kartu pembuka untuk membalik seluruh empat sektor."
+      : "Menunggu host membuka empat kartu ekonomi. Semua perubahan harga akan terlihat setelah dibuka."));
+    const backs=makeElement("div","economy-back-stacks");
+    for(const sector of SECTORS) {
+      const stack=makeElement("div","economy-back-stack");
+      appendCardImage(stack,sectorBoardAsset(sector.id),"Tumpukan ekonomi "+sector.name,"economy-back-image");
+      stack.append(makeElement("strong","",sector.name));
+      stack.append(makeElement("small","","Tumpukan kartu"));
+      backs.append(stack);
+    }
+    panel.append(backs);
+    if(isHost) {
+      const reveal=makeElement("button","economy-open-card");
       reveal.type="button";
+      appendCardImage(reveal,"./assets/cards/components/stocklab-back-red.webp",
+        "Buka empat kartu ekonomi StockLab","economy-open-card-image");
+      const caption=makeElement("span","economy-open-caption","BUKA 4 KARTU EKONOMI");
+      reveal.append(caption);
       reveal.addEventListener("click",async()=>{
-        setBusy(reveal,true,"Membuka…");
-        await runGameAction(()=>db.rpc("resolve_economy",{p_room_id:sessionState.roomId}),"Kartu ekonomi dibuka.");
+        setBusy(reveal,true,"Membuka kartu…");
+        await runGameAction(()=>db.rpc("resolve_economy",{p_room_id:sessionState.roomId}),
+          "Empat kartu ekonomi dibuka. Harga saham diperbarui untuk semua pemain.");
         setBusy(reveal,false);
       });
       panel.append(reveal);
