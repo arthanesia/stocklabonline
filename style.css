@@ -387,3 +387,86 @@ footer { display: flex; justify-content: space-between; gap: 12px; padding: 18px
   .action-card,.economy-card.is-revealed{animation:none;transition:none}
   .action-card.is-selectable:hover{transform:none}
 }
+
+/* Room-first multiplayer flow */
+[hidden]{display:none!important}
+body{background:#101b15;color:#f3efdf}
+.topbar{background:#14271d;border-bottom:1px solid #294435;color:#f3efdf}
+.brand-name{color:#f3efdf}.brand-name span{color:#c8a968}
+.connection-dot{color:#d6dfd3}
+.player-pill{background:#203b2c;border-color:#365542;color:#f3efdf}
+main{max-width:1240px}
+.welcome{min-height:calc(100vh - 112px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;padding:34px 0;text-align:center}
+.welcome-copy{max-width:560px}
+.welcome-copy .eyebrow{color:#c8a968;letter-spacing:.18em}
+.welcome h1{margin:0;color:#f5f0df;font-family:Georgia,serif;font-size:clamp(34px,5vw,52px);font-weight:500;letter-spacing:-.04em}
+.welcome h1 span{color:#d0ad69}
+.welcome-copy>p:last-child{color:#b5c3b8;font-size:13px}
+.guest-entry{width:min(440px,100%);padding:22px;border:1px solid #375642;border-radius:12px;background:#182c20;box-shadow:0 18px 50px #0004;text-align:left}
+.guest-entry label,.room-form label{color:#d5dfd2}
+.guest-entry input,.room-form input,.room-form select{min-height:46px;background:#f5f1e5;color:#1b2a20;border:1px solid #8d9a87;border-radius:7px}
+.entry-foot{color:#9eb09f}
+.multiplayer{padding:28px 0 52px}
+.room-workspace{display:grid;gap:16px}
+.room-hub{width:min(820px,100%);margin:0 auto;padding:clamp(20px,4vw,42px);border:1px solid #35543f;border-radius:16px;background:linear-gradient(145deg,#1b3527,#14291e 72%);box-shadow:0 22px 60px #0005}
+.room-hub-title{text-align:center;margin:0 0 26px}
+.room-hub-title .eyebrow,.room-setup-panel .eyebrow{color:#d2b26e}
+.room-hub-title h2,.room-setup-panel h2{margin:6px 0 8px;color:#f4efdf;font:500 clamp(27px,4vw,36px)/1.1 Georgia,serif}
+.room-hub-title p:last-child,.room-form-copy{color:#b8c7b8;font-size:12px}
+.room-mode-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.room-mode-card{display:flex;flex-direction:column;align-items:flex-start;gap:10px;min-height:220px;padding:23px;border:1px solid #506a52;border-radius:11px;background:#f4f0e3;color:#1d3023;text-align:left;cursor:pointer;transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease}
+.room-mode-card:hover{transform:translateY(-3px);border-color:#d5b46c;box-shadow:0 12px 26px #0003}
+.mode-symbol{display:grid;place-items:center;width:42px;height:42px;border-radius:9px;background:#244b35;color:#f3dc9c;font-size:26px}
+.room-mode-card strong{font:500 24px Georgia,serif}
+.room-mode-card small{color:#667267;font-size:11px;line-height:1.55}
+.mode-cta{display:flex;justify-content:space-between;align-items:center;width:100%;margin-top:auto;color:#31543a;font-size:9px;font-weight:800;letter-spacing:.1em}
+.mode-cta b{font-size:18px}
+.room-setup-panel{max-width:500px;margin:0 auto;padding:8px 0 0}
+.back-link{margin:0 0 24px;padding:0;border:0;background:transparent;color:#d5c08f;font-size:12px;cursor:pointer}
+.room-setup-panel h2{margin-bottom:8px}
+.room-form{display:grid;gap:9px;margin-top:20px}
+.room-form label{margin-top:5px;font-size:11px;font-weight:700}
+.room-form input,.room-form select{width:100%;padding:0 13px}
+.room-form .button{margin-top:9px}
+.field-note{color:#b3c4b5;font-size:10px;line-height:1.5}
+.available-panel{margin-top:26px;padding:18px;border:1px solid #405b46;border-radius:10px;background:#13271d}
+.available-heading h3{color:#f5f0e2}
+.available-heading p{color:#aebead}
+.room-list{display:grid;gap:8px}
+.room-item{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:13px;padding:11px 12px;border:1px solid #385440;border-radius:8px;background:#1d3527}
+.room-item-details strong{color:#f3efdf}
+.room-item-details span{color:#b4c4b5}
+.room-item code{color:#e0c27e}
+.small-join{border:1px solid #9c8959;background:#d7bd81;color:#1d2d20}
+.empty-state{color:#b6c4b7}
+.app-notice{margin:0 0 4px}
+.lobby-panel{border:1px solid #3a5b43;background:#1a3224;color:#f4efdf;box-shadow:0 18px 50px #0004}
+.lobby-panel h3,.lobby-panel h4{color:#f4efdf}
+.lobby-panel .section-subtitle,.lobby-panel p{color:#b8c8b8}
+.invite-code{background:#10251a;border:1px dashed #bca36c}
+.invite-code span{color:#c5b78d}
+.invite-code strong{color:#f2d58f;letter-spacing:.18em}
+.invite-code button{color:#f3e4bb}
+.roster-player{background:#233e2d;border-color:#49624a}
+.roster-player strong{color:#f5f0e3}
+.roster-state{color:#c5d0c2}.roster-state.ready{color:#a7d8a6}
+.lobby-hint{color:#c6d0c2}.lobby-footer{border-color:#3a5540}
+.game-board{border:1px solid #466349;background:radial-gradient(ellipse at 50% 35%,#28543c,#173726 72%);color:#f3efdf;box-shadow:0 22px 60px #0006}
+.game-heading h3{color:#f5f0e3}
+.game-heading .section-subtitle{color:#bdcdbd}
+.game-heading .tutorial-link{color:#e2c784}
+.phase-banner{background:#12291d;border:1px solid #49644a;color:#f3efdf}
+.phase-banner span{color:#d3bb82}.phase-banner p{color:#c1d0c2}
+.game-board .board-section-heading h4{color:#f7f2e2}
+.game-board .board-section-heading span{color:#bfd0bf}
+.game-board .card-table-hint,.game-board .game-note{color:#bdcabb}
+@media(max-width:620px){
+ .welcome{min-height:calc(100vh - 90px);padding:20px 0}
+ .guest-entry{padding:17px}.room-hub{padding:20px 15px}
+ .room-mode-grid{grid-template-columns:1fr}
+ .room-mode-card{min-height:175px;padding:19px}
+ .room-item{grid-template-columns:minmax(0,1fr) auto;gap:8px}
+ .room-item code{grid-column:1;grid-row:2}
+ .room-item .small-join{grid-column:2;grid-row:1 / span 2}
+}
+@media(prefers-reduced-motion:reduce){.room-mode-card{transition:none}.room-mode-card:hover{transform:none}}
