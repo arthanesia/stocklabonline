@@ -8,7 +8,13 @@ Permainan StockLab multiplayer berbasis browser. Pemain masuk dengan username ta
 - Buat room 2–5 pemain dengan password, lalu bagikan kode room dan password ke teman.
 - Join room dengan memasukkan kode dan password, atau memilih room yang sedang menunggu dari daftar.
 - Lobby realtime dengan kode room, daftar pemain, status siap, dan kontrol mulai khusus host.
+- Meja pertandingan dengan posisi pemain mengelilingi area papan; posisi disusun relatif ke pemain yang sedang melihat.
+- Reksa Dana berada di tengah papan secara vertikal. Dua sektor pengaruh dipilih acak setiap game; harga unit adalah rata-rata harga dua sektor tersebut.
+- Trading Fee kartu saham sektor mengenakan 1 koin untuk setiap saham sektor biasa yang dimiliki (tidak hanya saham yang sama dengan sektor kartu). Kartu Trading Fee keluarga Reksa Dana mengenakan 1 koin per unit Reksa Dana.
 - Password room di-hash menggunakan bcrypt dan disimpan di schema privat; password asli tidak disimpan atau ditampilkan melalui daftar room.
+- Host dapat mengatur waktu bidding, waktu tiap giliran, dan batas room tidak aktif sebelum memulai permainan.
+- Bidding yang habis waktu menganggap pemain yang belum menawar memasukkan 0; giliran aksi otomatis menyimpan kartu teratas; giliran jual otomatis dilewati; fase ekonomi dibuka otomatis.
+- Room yang tidak menerima aktivitas manusia akan dibubarkan. Batas tidak aktif dapat diatur host; pemeriksaan berjalan setiap menit.
 - Enam ronde permainan: Bidding, Aksi/Draft, Jual, dan Ekonomi.
 - Bidding tertutup: pemain hanya melihat status bid miliknya sampai seluruh pemain mengirim.
 - Kartu aksi: Info Bursa, Rumor, Quickbuy, Trading Fee, dan Akuisisi.
@@ -43,9 +49,9 @@ Panduan tata cara permainan yang dijadikan referensi: [Tutorial Bermain StockLab
 3. Untuk join, masukkan kode room atau pilih room pada daftar. Masukkan password room untuk masuk ke lobby.
 4. Semua pemain yang hadir menekan **Saya siap**. Host dapat memulai setelah sedikitnya dua pemain siap.
 5. Setiap ronde dimulai dengan bidding tertutup. Masukkan tawaran minimal 1 koin dan tidak melebihi saldo. Bid yang sudah dikirim tidak dapat diubah.
-6. Setelah semua bid masuk, biaya bid dibayar dan urutan pemain ditentukan dari bid tertinggi. Jika seri, urutan sebelumnya menjadi pemecah seri.
-7. Pemain bergiliran memilih kartu dari pasar aksi. Pilih **Simpan** untuk menambah saham/Reksa Dana, atau **Aktifkan** untuk menjalankan efek kartu.
-8. Setelah semua kartu aksi habis, tiap pemain mendapat satu giliran menjual satu jenis saham/Reksa Dana atau melewati giliran. Pemakai Info Bursa ditempatkan paling akhir di fase jual.
+6. Setelah semua bid masuk, biaya bid dibayar dan urutan pemain ditentukan dari bid tertinggi. Jika seri, urutan sebelumnya menjadi pemecah seri. Bila waktu bidding habis, pemain yang belum mengirim bid dianggap mengirim 0 koin.
+7. Pemain bergiliran memilih kartu dari pasar aksi. Pilih **Simpan** untuk menambah saham/Reksa Dana, atau **Aktifkan** untuk menjalankan efek kartu. Setiap giliran memiliki timer; saat habis, kartu teratas otomatis disimpan.
+8. Setelah semua kartu aksi habis, tiap pemain mendapat satu giliran menjual satu jenis saham/Reksa Dana atau melewati giliran. Jika timer habis, sistem otomatis melewati giliran jual tersebut. Pemakai Info Bursa ditempatkan paling akhir di fase jual.
 9. Host membuka satu kartu ekonomi dari masing-masing tumpukan sektor. Efek kartu diterapkan dan ronde berikutnya dimulai.
 10. Setelah ekonomi ronde keenam, sistem menghitung koin, nilai saham, Reksa Dana, penalti utang, dan pemenang. Jika skor seri, urutan bermain yang lebih tinggi menjadi pemecah seri.
 
@@ -85,8 +91,9 @@ Pada project Supabase baru, jalankan file berikut secara berurutan di SQL Editor
 1. [supabase/schema.sql](supabase/schema.sql)
 2. [supabase/game-engine.sql](supabase/game-engine.sql)
 3. [supabase/room-passwords.sql](supabase/room-passwords.sql)
+4. [supabase/room-game-settings.sql](supabase/room-game-settings.sql)
 
-File kedua membuat penyimpanan deck privat dan mengganti fungsi awal menjadi engine permainan lengkap. File ketiga menambahkan password room dan mengganti RPC buat/join room dengan verifikasi hash bcrypt. Pada project pengembangan saat ini, SQL diterapkan langsung; riwayat migration Supabase belum direkonsiliasi.
+File kedua membuat penyimpanan deck privat dan mengganti fungsi awal menjadi engine permainan lengkap. File ketiga menambahkan password room dan mengganti RPC buat/join room dengan verifikasi hash bcrypt. File keempat menambahkan papan Reksa Dana acak, biaya Trading Fee, pengaturan durasi, timeout otomatis, pembersihan room idle, dan aturan leave/host handover. Pada project pengembangan saat ini, SQL diterapkan langsung; riwayat migration Supabase belum direkonsiliasi.
 
 ## Pengujian
 
