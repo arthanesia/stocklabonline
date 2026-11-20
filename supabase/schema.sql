@@ -529,3 +529,163 @@ using (
 );
 revoke all privileges on public.bidding_submissions from public, anon, authenticated;
 grant select on public.bidding_submissions to authenticated;
+
+
+-- Phase 1 hardening: private player data, sealed bids, and least-privilege access.
+-- This block is intentionally appended after the base lobby schema so it also
+-- removes the broader legacy grants/policies created above.
+
+BEGIN;
+
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public
+  REVOKE ALL ON TABLES FROM PUBLIC, anon, authenticated, service_role;
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public
+  REVOKE ALL ON SEQUENCES FROM PUBLIC, anon, authenticated, service_role;
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public
+  REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC, anon, authenticated, service_role;
+
+CREATE TABLE IF NOT EXISTS public.game_private_states (
+  game_id uuid NOT NULL REFERENCES public.games(id) ON DELETE CASCADE,
+  user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  private_state jsonb NOT NULL DEFAULT '{}'::jsonb
+    CHECK (pg_catalog.jsonb_typeof(private_state) = 'object'),
+  updated_at timestamptz NOT NULL DEFAULT pg_catalog.now(),
+  PRIMARY KEY (game_id, user_id)
+);
+
+CREATE TABLE IF NOT EXISTS public.bidding_submissions (
+  game_id uuid NOT NULL REFERENCES public.games(id) ON DELETE CASCADE,
+  round_number integer NOT NULL CHECK (round_number >= 1),
+  user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  bid_amount integer NOT NULL CHECK (bid_amount >= 0),
+  submitted_at timestamptz NOT NULL DEFAULT pg_catalog.now(),
+  PRIMARY KEY (game_id, round_number, user_id)
+);
+
+CREATE INDEX IF NOT EXISTS game_private_states_user_id_idx
+  ON public.game_private_states (user_id);
+CREATE INDEX IF NOT EXISTS bidding_submissions_user_id_idx
+  ON public.bidding_submissions (user_id);
+
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.rooms ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.room_members ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.games ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.game_events ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.game_private_states ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.bidding_submissions ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS game_private_states_select_own ON public.game_private_states;
+CREATE POLICY game_private_states_select_own
+ON public.game_private_states
+FOR SELECT TO authenticated
+USING (
+  user_id = (SELECT auth.uid())
+  AND EXISTS (
+    SELECT 1
+    FROM public.games g
+    WHERE g.id = game_private_states.game_id
+      AND private.is_room_member(g.room_id)
+  )
+);
+
+DROP POLICY IF EXISTS bidding_submissions_select_own ON public.bidding_submissions;
+CREATE POLICY bidding_submissions_select_own
+ON public.bidding_submissions
+FOR SELECT TO authenticated
+USING (
+  user_id = (SELECT auth.uid())
+  AND EXISTS (
+    SELECT 1
+    FROM public.games g
+    WHERE g.id = bidding_submissions.game_id
+      AND private.is_room_member(g.room_id)
+  )
+);
+
+-- Room creation, joining, and leaving must use the validated RPCs. Only readiness
+-- is writable directly by a player, and only for that player's own membership row.
+DROP POLICY IF EXISTS rooms_insert_as_host ON public.rooms;
+DROP POLICY IF EXISTS rooms_update_by_host ON public.rooms;
+DROP POLICY IF EXISTS rooms_delete_by_host_while_waiting ON public.rooms;
+DROP POLICY IF EXISTS room_members_insert_host_self ON public.room_members;
+DROP POLICY IF EXISTS game_events_select_room_members ON public.game_events;
+
+REVOKE ALL PRIVILEGES ON TABLE
+  public.rooms,
+  public.room_members,
+  public.games,
+  public.game_events,
+  public.profiles,
+  public.game_private_states,
+  public.bidding_submissions
+FROM PUBLIC, anon, authenticated;
+
+GRANT SELECT ON TABLE public.rooms, public.room_members, public.games TO authenticated;
+GRANT UPDATE (is_ready) ON TABLE public.room_members TO authenticated;
+GRANT SELECT, INSERT, UPDATE ON TABLE public.profiles TO authenticated;
+GRANT SELECT ON TABLE public.game_private_states, public.bidding_submissions TO authenticated;
+GRANT ALL PRIVILEGES ON TABLE
+  public.game_private_states,
+  public.bidding_submissions
+TO service_role;
+
+-- All RPCs validate auth.uid(). SECURITY DEFINER is limited to private
+-- implementation functions; public functions remain SECURITY INVOKER wrappers.
+ALTER FUNCTION private.is_room_member(uuid) SET search_path = '';
+ALTER FUNCTION private.create_room_impl(text, smallint) SET search_path = '';
+ALTER FUNCTION private.join_room_by_code_impl(text) SET search_path = '';
+ALTER FUNCTION private.list_open_rooms_impl() SET search_path = '';
+ALTER FUNCTION private.leave_room_impl(uuid) SET search_path = '';
+ALTER FUNCTION public.create_room(text, smallint) SET search_path = '';
+ALTER FUNCTION public.get_room_lobby(uuid) SET search_path = '';
+ALTER FUNCTION public.join_room_by_code(text) SET search_path = '';
+ALTER FUNCTION public.list_open_rooms() SET search_path = '';
+ALTER FUNCTION public.leave_room(uuid) SET search_path = '';
+
+REVOKE ALL ON FUNCTION private.is_room_member(uuid) FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION private.create_room_impl(text, smallint) FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION private.join_room_by_code_impl(text) FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION private.list_open_rooms_impl() FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION private.leave_room_impl(uuid) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION private.is_room_member(uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION private.create_room_impl(text, smallint) TO authenticated;
+GRANT EXECUTE ON FUNCTION private.join_room_by_code_impl(text) TO authenticated;
+GRANT EXECUTE ON FUNCTION private.list_open_rooms_impl() TO authenticated;
+GRANT EXECUTE ON FUNCTION private.leave_room_impl(uuid) TO authenticated;
+
+REVOKE ALL ON FUNCTION public.create_room(text, smallint) FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION public.get_room_lobby(uuid) FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION public.join_room_by_code(text) FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION public.list_open_rooms() FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION public.leave_room(uuid) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.create_room(text, smallint) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.get_room_lobby(uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.join_room_by_code(text) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.list_open_rooms() TO authenticated;
+GRANT EXECUTE ON FUNCTION public.leave_room(uuid) TO authenticated;
+
+DO $do$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM pg_publication_tables
+    WHERE pubname = 'supabase_realtime'
+      AND schemaname = 'public'
+      AND tablename = 'game_events'
+  ) THEN
+    EXECUTE 'ALTER PUBLICATION supabase_realtime DROP TABLE public.game_events';
+  END IF;
+END
+$do$;
+
+COMMENT ON COLUMN public.games.state IS
+  'Shared/public game state only. Never store private hands, sealed bids, or player-only information here.';
+COMMENT ON TABLE public.game_private_states IS
+  'Player-only game data. RLS exposes each row only to its owning room member; writes are reserved for validated game RPCs.';
+COMMENT ON TABLE public.bidding_submissions IS
+  'Sealed per-player bids by round. RLS exposes only the caller''s own bid; do not add this table to supabase_realtime.';
+COMMENT ON TABLE public.game_events IS
+  'Internal audit/event log. Not exposed to anon/authenticated clients or Realtime until event payloads are explicitly sanitized.';
+
+COMMIT;
