@@ -239,3 +239,9 @@ footer { display: flex; justify-content: space-between; gap: 12px; padding: 18px
  .choice-buttons{justify-content:stretch}
  .choice-buttons .button{flex:1}
 }
+
+.debt-form{display:grid;gap:8px;margin-top:10px;padding:12px;background:#f8f7f1;border:1px solid var(--line)}
+.debt-form label{font-size:9px;font-weight:700;color:var(--muted)}
+.debt-form .button{width:100%}
+.economy-effect-summary{margin-top:12px;padding:10px 12px;background:#f8f7f1;border-left:3px solid var(--green)}
+.economy-effect-summary p{margin:3px 0;color:#59635b;font-size:10px;line-height:1.5}
