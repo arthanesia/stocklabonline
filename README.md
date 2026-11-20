@@ -10,7 +10,7 @@ Implementasi digital multiplayer StockLab berbasis browser, dengan Guide Resmi S
 - Project Supabase `stocklab-online` aktif (Postgres 17, region Singapore).
 - Fondasi database telah diterapkan: `profiles`, `rooms`, `room_members`, `games`, dan `game_events`.
 - RLS aktif pada seluruh tabel di schema `public`.
-- Realtime Postgres Changes publication mencakup `rooms`, `games`, dan `game_events`.
+- Realtime Postgres Changes publication mencakup `rooms`, `room_members`, `games`, dan `game_events`.
 - Snapshot skema aktif tersimpan di [supabase/schema.sql](supabase/schema.sql).
 
 ## Arsitektur
