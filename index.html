@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#f4f2ec">
   <meta name="description" content="StockLab Online — buat meja dan main bersama teman.">
   <title>StockLab Online</title>
-  <link rel="stylesheet" href="style.css?v=20261121-market-feed-v2">
+  <link rel="stylesheet" href="style.css?v=20261121-card-actions-v3">
 </head>
 <body>
   <header class="topbar">
@@ -214,6 +214,7 @@
           <div class="game-tabletop" id="game-tabletop">
             <div class="game-player-seats" id="game-player-seats" aria-live="polite"></div>
             <div class="table-felt-core">
+              <section class="table-event-spotlight" id="game-event-spotlight" hidden aria-live="polite"></section>
               <div class="board-section market-section">
                 <div class="board-section-heading"><h4>Pasar saham</h4><span>Empat saham dan Reksa Dana dalam satu blok · ▲ naik · ▼ turun</span></div>
                 <div class="market-unified-board">
@@ -289,6 +290,6 @@
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.2/dist/umd/supabase.js"></script>
-  <script src="app.js?v=20261121-market-feed-v2"></script>
+  <script src="app.js?v=20261121-card-actions-v3"></script>
 </body>
 </html>
