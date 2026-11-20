@@ -711,22 +711,32 @@ function renderActionMarket(view, own) {
     header.append(makeElement("strong","action-title",card.title));
     panel.append(header);
     panel.append(makeElement("p","action-body",card.body || ""));
+    if(card.action==="info-bursa") panel.append(makeElement("small","action-hint","Setelah aktif, giliran jualmu dipindahkan ke posisi terakhir."));
     const feeCount = card.action==="trading-fee" ? Number(own && own.shares && own.shares[card.sector] || 0) : 0;
     if (card.action==="trading-fee") panel.append(makeElement("small","action-hint","Biaya aktivasi saat ini: "+feeCount+" koin."));
     const actions = makeElement("div","action-card-buttons");
-    const keep = makeElement("button","button secondary","Simpan sebagai saham");
-    keep.type="button"; keep.disabled=!isActive;
-    keep.addEventListener("click",async()=>{
-      setBusy(keep,true,"Menyimpan…");
+    const keepStock = makeElement("button","button secondary","Simpan saham");
+    keepStock.type="button"; keepStock.disabled=!isActive;
+    keepStock.addEventListener("click",async()=>{
+      setBusy(keepStock,true,"Menyimpan…");
       await runGameAction(()=>db.rpc("perform_action_card",{
-        p_room_id:sessionState.roomId,p_card_id:card.id,p_mode:"keep",p_choice:{}
-      }),"Kartu disimpan sebagai saham.");
-      setBusy(keep,false);
+        p_room_id:sessionState.roomId,p_card_id:card.id,p_mode:"keep",p_choice:{keep_as:"stock"}
+      }),"Kartu disimpan sebagai saham "+sectorName(card.sector)+".");
+      setBusy(keepStock,false);
+    });
+    const keepFund = makeElement("button","button secondary","Simpan Reksa Dana");
+    keepFund.type="button"; keepFund.disabled=!isActive;
+    keepFund.addEventListener("click",async()=>{
+      setBusy(keepFund,true,"Menyimpan…");
+      await runGameAction(()=>db.rpc("perform_action_card",{
+        p_room_id:sessionState.roomId,p_card_id:card.id,p_mode:"keep",p_choice:{keep_as:"mutual_fund"}
+      }),"Kartu disimpan sebagai Reksa Dana.");
+      setBusy(keepFund,false);
     });
     const activate = makeElement("button","button primary","Aktifkan");
     activate.type="button"; activate.disabled=!isActive;
     activate.addEventListener("click",()=>openActivationForm(card,panel,own));
-    actions.append(keep,activate);
+    actions.append(keepStock,keepFund,activate);
     panel.append(actions);
     ui.actionMarket.append(panel);
   }
