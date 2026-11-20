@@ -2524,3 +2524,55 @@ body{background:#111a3d;color:#f1e6c4}
   .order-progress-fill{transition:none}
   .order-draw-card.is-face-down:hover:not(:disabled){transform:none}
 }
+
+
+/* Player portfolios stay inside the seat, immediately beneath the name/tags. */
+.game-player-seat { align-items:start; }
+.seat-identity { min-width:0; align-content:start; gap:5px; }
+.seat-holdings {
+  display:flex; flex-wrap:wrap; align-items:flex-start; gap:7px; width:100%;
+  margin-top:5px; padding-top:7px; border-top:1px solid rgba(190,164,103,.42);
+}
+.seat-holding { display:grid; justify-items:center; gap:3px; min-width:34px; }
+.seat-holding-art { position:relative; width:35px; height:47px; overflow:visible; }
+.seat-holding-image {
+  display:block; width:35px; height:47px; object-fit:cover;
+  border:1px solid #bba36b; border-radius:2px; background:#141a32;
+}
+.seat-holding-count {
+  position:absolute; top:-5px; right:-5px; min-width:16px; height:16px; padding:0 3px;
+  display:grid; place-items:center; border:1px solid #c7aa68; border-radius:50%;
+  background:#0b1025; color:#f4e5bd; font:700 9px Arial,sans-serif;
+}
+.seat-holding-label { color:#d4bf88; font:700 7px Arial,sans-serif; letter-spacing:.035em; text-align:center; }
+.seat-holdings-empty { color:#a9a18b; font-size:8px; padding:4px 0; }
+.seat-own-coins { display:block; margin-top:2px; color:#e4ca87; font-size:9px; font-weight:700; }
+.debt-offer-panel { display:grid; gap:12px; }
+.debt-offer-card {
+  display:flex; align-items:center; gap:15px; max-width:540px; padding:12px;
+  border:1px solid #ae9355; background:#090d1c; color:#eee3c4;
+}
+.debt-offer-image { display:block; flex:0 0 auto; width:104px; max-height:145px; object-fit:contain; }
+.debt-offer-terms { display:grid; gap:6px; }
+.debt-offer-terms strong { color:#e9ce7f; font:700 24px Georgia,serif; }
+.debt-offer-terms span { color:#e9dfc5; font-size:12px; line-height:1.5; }
+.debt-offer-terms small { color:#bdb295; font-size:10px; }
+.debt-offer-question { color:#e8d8ae; font-weight:700; }
+.debt-offer-actions { display:flex; flex-wrap:wrap; gap:9px; }
+.debt-offer-responses { display:grid; gap:7px; max-width:540px; padding-top:10px; border-top:1px solid #6e6043; }
+.debt-offer-responses>strong { color:#e3d4a9; font:600 13px Georgia,serif; }
+.debt-offer-response { display:flex; justify-content:space-between; gap:12px; color:#d9cfb2; font-size:10px; }
+.debt-offer-response small { font-size:8px; font-weight:800; letter-spacing:.08em; }
+.debt-offer-response .status-accepted { color:#a9c89d; }
+.debt-offer-response .status-declined { color:#d4a39a; }
+.debt-offer-response .status-pending { color:#d6bd7b; }
+.debt-offer-response .status-already_taken,.debt-offer-response .status-unavailable { color:#aaa28e; }
+.debt-offer-result { color:#dccb97; }
+.room-password-state { display:block; margin-top:4px; color:#d3bb7b !important; font-size:8px; letter-spacing:.08em; }
+@media(max-width:760px) {
+  .game-player-seat { padding:9px; gap:8px; }
+  .seat-holdings { gap:5px; }
+  .seat-holding-art,.seat-holding-image { width:29px; height:40px; }
+  .debt-offer-card { align-items:flex-start; }
+  .debt-offer-image { width:82px; max-height:118px; }
+}
