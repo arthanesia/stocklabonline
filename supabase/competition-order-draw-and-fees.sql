@@ -13,7 +13,7 @@ BEGIN
     '  v_mutual_fund_pair jsonb;' || E'\n  v_order_cards jsonb;' || E'\nBEGIN');
   v_def := replace(v_def,
     '  v_state := jsonb_build_object(',
-    '  SELECT jsonb_agg(jsonb_build_object(''id'',''order-card-''||n::text,''number'',n::integer,''picked_by'',NULL) ORDER BY random())' || E'\n' ||
+    '  SELECT jsonb_agg(jsonb_build_object(''id'',''order-card-''||gen_random_uuid()::text,''number'',n::integer,''picked_by'',NULL) ORDER BY random())' || E'\n' ||
     '  INTO v_order_cards FROM generate_series(1,v_player_count) AS n;' || E'\n\n' ||
     '  v_state := jsonb_build_object(');
   v_def := replace(v_def,
