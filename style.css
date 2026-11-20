@@ -2240,3 +2240,141 @@ main { max-width: 1460px; }
 @media(max-width:680px) {
   .debt-sector-options { grid-template-columns: repeat(2,minmax(0,1fr)); }
 }
+
+
+/* Matching the entrance and lobby to the same restrained board-game identity. */
+.welcome {
+  min-height: calc(100vh - 108px);
+  padding: 38px 18px;
+  gap: 20px;
+}
+.welcome-copy .eyebrow { color: #947444; }
+.welcome h1 {
+  color: #20382a;
+  font: 600 clamp(32px,4.8vw,48px)/1.06 Georgia,serif;
+  letter-spacing: -.025em;
+}
+.welcome h1 span { color: #96733d; }
+.welcome-copy>p:last-child { color: #667160; }
+.guest-entry {
+  width: min(445px,100%);
+  padding: 22px;
+  border: 1px solid #c0b18d;
+  border-radius: 3px;
+  background: #f5efdf;
+  box-shadow: 0 5px 14px #2b332322;
+  color: #27392c;
+}
+.guest-entry label { color: #455441; }
+.guest-entry input {
+  border: 1px solid #b9ad8e;
+  border-radius: 2px;
+  background: #fffaf0;
+  color: #26382b;
+}
+.guest-entry .button,
+.room-form .button,
+.lobby-panel .button {
+  border-radius: 2px;
+}
+.entry-foot { color: #82785f; }
+
+.room-hub {
+  width: min(900px,100%);
+  padding: clamp(22px,3vw,34px);
+  border: 1px solid #b9aa84;
+  border-radius: 3px;
+  background: #eee7d5;
+  box-shadow: 0 8px 20px #26392c1c;
+}
+.room-hub-title { text-align: left; }
+.room-hub-title .eyebrow,
+.room-setup-panel .eyebrow { color: #8e7141; }
+.room-hub-title h2,
+.room-setup-panel h2 {
+  color: #23382a;
+  font: 600 clamp(25px,3.6vw,34px)/1.1 Georgia,serif;
+}
+.room-hub-title p:last-child,
+.room-form-copy { color: #6a725f; }
+.room-mode-grid { gap: 10px; }
+.room-mode-card {
+  min-height: 178px;
+  padding: 18px;
+  border: 1px solid #b8ab8c;
+  border-radius: 2px;
+  background: #f8f3e6;
+  color: #26382a;
+  box-shadow: 1px 2px 0 #d3c7a9;
+  transition: border-color .12s ease, background .12s ease;
+}
+.room-mode-card:hover {
+  transform: none;
+  border-color: #947343;
+  background: #fff9e9;
+  box-shadow: 1px 2px 0 #c5b58e;
+}
+.mode-symbol {
+  border: 1px solid #b49b65;
+  border-radius: 2px;
+  background: #274b35;
+  color: #f4dfae;
+}
+.room-mode-card strong { color: #2a3c2e; font: 600 22px Georgia,serif; }
+.room-mode-card small { color: #69715f; }
+.mode-cta { color: #80633a; }
+.room-setup-panel { max-width: 560px; padding: 8px 0; }
+.back-link { color: #7c6034; }
+.room-setup-panel h2 { margin: 7px 0 12px; }
+.room-form label { color: #43523e; }
+.room-form input,
+.room-form select {
+  border: 1px solid #b7ad92;
+  border-radius: 2px;
+  background: #fffaf0;
+  color: #293b2d;
+}
+.field-note { color: #7d765f; }
+.available-panel {
+  border: 1px solid #c6b996;
+  border-radius: 2px;
+  background: #e7dfca;
+}
+.available-heading h3 { color: #2d3f30; }
+.available-heading p { color: #6f745e; }
+.room-item {
+  border: 1px solid #c8bda0;
+  border-radius: 2px;
+  background: #f7f2e5;
+}
+.room-item-details strong { color: #2b3e2e; }
+.room-item-details span { color: #727660; }
+.room-item code { color: #8d6e3d; }
+.small-join {
+  border: 1px solid #a78b54;
+  border-radius: 2px;
+  background: #e5d3a6;
+  color: #34432f;
+}
+.lobby-panel {
+  border: 1px solid #a88c5c;
+  border-radius: 3px;
+  background: #1c3b2a;
+  box-shadow: 0 8px 22px #17291f33;
+}
+.lobby-panel h3,.lobby-panel h4 { color: #f5edd8; }
+.lobby-panel .section-subtitle,.lobby-panel p { color: #c5ceba; }
+.invite-code { border-radius: 2px; }
+.roster-player {
+  border-radius: 2px;
+  background: #294735;
+  border-color: #567056;
+}
+.room-settings-form { border-radius: 2px; }
+.room-settings-fields select { border-radius: 2px; }
+@media (max-width: 620px) {
+  .welcome { padding: 24px 10px; }
+  .room-hub { padding: 18px 13px; }
+  .room-mode-grid { grid-template-columns: 1fr; }
+  .room-mode-card { min-height: 150px; }
+}
