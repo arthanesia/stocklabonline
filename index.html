@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#101831">
   <meta name="description" content="StockLab Online — buat meja, main bersama teman, dan pelajari simulasi pasar modal.">
   <title>StockLab Online — Beranda</title>
-  <link rel="stylesheet" href="style.css?v=20261121-separated-info-pages-v13">
+  <link rel="stylesheet" href="style.css?v=20261121-unified-subpages-v14">
 </head>
 <body>
   <div class="dashboard-shell">
@@ -16,7 +16,7 @@
         <a class="side-link is-active" href="#home"><span class="side-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5M5.5 9v11h13V9M9 20v-6h6v6"/></svg></span><span>Beranda</span></a>
         <a class="side-link" href="./guide.html"><span class="side-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5c2.7-1.3 5.4-1.3 8 0v14c-2.6-1.3-5.3-1.3-8 0zM20 5.5c-2.7-1.3-5.4-1.3-8 0v14c2.6-1.3 5.3-1.3 8 0z"/></svg></span><span>Aturan</span></a>
         <a class="side-link" href="./about.html"><span class="side-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.5h.01"/></svg></span><span>Tentang</span></a>
-        <a class="side-link" href="#profile-settings"><span class="side-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.3a3.7 3.7 0 1 0 0 7.4 3.7 3.7 0 0 0 0-7.4Z"/><path d="m19.4 13.5 1.1.8-1.1 1.9-1.3-.4a7.8 7.8 0 0 1-1.4.8l-.2 1.4h-2.2l-.4-1.3a7.7 7.7 0 0 1-1.7 0l-.4 1.3H9.6l-.2-1.4a7.8 7.8 0 0 1-1.4-.8l-1.3.4-1.1-1.9 1.1-.8a7.5 7.5 0 0 1 0-1.7l-1.1-.8 1.1-1.9 1.3.4a7.8 7.8 0 0 1 1.4-.8l.2-1.4h2.2l.4 1.3a7.7 7.7 0 0 1 1.7 0l.4-1.3h2.2l.2 1.4a7.8 7.8 0 0 1 1.4.8l1.3-.4 1.1 1.9-1.1.8a7.5 7.5 0 0 1 0 1.7Z"/></svg></span><span>Pengaturan</span></a>
+        <a class="side-link" href="./settings.html"><span class="side-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.3a3.7 3.7 0 1 0 0 7.4 3.7 3.7 0 0 0 0-7.4Z"/><path d="m19.4 13.5 1.1.8-1.1 1.9-1.3-.4a7.8 7.8 0 0 1-1.4.8l-.2 1.4h-2.2l-.4-1.3a7.7 7.7 0 0 1-1.7 0l-.4 1.3H9.6l-.2-1.4a7.8 7.8 0 0 1-1.4-.8l-1.3.4-1.1-1.9 1.1-.8a7.5 7.5 0 0 1 0-1.7l-1.1-.8 1.1-1.9 1.3.4a7.8 7.8 0 0 1 1.4-.8l.2-1.4h2.2l.4 1.3a7.7 7.7 0 0 1 1.7 0l.4-1.3h2.2l.2 1.4a7.8 7.8 0 0 1 1.4.8l1.3-.4 1.1 1.9-1.1.8a7.5 7.5 0 0 1 0 1.7Z"/></svg></span><span>Pengaturan</span></a>
       </nav>
       <div class="sidebar-bottom"><span>STOCKLAB ONLINE</span><strong>v1.1.0</strong></div>
     </aside>
@@ -291,33 +291,7 @@
         </section>
       </div>
     </section>
-    <section class="dashboard-settings-section" id="profile-settings" aria-label="Pengaturan website">
-      <article class="dashboard-info-card profile-settings-card" id="profile-settings-card">
-        <p class="eyebrow">PREFERENCES</p><h2>Pengaturan Website</h2>
-        <form id="profile-settings-form" class="profile-settings-form">
-          <label for="profile-settings-name">Nama pemain (untuk room berikutnya)</label>
-          <input id="profile-settings-name" type="text" minlength="2" maxlength="24" placeholder="Nama pemain">
-          <label for="setting-theme">Tema dashboard</label>
-          <select id="setting-theme">
-            <option value="midnight">Midnight Navy & Gold</option>
-            <option value="forest">Emerald Market</option>
-          </select>
-          <label for="setting-text-size">Ukuran teks</label>
-          <select id="setting-text-size">
-            <option value="normal">Normal</option>
-            <option value="large">Lebih besar</option>
-          </select>
-          <label for="setting-room-density">Kerapatan kartu room</label>
-          <select id="setting-room-density">
-            <option value="comfortable">Nyaman</option>
-            <option value="compact">Ringkas</option>
-          </select>
-          <label class="setting-check-row"><input id="setting-reduce-motion" type="checkbox"> Kurangi animasi dan gerakan</label>
-          <p class="settings-note">Preferensi hanya disimpan di browser/perangkat ini, tidak dikirim ke Supabase.</p>
-          <button class="button secondary" type="submit">Simpan pengaturan</button>
-        </form>
-      </article>
-    </section>
+
   </main>
 
   <footer class="dashboard-footer"><span>STOCKLAB ONLINE</span><span>Implementasi digital independen · v1.1.0</span></footer>
@@ -325,6 +299,6 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.2/dist/umd/supabase.js"></script>
-  <script src="app.js?v=20261121-quickbuy-room-status-v12"></script>
+  <script src="app.js?v=20261121-unified-subpages-v14"></script>
 </body>
 </html>
