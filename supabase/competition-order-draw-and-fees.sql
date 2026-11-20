@@ -305,3 +305,46 @@ $new$  IF jsonb_array_length(v_secret.action_deck)<v_card_count THEN
   EXECUTE v_def;
 END
 $market_patch$;
+
+
+-- H. Trading Fee may sell ordinary sector shares only, never Mutual Fund before endgame.
+DO $trading_fee_sale_guard$
+DECLARE v_def text;
+BEGIN
+  SELECT pg_get_functiondef('private.perform_action_card_impl(uuid,text,text,jsonb)'::regprocedure) INTO v_def;
+  v_def:=replace(v_def,
+    'v_sell_sector NOT IN (''finance'',''consumer'',''agriculture'',''mining'',''mutual_fund'')',
+    'v_sell_sector NOT IN (''finance'',''consumer'',''agriculture'',''mining'')');
+  v_def:=replace(v_def,
+$old$        IF v_sell_sector='mutual_fund' THEN
+          v_pair:=coalesce(v_state->'mutual_fund_pair',jsonb_build_array('consumer','agriculture'));
+          v_sale_price:=floor((
+            (v_market->>(v_pair->>0))::numeric+(v_market->>(v_pair->>1))::numeric
+          )/2)::integer;
+        ELSE
+          v_sale_price:=(v_market->>v_sell_sector)::integer;
+        END IF;$old$,
+$new$        v_sale_price:=(v_market->>v_sell_sector)::integer;$new$);
+  v_def:=replace(v_def,
+    'Bayar 1 koin untuk setiap saham sektor yang kamu miliki, lalu jual satu jenis saham atau Reksa Dana.',
+    'Bayar 1 koin untuk setiap saham pada sektor kartu yang kamu miliki, lalu jual satu jenis saham sektor.');
+  v_def:=replace(v_def,
+    'Bayar 1 koin per unit Reksa Dana yang dimiliki, lalu jual satu jenis saham atau Reksa Dana.',
+    'Bayar 1 koin per unit Reksa Dana yang kamu miliki, lalu jual satu jenis saham sektor.');
+  IF position('v_sell_sector NOT IN (''finance'',''consumer'',''agriculture'',''mining'')' in v_def)=0
+     OR position('IF v_sell_sector=''mutual_fund'' THEN' in v_def)>0 THEN
+    RAISE EXCEPTION 'Trading Fee Mutual Fund sell guard patch incomplete';
+  END IF;
+  EXECUTE v_def;
+
+  SELECT pg_get_functiondef('private.start_game_impl(uuid)'::regprocedure) INTO v_def;
+  v_def:=replace(v_def,'Room needs 2 to 5 players','Room needs 3 to 5 players');
+  v_def:=replace(v_def,
+    'Bayar 1 koin untuk setiap saham sektor yang kamu miliki, lalu jual satu jenis saham atau Reksa Dana.',
+    'Bayar 1 koin untuk setiap saham pada sektor kartu yang kamu miliki, lalu jual satu jenis saham sektor.');
+  v_def:=replace(v_def,
+    'Bayar 1 koin per unit Reksa Dana yang dimiliki, lalu jual satu jenis saham atau Reksa Dana.',
+    'Bayar 1 koin per unit Reksa Dana yang kamu miliki, lalu jual satu jenis saham sektor.');
+  EXECUTE v_def;
+END
+$trading_fee_sale_guard$;
