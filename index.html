@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#f4f2ec">
   <meta name="description" content="StockLab Online — buat meja dan main bersama teman.">
   <title>StockLab Online</title>
-  <link rel="stylesheet" href="style.css?v=20261120-cards">
+  <link rel="stylesheet" href="style.css?v=20261121-room-flow">
 </head>
 <body>
   <header class="topbar">
@@ -26,79 +26,93 @@
   <main>
     <section class="welcome" id="home">
       <div class="welcome-copy">
-        <p class="eyebrow">MEJA PERMAINAN DIGITAL</p>
-        <h1>Susun strategi.<br><span>Kelola portofolio.</span></h1>
-        <p>Masuk dengan username, buat meja, lalu undang teman. Tidak perlu email atau password.</p>
+        <p class="eyebrow">STOCKLAB ONLINE</p>
+        <h1>Masukkan <span>nama pemain</span></h1>
+        <p>Masuk ke meja dan mulai bermain bersama teman.</p>
       </div>
       <div class="guest-entry" id="guest-entry">
         <form id="enter-form">
           <label for="username-input">Nama pemain</label>
           <div class="entry-row">
             <input id="username-input" name="username" type="text" minlength="2" maxlength="24"
-              placeholder="Masukkan username" autocomplete="nickname" required>
+              placeholder="Nama yang tampil di meja" autocomplete="nickname" required>
             <button class="button primary" id="enter-button" type="submit">Masuk</button>
           </div>
         </form>
-        <p class="entry-foot">Nama dan sesi tamu tersimpan di browser ini.</p>
+        <p class="entry-foot">Tidak perlu akun. Cukup nama pemain.</p>
       </div>
-      <div id="app-notice" class="app-notice" role="status" hidden></div>
     </section>
 
-    <section class="section multiplayer" id="multiplayer">
-      <div class="section-heading">
-        <div>
-          <p class="eyebrow">MULTIPLAYER</p>
-          <h2>Ruang permainan</h2>
-          <p class="section-subtitle">Pilih meja yang tersedia atau buat meja baru.</p>
-        </div>
-      </div>
-
-      <div class="workspace-locked" id="workspace-locked">
-        <p>Masukkan username untuk melihat ruang permainan.</p>
-      </div>
-
+    <section class="section multiplayer" id="multiplayer" hidden>
       <div class="room-workspace" id="room-workspace" hidden>
-        <div class="setup-grid">
-          <section class="panel">
-            <div class="panel-title">
-              <div><span class="step-number">01</span><h3>Buat meja</h3></div>
-              <p>Tentukan jumlah pemain yang bisa bergabung.</p>
-            </div>
-            <form id="create-room-form" class="stack-form">
-              <label for="max-players">Kapasitas meja</label>
+        <div id="app-notice" class="app-notice" role="status" hidden></div>
+        <div class="workspace-locked" id="workspace-locked" hidden></div>
+        <section class="room-hub" id="room-hub">
+          <div class="room-hub-title">
+            <p class="eyebrow">STOCKLAB MULTIPLAYER</p>
+            <h2>Pilih meja permainan</h2>
+            <p>Masuk ke room teman atau buat meja baru.</p>
+          </div>
+          <div class="room-mode-grid" id="room-mode-grid">
+            <button class="room-mode-card create-mode" id="show-create-panel" type="button">
+              <span class="mode-symbol">＋</span>
+              <strong>Buat Room</strong>
+              <small>Buat meja baru, atur kapasitas, dan tentukan password.</small>
+              <span class="mode-cta">BUAT MEJA <b>→</b></span>
+            </button>
+            <button class="room-mode-card join-mode" id="show-join-panel" type="button">
+              <span class="mode-symbol">↗</span>
+              <strong>Join Room</strong>
+              <small>Masukkan kode room atau pilih meja yang sedang menunggu.</small>
+              <span class="mode-cta">CARI MEJA <b>→</b></span>
+            </button>
+          </div>
+
+          <section class="room-setup-panel" id="create-room-panel" hidden>
+            <button class="back-link" id="back-from-create" type="button">← Kembali</button>
+            <p class="eyebrow">ROOM BARU</p>
+            <h2>Buat room permainan</h2>
+            <p class="room-form-copy">Atur jumlah kursi dan buat password yang akan dibagikan ke teman satu meja.</p>
+            <form id="create-room-form" class="room-form">
+              <label for="max-players">Jumlah pemain</label>
               <select id="max-players" name="maxPlayers">
                 <option value="2">2 pemain</option>
                 <option value="3">3 pemain</option>
                 <option value="4">4 pemain</option>
                 <option value="5" selected>5 pemain</option>
               </select>
-              <button class="button primary full-width" id="create-room-button" type="submit">Buat meja</button>
+              <label for="create-password">Password room</label>
+              <input id="create-password" name="roomPassword" type="password" minlength="6" maxlength="32"
+                placeholder="Buat password 6–32 karakter" autocomplete="new-password" required>
+              <small class="field-note">Setelah room dibuat, bagikan kode room dan password kepada teman.</small>
+              <button class="button primary full-width" id="create-room-button" type="submit">Buat room</button>
             </form>
           </section>
 
-          <section class="panel">
-            <div class="panel-title">
-              <div><span class="step-number">02</span><h3>Gabung meja</h3></div>
-              <p>Masukkan kode undangan dari teman.</p>
-            </div>
-            <form id="join-room-form" class="stack-form">
-              <label for="room-code-input">Kode undangan</label>
+          <section class="room-setup-panel" id="join-room-panel" hidden>
+            <button class="back-link" id="back-from-join" type="button">← Kembali</button>
+            <p class="eyebrow">GABUNG PERMAINAN</p>
+            <h2>Join room</h2>
+            <form id="join-room-form" class="room-form">
+              <label for="room-code-input">Kode room</label>
               <input id="room-code-input" name="roomCode" type="text" minlength="6" maxlength="6"
                 placeholder="Contoh: A7K2QP" autocomplete="off" autocapitalize="characters" required>
-              <button class="button secondary full-width" id="join-room-button" type="submit">Gabung</button>
+              <label for="join-password">Password room</label>
+              <input id="join-password" name="roomPassword" type="password" minlength="6" maxlength="32"
+                placeholder="Masukkan password room" autocomplete="off" required>
+              <button class="button primary full-width" id="join-room-button" type="submit">Masuk ke lobby</button>
             </form>
+            <section class="available-panel">
+              <div class="available-heading">
+                <div><h3>Atau pilih room</h3><p>Room yang masih menunggu pemain.</p></div>
+                <button class="icon-button" id="refresh-rooms" type="button" aria-label="Muat ulang daftar room">↻</button>
+              </div>
+              <div id="room-list" class="room-list" aria-live="polite">
+                <div class="empty-state">Memuat room yang tersedia…</div>
+              </div>
+            </section>
           </section>
-
-          <section class="panel available-panel">
-            <div class="available-heading">
-              <div><h3>Meja terbuka</h3><p>Ruangan yang masih menerima pemain.</p></div>
-              <button class="icon-button" id="refresh-rooms" type="button" aria-label="Muat ulang daftar meja">↻</button>
-            </div>
-            <div id="room-list" class="room-list" aria-live="polite">
-              <div class="empty-state">Masuk untuk melihat meja yang tersedia.</div>
-            </div>
-          </section>
-        </div>
+        </section>
 
         <section class="panel lobby-panel" id="room-lobby" hidden>
           <div class="lobby-header">
@@ -221,6 +235,6 @@
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.2/dist/umd/supabase.js"></script>
-  <script src="app.js?v=20261120-cards"></script>
+  <script src="app.js?v=20261121-room-flow"></script>
 </body>
 </html>
