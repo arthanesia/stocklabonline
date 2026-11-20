@@ -121,11 +121,12 @@ Pengujian otomatis dilakukan pada transaksi database terisolasi dan room tes dih
 - Simulasi lima pemain menyelesaikan enam ronde, dengan 10 pilihan kartu aksi dan 5 giliran jual pada setiap ronde.
 - Uji Info Bursa, intipan tiga sektor, +2 koin, dan urutan jual paling akhir.
 - Uji Rumor, Quickbuy dua kartu, Trading Fee, Akuisisi, penyimpanan Reksa Dana, dan penjualan Reksa Dana.
-- Uji kartu utang: satu saham dibalik, +10 koin, dan penalti akhir 13.
+- Uji logika penawaran utang: penerimaan menambah 10 koin dan mencatat penalti akhir 13; penolakan tidak mengubah saldo/aset; penawaran yang timeout otomatis ditolak.
 - Uji 12 jenis efek khusus ekonomi dalam enam reveal, termasuk Buyback, Extra Fee, Merger, Resesi, Stimulus, Pajak Jalan, World Oil Regulation, Dividen, dan Restrukturisasi.
 - Uji Stock Crash dan Stock Split: reset harga ke 5, perubahan lembar saham, serta pengembalian/penggunaan token split.
 - Uji pengosongan intipan privat setelah kartu ekonomi dibuka.
-- JavaScript lolos pemeriksaan sintaks dan semua referensi elemen HTML cocok.
+- Validasi terbaru: JavaScript lolos pemeriksaan sintaks, semua referensi elemen HTML cocok, nama profil permanen tidak lagi digunakan, akses RPC baru dibatasi ke role authenticated, password panjang berhasil di-hash, dan alokasi penawaran utang hanya menghitung pemain yang belum memiliki utang.
+- Fase penawaran utang belum menjalani uji multiplayer end-to-end dengan 3–5 browser nyata; lakukan pengujian langsung sebelum dipakai untuk kompetisi.
 
 Pengujian transaksi ini membuktikan alur backend dan simulasi permainan; bukan jaminan bebas bug. Uji langsung pada beberapa browser/perangkat serta koneksi Realtime selama pemain nyata masih diperlukan.
 
