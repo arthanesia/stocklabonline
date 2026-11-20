@@ -1185,3 +1185,10 @@ main{max-width:1240px}
   .activity-item { grid-template-columns: 36px minmax(0,1fr); gap: 6px; padding: 7px; }
   .activity-message { font-size: 8px; }
 }
+
+
+/* Keep each card label readable as identical holdings are stacked. */
+.stock-unit-card + .stock-unit-card { margin-left: -8px; }
+@media (max-width: 680px) {
+  .stock-unit-card + .stock-unit-card { margin-left: -7px; }
+}
