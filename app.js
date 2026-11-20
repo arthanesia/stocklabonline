@@ -1532,7 +1532,7 @@ function renderActionMarket(view, own) {
     const playerCoins = Number(view.my_private_state && view.my_private_state.coins || 0);
     const keepFee = card.action === "trading-fee" ? tradingFeeOnKeep(card, own) : 0;
     const hint = card.action === "info-bursa" ? "Klik untuk memilih 3 sektor"
-      : card.action === "quickbuy" ? "Klik untuk memilih 2 kartu lain"
+      : card.action === "quickbuy" ? "Ambil 2 saham sekaligus · giliran berikutnya dilewati"
       : card.action === "trading-fee" ? "Pajak " + keepFee + " koin bila disimpan · " +
         sectorName(card.sector) + " (" + tradingFeeDescription(card) + ")"
       : card.action === "acquisition" ? "Klik untuk memilih saham pemain lain"
@@ -1773,7 +1773,7 @@ function openActivationForm(card, cardElement, own) {
     const selected=new Set();
     const draw=()=>{
       stage.replaceChildren(makeElement("p","interaction-instruction",
-        "Klik dua kartu aksi lain yang ingin diambil sebagai saham. Kartu Quickbuy akan dibuang."));
+        "Pilih dua kartu aksi lain untuk disimpan sebagai saham. Setelah konfirmasi, giliran berikutnya milikmu otomatis dilewati jika masih ada kartu di pasar."));
       const grid=makeElement("div","quickbuy-choice-grid");
       for(const other of available)grid.append(choiceCard(other,selected.has(other.id),()=>{
         if(selected.has(other.id))selected.delete(other.id);
@@ -1783,7 +1783,7 @@ function openActivationForm(card, cardElement, own) {
       stage.append(grid,makeElement("p","interaction-selection-count",selected.size+"/2 kartu dipilih"));
       const footer=footerWithCancel();
       footer.append(confirmButton("Ambil dua kartu pilihan",{card_ids:[...selected]},
-        "Quickbuy mengambil dua kartu pilihanmu.",selected.size===2));
+        "Quickbuy mengambil dua kartu pilihanmu. Giliran berikutnya dilewati jika masih ada kartu di pasar.",selected.size===2));
       stage.append(footer);
     };
     if(available.length<2)stage.append(makeElement("p","muted-text","Tidak cukup kartu lain untuk Quickbuy."));
