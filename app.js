@@ -40,7 +40,7 @@ const ui = {
   phaseTimer: byId("phase-timer"), leaveGameButton: byId("leave-game-button"),
   gamePlayerSeats: byId("game-player-seats"),
   marketGrid: byId("market-grid"),
-  tableAssetPlayers: byId("table-asset-players"), activityFeed: byId("activity-feed"),
+  activityFeed: byId("activity-feed"),
   gamePlayers: byId("game-players"), gamePlayerCount: byId("game-player-count"),
   ownCoins: byId("own-coins"), ownShares: byId("own-shares"), ownDebt: byId("own-debt"),
   debtButton: byId("debt-button"), debtForm: byId("debt-form"),
@@ -658,58 +658,6 @@ function renderPortfolio(players, drawingOrderCards = false) {
 function shareCardAsset(sectorId) {
   if (sectorId === "mutual_fund") return CARD_ASSET_ROOT + "/boards/papan-reksa-dana.webp";
   return sectorBoardAsset(sectorId);
-}
-
-function renderTableAssets(players) {
-  if (!ui.tableAssetPlayers) return;
-  ui.tableAssetPlayers.replaceChildren();
-  const labels = {
-    finance: { name: "Keuangan", short: "KEU" },
-    consumer: { name: "Konsumer", short: "KON" },
-    agriculture: { name: "Agrikultur", short: "AGR" },
-    mining: { name: "Tambang", short: "TMB" },
-    mutual_fund: { name: "Reksa Dana", short: "RD" }
-  };
-  for (const player of players) {
-    const isTurn = player.user_id === (sessionState.gameView && sessionState.gameView.active_user_id);
-    const isOwn = player.user_id === sessionState.user.id;
-    const portfolio = makeElement("article", "table-player-assets" +
-      (isTurn ? " is-active-player" : "") + (isOwn ? " is-own-player" : ""));
-    const header = makeElement("div", "table-player-assets-heading");
-    header.append(makeElement("span", "table-player-order",
-      player.order_no == null ? "#?" : "#" + player.order_no));
-    header.append(makeElement("strong", "", (player.display_name || "Pemain") + (isOwn ? " · kamu" : "")));
-    if (isTurn) header.append(makeElement("small", "table-player-turn", "GILIRAN"));
-    portfolio.append(header);
-
-    const stacks = makeElement("div", "table-player-stacks");
-    const shares = player.shares || {};
-    let totalUnits = 0;
-    for (const key of SHARE_KEYS) {
-      const count = Math.max(0, Number(shares[key] || 0));
-      totalUnits += count;
-      if (!count) continue;
-      const info = labels[key];
-      const stack = makeElement("div", "ownership-stack ownership-" + key);
-      const stackTitle = makeElement("strong", "ownership-stack-title", info.name + " · " + count + " kartu");
-      const cards = makeElement("div", "stock-unit-stack");
-      const shown = Math.min(count, 7);
-      for (let i = 0; i < shown; i += 1) {
-        const card = makeElement("div", "stock-unit-card");
-        card.title = info.name + " · kartu " + (i + 1);
-        card.style.setProperty("--stack-index", String(i));
-        appendCardImage(card, shareCardAsset(key), info.name + " StockLab", "stock-unit-card-image");
-        card.append(makeElement("span", "stock-unit-card-label", info.short));
-        cards.append(card);
-      }
-      if (count > shown) cards.append(makeElement("span", "stock-stack-extra", "+" + (count - shown)));
-      stack.append(stackTitle, cards);
-      stacks.append(stack);
-    }
-    if (!totalUnits) stacks.append(makeElement("p", "no-table-assets", "Belum memiliki kartu aset."));
-    portfolio.append(stacks);
-    ui.tableAssetPlayers.append(portfolio);
-  }
 }
 
 
