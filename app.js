@@ -645,8 +645,8 @@ function renderPortfolio(players, drawingOrderCards = false) {
     const name = makeElement("td", "", player.display_name + (player.user_id === sessionState.user.id ? " (kamu)" : ""));
     const order = drawingOrderCards
       ? " · Kartu urutan " + (player.order_card_number || "?")
-      : " · Giliran " + (player.order_no || "?") + " · Kartu " +
-        (player.order_card_number || player.order_no || "?");
+      : " · Giliran " + (player.order_no || "?") +
+        (player.order_card_number == null ? "" : " · Kartu " + player.order_card_number);
     name.textContent += order;
     row.append(name);
     for (const key of SHARE_KEYS) row.append(makeElement("td", "", Number(player.shares && player.shares[key] || 0)));
@@ -1412,8 +1412,7 @@ function renderActionMarket(view, own) {
     header.append(makeElement("strong", "action-title", card.title));
     panel.append(header);
     appendCardImage(panel, actionCardAsset(card), card.title + " — " + sectorName(card.sector), "action-card-image");
-    const playerCoins = Number(sessionState.gameView && sessionState.gameView.my_private_state &&
-      sessionState.gameView.my_private_state.coins || 0);
+    const playerCoins = Number(view.my_private_state && view.my_private_state.coins || 0);
     const keepFee = card.action === "trading-fee" ? tradingFeeOnKeep(card, own) : 0;
     const hint = card.action === "info-bursa" ? "Klik untuk memilih 3 sektor"
       : card.action === "quickbuy" ? "Klik untuk memilih 2 kartu lain"
