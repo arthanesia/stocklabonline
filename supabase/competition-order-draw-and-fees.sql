@@ -240,3 +240,68 @@ SET search_path TO ''
 AS $function$
   SELECT private.choose_order_card_impl(p_room_id,p_card_id);
 $function$;
+
+
+-- G. Reconcile the opening action-card market with the competition's reshuffle rules.
+DO $market_patch$
+DECLARE
+  v_def text;
+BEGIN
+  SELECT pg_get_functiondef('private.start_game_impl(uuid)'::regprocedure) INTO v_def;
+  v_def:=replace(v_def,'Room needs 2 to 5 players','Room needs 3 to 5 players');
+  EXECUTE v_def;
+
+  SELECT pg_get_functiondef('private.submit_bid_impl(uuid,integer)'::regprocedure) INTO v_def;
+  v_def:=replace(v_def,
+    '  v_card_count integer; v_first_user uuid;',
+    '  v_card_count integer; v_first_user uuid; v_attempt integer; v_violates boolean; v_same_type boolean;');
+  v_def:=replace(v_def,
+$old$  SELECT coalesce(jsonb_agg(x.card ORDER BY x.ord),'[]'::jsonb) INTO v_market
+  FROM jsonb_array_elements(v_secret.action_deck) WITH ORDINALITY AS x(card,ord)
+  WHERE x.ord<=v_card_count;
+  SELECT coalesce(jsonb_agg(x.card ORDER BY x.ord),'[]'::jsonb) INTO v_remaining_deck
+  FROM jsonb_array_elements(v_secret.action_deck) WITH ORDINALITY AS x(card,ord)
+  WHERE x.ord>v_card_count;
+  IF jsonb_array_length(v_market)<>v_card_count THEN
+    RAISE EXCEPTION 'Action deck is exhausted' USING errcode='55000';
+  END IF;$old$,
+$new$  IF jsonb_array_length(v_secret.action_deck)<v_card_count THEN
+    RAISE EXCEPTION 'Action deck is exhausted' USING errcode='55000';
+  END IF;
+  v_attempt:=0;
+  LOOP
+    v_attempt:=v_attempt+1;
+    SELECT coalesce(jsonb_agg(x.card ORDER BY x.ord),'[]'::jsonb) INTO v_market
+    FROM jsonb_array_elements(v_secret.action_deck) WITH ORDINALITY AS x(card,ord)
+    WHERE x.ord<=v_card_count;
+    IF jsonb_array_length(v_market)<>v_card_count THEN
+      RAISE EXCEPTION 'Action deck is exhausted' USING errcode='55000';
+    END IF;
+    SELECT count(*) FILTER (WHERE x.card->>'action'='quickbuy')>=3
+    INTO v_violates FROM jsonb_array_elements(v_market) AS x(card);
+    IF v_player_count IN (4,5) THEN
+      SELECT EXISTS(
+        SELECT 1 FROM jsonb_array_elements(v_market) AS x(card)
+        GROUP BY x.card->>'sector',x.card->>'action'
+        HAVING count(*)>=v_player_count
+      ) INTO v_same_type;
+      v_violates:=v_violates OR v_same_type;
+    END IF;
+    EXIT WHEN NOT v_violates;
+    IF v_attempt>=100 THEN
+      RAISE EXCEPTION 'Could not draw a valid opening action market after 100 shuffles' USING errcode='55000';
+    END IF;
+    SELECT coalesce(jsonb_agg(x.card ORDER BY random()),'[]'::jsonb)
+    INTO v_secret.action_deck FROM jsonb_array_elements(v_secret.action_deck) AS x(card);
+  END LOOP;
+  SELECT coalesce(jsonb_agg(x.card ORDER BY x.ord),'[]'::jsonb) INTO v_remaining_deck
+  FROM jsonb_array_elements(v_secret.action_deck) WITH ORDINALITY AS x(card,ord)
+  WHERE x.ord>v_card_count;$new$);
+  IF position('v_attempt integer' in v_def)=0
+     OR position('Could not draw a valid opening action market' in v_def)=0
+     OR position('GROUP BY x.card->>''sector'',x.card->>''action''' in v_def)=0 THEN
+    RAISE EXCEPTION 'submit_bid_impl reshuffle patch incomplete';
+  END IF;
+  EXECUTE v_def;
+END
+$market_patch$;
