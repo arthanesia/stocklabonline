@@ -6,29 +6,25 @@ Web game digital multiplayer berbasis Guide Resmi StockLab. Frontend statis di G
 - [x] Repository khusus `arthanesia/stocklabonline`.
 - [x] Fondasi UI responsif dan katalog aset.
 - [x] Manifest metadata 56 aset dari PDF.
-- [x] Workflow GitHub Pages.
-- [ ] Mengunggah foto kartu asli.
-- [ ] Membuat project dan skema Supabase.
+- [x] Arsip 56 gambar WebP asli sudah diunggah ke repository.
+- [x] GitHub Pages berhasil menerbitkan versi fondasi.
+- [ ] Membuat project Supabase dan menerapkan skema database.
 - [ ] Implementasi game engine lengkap.
 - [ ] Pengujian multiplayer.
 
 ## Teknologi
 - Frontend: HTML, CSS, JavaScript.
-- Hosting: GitHub Pages + GitHub Actions.
+- Hosting: GitHub Pages (deploy dari branch `main`).
 - Backend: Supabase Auth, PostgreSQL, Realtime.
 
 ## Menjalankan lokal
-Buka melalui local web server, misalnya VS Code Live Server. Katalog membaca `assets/manifest.json`.
+Buka melalui local web server, misalnya VS Code Live Server. Katalog membaca `assets/manifest.json` dan arsip foto `stocklab-assets-upload.zip`.
 
-## Memasukkan gambar kartu
-Unduh arsip `stocklab-assets-upload.zip` yang disediakan di percakapan proyek ini. Unggah file ZIP tersebut ke **root repository** (sejajar dengan `index.html`) melalui Add file → Upload files. Workflow Pages akan mengekstrak `assets/cards/` dan `assets/manifest.json` otomatis sebelum menerbitkan situs.
+## Aset kartu
+Arsip `stocklab-assets-upload.zip` berisi 56 gambar WebP dan manifest. Halaman katalog mengekstrak gambar di browser menggunakan JSZip; tidak membuat atau mengubah desain kartu. Pada kunjungan pertama browser mengunduh arsip sekitar 24,6 MB. JSZip dipanggil dari CDN jsDelivr.
 
-Jangan mengganti nama file/folder di dalam ZIP. Foto kartu adalah hasil ekstraksi dari aset yang disediakan pemilik proyek, bukan ilustrasi pengganti.
-
-## Mengaktifkan GitHub Pages (perlu satu kali dari pemilik akun)
-1. Buka Settings → Pages.
-2. Pada Build and deployment, pilih **GitHub Actions** sebagai Source.
-3. Setelah Pages diaktifkan, setiap push ke `main` akan menjalankan workflow `.github/workflows/pages.yml`.
+## GitHub Pages
+Repository telah menghasilkan deployment GitHub Pages yang sukses. Pages menggunakan publikasi sumber branch `main`; setiap commit akan memicu build dan deployment bawaan GitHub Pages. Alur khusus GitHub Actions tidak digunakan karena token integrasi saat ini tidak memiliki izin untuk mengaktifkan Pages melalui API.
 
 ## Supabase
 Belum ada project Supabase yang dibuat. File `supabase/draft-schema.sql` adalah rancangan awal dan **belum diterapkan**. Sebelum dipakai, schema, RPC, hak akses, dan RLS harus ditinjau. Frontend hanya boleh memuat project URL dan publishable key; secret/service-role key tidak boleh masuk ke repository publik.
