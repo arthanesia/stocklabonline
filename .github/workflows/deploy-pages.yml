@@ -1,0 +1,72 @@
+name: Deploy StockLab Online
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "index.html"
+      - "app.js"
+      - "style.css"
+      - "assets/**"
+      - "stocklab-assets-upload.zip"
+      - ".github/workflows/deploy-pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Prepare site
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f stocklab-assets-upload.zip
+          rm -rf _site
+          mkdir -p _site/assets
+          cp index.html app.js style.css _site/
+          cp assets/manifest.json _site/assets/manifest.json
+          unzip -q stocklab-assets-upload.zip -d _site
+
+          image_count="$(find _site/assets/cards -type f -name '*.webp' | wc -l | tr -d ' ')"
+          echo "Extracted card images: ${image_count}"
+          test "${image_count}" = "56"
+          test -f _site/assets/cards/action/tambang-rumor.webp
+          test -f _site/assets/cards/action/keuangan-info-bursa.webp
+          test -f _site/assets/cards/economy/buyback.webp
+          test -f _site/assets/cards/boards/papan-reksa-dana.webp
+
+          du -sh _site
+          find _site/assets/cards -type f -name '*.webp' | sort
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
