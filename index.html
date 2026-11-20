@@ -157,7 +157,12 @@
                 <div><span>Uang</span><strong id="own-coins">15</strong><small>koin</small></div>
                 <div><span>Saham</span><strong id="own-shares">0</strong><small>lembar</small></div>
               </div>
-              <button class="button secondary debt-button" id="debt-button" type="button" hidden>Ambil kartu utang (+10 koin)</button>
+              <button class="button secondary debt-button" id="debt-button" type="button" hidden>Balik satu saham untuk +10 koin</button>
+              <form id="debt-form" class="debt-form" hidden>
+                <label for="debt-sector">Saham yang dibalik</label>
+                <select id="debt-sector" class="game-input"></select>
+                <button class="button primary" id="debt-submit" type="submit">Konfirmasi kartu utang</button>
+              </form>
               <div class="private-peek" id="private-peek" hidden></div>
             </div>
           </div>
@@ -186,6 +191,7 @@
           <section class="board-section economy-section" id="economy-section" hidden>
             <div class="board-section-heading"><h4>Kartu ekonomi terakhir</h4><span>Terbuka untuk semua pemain</span></div>
             <div id="economy-reveal" class="economy-reveal"></div>
+            <div id="economy-effect-summary" class="economy-effect-summary" hidden></div>
           </section>
 
           <section class="board-section final-section" id="final-section" hidden>
