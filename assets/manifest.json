@@ -1,0 +1,398 @@
+{
+  "source": "stocklab assets_compressed.pdf (user-provided)",
+  "asset_count": 56,
+  "assets": [
+    {
+      "page": 1,
+      "title": "Kartu angka 1",
+      "category": "Komponen",
+      "group": "Kartu angka",
+      "path": "assets/cards/components/timer-1.webp"
+    },
+    {
+      "page": 2,
+      "title": "Kartu angka 3",
+      "category": "Komponen",
+      "group": "Kartu angka",
+      "path": "assets/cards/components/timer-3.webp"
+    },
+    {
+      "page": 3,
+      "title": "Kartu angka 5",
+      "category": "Komponen",
+      "group": "Kartu angka",
+      "path": "assets/cards/components/timer-5.webp"
+    },
+    {
+      "page": 4,
+      "title": "Kartu angka 2",
+      "category": "Komponen",
+      "group": "Kartu angka",
+      "path": "assets/cards/components/timer-2.webp"
+    },
+    {
+      "page": 5,
+      "title": "Kartu angka 4",
+      "category": "Komponen",
+      "group": "Kartu angka",
+      "path": "assets/cards/components/timer-4.webp"
+    },
+    {
+      "page": 6,
+      "title": "Sisi kartu / logo StockLab merah",
+      "category": "Komponen",
+      "group": "Sisi kartu",
+      "path": "assets/cards/components/stocklab-back-red.webp"
+    },
+    {
+      "page": 7,
+      "title": "Sisi kartu / logo StockLab gelap",
+      "category": "Komponen",
+      "group": "Sisi kartu",
+      "path": "assets/cards/components/stocklab-back-dark.webp"
+    },
+    {
+      "page": 8,
+      "title": "Rumor",
+      "category": "Kartu aksi",
+      "group": "Tambang",
+      "path": "assets/cards/action/tambang-rumor.webp"
+    },
+    {
+      "page": 9,
+      "title": "Info Bursa",
+      "category": "Kartu aksi",
+      "group": "Tambang",
+      "path": "assets/cards/action/tambang-info-bursa.webp"
+    },
+    {
+      "page": 10,
+      "title": "Trading Fee",
+      "category": "Kartu aksi",
+      "group": "Tambang",
+      "path": "assets/cards/action/tambang-trading-fee.webp"
+    },
+    {
+      "page": 11,
+      "title": "Quickbuy",
+      "category": "Kartu aksi",
+      "group": "Tambang",
+      "path": "assets/cards/action/tambang-quickbuy.webp"
+    },
+    {
+      "page": 12,
+      "title": "Akuisisi",
+      "category": "Kartu aksi",
+      "group": "Tambang",
+      "path": "assets/cards/action/tambang-akuisisi.webp"
+    },
+    {
+      "page": 13,
+      "title": "Akuisisi",
+      "category": "Kartu aksi",
+      "group": "Keuangan",
+      "path": "assets/cards/action/keuangan-akuisisi.webp"
+    },
+    {
+      "page": 14,
+      "title": "Info Bursa",
+      "category": "Kartu aksi",
+      "group": "Keuangan",
+      "path": "assets/cards/action/keuangan-info-bursa.webp"
+    },
+    {
+      "page": 15,
+      "title": "Quickbuy",
+      "category": "Kartu aksi",
+      "group": "Keuangan",
+      "path": "assets/cards/action/keuangan-quickbuy.webp"
+    },
+    {
+      "page": 16,
+      "title": "Rumor",
+      "category": "Kartu aksi",
+      "group": "Keuangan",
+      "path": "assets/cards/action/keuangan-rumor.webp"
+    },
+    {
+      "page": 17,
+      "title": "Trading Fee",
+      "category": "Kartu aksi",
+      "group": "Keuangan",
+      "path": "assets/cards/action/keuangan-trading-fee.webp"
+    },
+    {
+      "page": 18,
+      "title": "Trading Fee",
+      "category": "Kartu aksi",
+      "group": "Consumer",
+      "path": "assets/cards/action/consumer-trading-fee.webp"
+    },
+    {
+      "page": 19,
+      "title": "Rumor",
+      "category": "Kartu aksi",
+      "group": "Consumer",
+      "path": "assets/cards/action/consumer-rumor.webp"
+    },
+    {
+      "page": 20,
+      "title": "Akuisisi",
+      "category": "Kartu aksi",
+      "group": "Consumer",
+      "path": "assets/cards/action/consumer-akuisisi.webp"
+    },
+    {
+      "page": 21,
+      "title": "Quickbuy",
+      "category": "Kartu aksi",
+      "group": "Consumer",
+      "path": "assets/cards/action/consumer-quickbuy.webp"
+    },
+    {
+      "page": 22,
+      "title": "Info Bursa",
+      "category": "Kartu aksi",
+      "group": "Consumer",
+      "path": "assets/cards/action/consumer-info-bursa.webp"
+    },
+    {
+      "page": 23,
+      "title": "Rumor",
+      "category": "Kartu aksi",
+      "group": "Reksa Dana",
+      "path": "assets/cards/action/reksa-dana-rumor.webp"
+    },
+    {
+      "page": 24,
+      "title": "Quickbuy",
+      "category": "Kartu aksi",
+      "group": "Reksa Dana",
+      "path": "assets/cards/action/reksa-dana-quickbuy.webp"
+    },
+    {
+      "page": 25,
+      "title": "Akuisisi",
+      "category": "Kartu aksi",
+      "group": "Reksa Dana",
+      "path": "assets/cards/action/reksa-dana-akuisisi.webp"
+    },
+    {
+      "page": 26,
+      "title": "Trading Fee",
+      "category": "Kartu aksi",
+      "group": "Reksa Dana",
+      "path": "assets/cards/action/reksa-dana-trading-fee.webp"
+    },
+    {
+      "page": 27,
+      "title": "Quickbuy",
+      "category": "Kartu aksi",
+      "group": "Agrikultur",
+      "path": "assets/cards/action/agrikultur-quickbuy.webp"
+    },
+    {
+      "page": 28,
+      "title": "Rumor",
+      "category": "Kartu aksi",
+      "group": "Agrikultur",
+      "path": "assets/cards/action/agrikultur-rumor.webp"
+    },
+    {
+      "page": 29,
+      "title": "Trading Fee",
+      "category": "Kartu aksi",
+      "group": "Agrikultur",
+      "path": "assets/cards/action/agrikultur-trading-fee.webp"
+    },
+    {
+      "page": 30,
+      "title": "Akuisisi",
+      "category": "Kartu aksi",
+      "group": "Agrikultur",
+      "path": "assets/cards/action/agrikultur-akuisisi.webp"
+    },
+    {
+      "page": 31,
+      "title": "Info Bursa",
+      "category": "Kartu aksi",
+      "group": "Agrikultur",
+      "path": "assets/cards/action/agrikultur-info-bursa.webp"
+    },
+    {
+      "page": 32,
+      "title": "Kartu Utang",
+      "category": "Komponen",
+      "group": "Kartu khusus",
+      "path": "assets/cards/components/kartu-utang.webp"
+    },
+    {
+      "page": 33,
+      "title": "Papan Reksa Dana (Saham A dan Saham B)",
+      "category": "Papan",
+      "group": "Reksa Dana",
+      "path": "assets/cards/boards/papan-reksa-dana.webp"
+    },
+    {
+      "page": 34,
+      "title": "Sisi tumpukan ekonomi - Agrikultur",
+      "category": "Papan",
+      "group": "Kartu ekonomi x6",
+      "path": "assets/cards/boards/back-ekonomi-agrikultur.webp"
+    },
+    {
+      "page": 35,
+      "title": "Sisi tumpukan ekonomi - Consumer",
+      "category": "Papan",
+      "group": "Kartu ekonomi x6",
+      "path": "assets/cards/boards/back-ekonomi-consumer.webp"
+    },
+    {
+      "page": 36,
+      "title": "Sisi tumpukan ekonomi - Keuangan",
+      "category": "Papan",
+      "group": "Kartu ekonomi x6",
+      "path": "assets/cards/boards/back-ekonomi-keuangan.webp"
+    },
+    {
+      "page": 37,
+      "title": "Sisi tumpukan ekonomi - Tambang",
+      "category": "Papan",
+      "group": "Kartu ekonomi x6",
+      "path": "assets/cards/boards/back-ekonomi-tambang.webp"
+    },
+    {
+      "page": 38,
+      "title": "Penerbitan Saham Baru",
+      "category": "Kartu ekonomi",
+      "group": "Ekonomi",
+      "path": "assets/cards/economy/penerbitan-saham-baru.webp"
+    },
+    {
+      "page": 39,
+      "title": "Tax Amnesty",
+      "category": "Kartu ekonomi",
+      "group": "Ekonomi",
+      "path": "assets/cards/economy/tax-amnesty.webp"
+    },
+    {
+      "page": 40,
+      "title": "Buyback",
+      "category": "Kartu ekonomi",
+      "group": "Ekonomi",
+      "path": "assets/cards/economy/buyback.webp"
+    },
+    {
+      "page": 41,
+      "title": "Extra Fee",
+      "category": "Kartu ekonomi",
+      "group": "Ekonomi",
+      "path": "assets/cards/economy/extra-fee.webp"
+    },
+    {
+      "page": 42,
+      "title": "Merger",
+      "category": "Kartu ekonomi",
+      "group": "Ekonomi",
+      "path": "assets/cards/economy/merger.webp"
+    },
+    {
+      "page": 43,
+      "title": "Resesi",
+      "category": "Kartu ekonomi",
+      "group": "Ekonomi",
+      "path": "assets/cards/economy/resesi.webp"
+    },
+    {
+      "page": 44,
+      "title": "Restrukturisasi Ekonomi",
+      "category": "Kartu ekonomi",
+      "group": "Ekonomi",
+      "path": "assets/cards/economy/restrukturisasi-ekonomi.webp"
+    },
+    {
+      "page": 45,
+      "title": "Stimulus Ekonomi",
+      "category": "Kartu ekonomi",
+      "group": "Ekonomi",
+      "path": "assets/cards/economy/stimulus-ekonomi.webp"
+    },
+    {
+      "page": 46,
+      "title": "Pajak Jalan",
+      "category": "Kartu ekonomi",
+      "group": "Ekonomi",
+      "path": "assets/cards/economy/pajak-jalan.webp"
+    },
+    {
+      "page": 47,
+      "title": "World Oil Regulation",
+      "category": "Kartu ekonomi",
+      "group": "Ekonomi",
+      "path": "assets/cards/economy/world-oil-regulation.webp"
+    },
+    {
+      "page": 48,
+      "title": "Sideways",
+      "category": "Kartu ekonomi",
+      "group": "Ekonomi",
+      "path": "assets/cards/economy/sideways.webp"
+    },
+    {
+      "page": 49,
+      "title": "Dividen",
+      "category": "Kartu ekonomi",
+      "group": "Ekonomi",
+      "path": "assets/cards/economy/dividen.webp"
+    },
+    {
+      "page": 50,
+      "title": "Naik",
+      "category": "Kartu ekonomi",
+      "group": "Ekonomi",
+      "path": "assets/cards/economy/naik.webp"
+    },
+    {
+      "page": 51,
+      "title": "Melaju",
+      "category": "Kartu ekonomi",
+      "group": "Ekonomi",
+      "path": "assets/cards/economy/melaju.webp"
+    },
+    {
+      "page": 52,
+      "title": "Boom",
+      "category": "Kartu ekonomi",
+      "group": "Ekonomi",
+      "path": "assets/cards/economy/boom.webp"
+    },
+    {
+      "page": 53,
+      "title": "Anjlok",
+      "category": "Kartu ekonomi",
+      "group": "Ekonomi",
+      "path": "assets/cards/economy/anjlok.webp"
+    },
+    {
+      "page": 54,
+      "title": "Terjun",
+      "category": "Kartu ekonomi",
+      "group": "Ekonomi",
+      "path": "assets/cards/economy/terjun.webp"
+    },
+    {
+      "page": 55,
+      "title": "Crash",
+      "category": "Kartu ekonomi",
+      "group": "Ekonomi",
+      "path": "assets/cards/economy/crash.webp"
+    },
+    {
+      "page": 56,
+      "title": "Lembar komponen: koin dan token",
+      "category": "Komponen",
+      "group": "Koin dan token",
+      "path": "assets/cards/components/keping-koin-token.webp"
+    }
+  ]
+}
