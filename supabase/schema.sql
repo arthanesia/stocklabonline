@@ -173,17 +173,25 @@ begin
     return jsonb_build_object('room_id', v_room.id, 'seat_no', v_existing.seat_no, 'member_count', v_count);
   end if;
 
-  select candidate into v_seat
-  from generate_series(1, v_room.max_players) as candidate
+  select count(*) into v_count
+  from public.room_members rm
+  where rm.room_id = v_room.id;
+
+  if v_count >= v_room.max_players then
+    raise exception 'Room is full' using errcode = '54000';
+  end if;
+
+  select seats.seat_no into v_seat
+  from generate_series(1, v_room.max_players) as seats(seat_no)
   where not exists (
     select 1 from public.room_members rm
-    where rm.room_id = v_room.id and rm.seat_no = candidate
+    where rm.room_id = v_room.id and rm.seat_no = seats.seat_no
   )
-  order by candidate
+  order by seats.seat_no
   limit 1;
 
-  if v_count >= v_room.max_players or v_seat is null then
-    raise exception 'Room is full' using errcode = '54000';
+  if v_seat is null then
+    raise exception 'No available seat' using errcode = '54000';
   end if;
 
   insert into public.room_members(room_id, user_id, seat_no)
