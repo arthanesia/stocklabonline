@@ -10,9 +10,10 @@ Implementasi digital multiplayer StockLab berbasis browser, dengan Guide Resmi S
 - Mode masuk yang dirancang adalah **username tamu**, tanpa formulir email/password.
 - Guest identity memakai Supabase Anonymous Auth dan tersimpan sebagai sesi browser.
 - Fondasi backend: `profiles`, `rooms`, `room_members`, `games`, `game_events`, `game_private_states`, dan `bidding_submissions`.
-- RLS aktif pada seluruh tabel di schema `public`.
-- Realtime Postgres Changes: `rooms`, `room_members`, `games`, dan `game_events`. Data bidding rahasia tidak dimasukkan ke Realtime.
+- RLS aktif pada seluruh 7 tabel di schema `public`; akses `anon` dicabut dan hak `authenticated` dibatasi sesuai kebutuhan.
+- Realtime Postgres Changes hanya mencakup `rooms`, `room_members`, dan `games`; `game_events`, private state, dan sealed bids tidak dipublikasikan.
 - Snapshot schema: [supabase/schema.sql](supabase/schema.sql).
+- `schema.sql` memuat bootstrap dan hardening tahap 1; `draft-schema.sql` sudah deprecated.
 
 ## Guest access
 
@@ -27,13 +28,24 @@ Untuk mengaktifkan alur ini, **Allow anonymous sign-ins** harus diaktifkan di Su
 
 Sesi tamu melekat pada browser/perangkat. Menghapus data browser atau berpindah perangkat membuat pemain tidak dapat memulihkan identitas tamu yang sama. Untuk penggunaan publik, aktifkan CAPTCHA/Turnstile dan pantau pembuatan akun tamu.
 
+Konfigurasi Anonymous Sign-Ins belum dapat diverifikasi melalui konektor pada pemeriksaan ini. Aktifkan dan uji di Dashboard sebelum mengandalkan alur guest.
+
+## Database
+
+- `games.phase` dibatasi ke `bidding`, `action`, `sell`, `economy`, dan `finished`.
+- `games.state` hanya untuk data publik; tangan pemain dan bidding rahasia dipisahkan ke `game_private_states` dan `bidding_submissions`.
+- Private state dan bid hanya bisa dibaca pemiliknya; penulisan belum diberikan ke client dan perlu RPC game tervalidasi.
+- `game_events` adalah log internal dan tidak lagi dapat dibaca client atau dikirim lewat Realtime.
+- Perubahan database tahap ini diterapkan langsung melalui SQL; Supabase migration history masih kosong.
+
 ## Keamanan
 
 - Browser hanya memakai project URL dan Supabase publishable key.
 - Secret/service-role key tidak disimpan di repository.
 - RLS aktif pada semua tabel publik; akses anonim tanpa sesi tidak diberi table grants.
 - Data privat pemain dan sealed bids hanya bisa dibaca pemiliknya; tidak dipublikasikan melalui Realtime.
-- Client belum diberi hak untuk menulis state game atau event permainan. Game actions perlu melalui RPC tervalidasi.
+- Pembuatan/join/keluar room melalui RPC tervalidasi; client hanya boleh mengubah flag kesiapan miliknya sendiri.
+- Client tidak dapat menulis `games`, private state, sealed bids, atau `game_events`; mutasi game harus melalui RPC server yang memvalidasi fase, giliran, dan aturan.
 
 ## Teknologi
 
@@ -48,4 +60,4 @@ Sesi tamu melekat pada browser/perangkat. Menghapus data browser atau berpindah 
 3. Implementasikan bidding tertutup, kartu aksi, fase jual, ekonomi, dan scoring.
 4. Tambahkan pengujian end-to-end untuk concurrency, RLS, turn order, dan state sync.
 
-**Status:** UI room/lobby dan fondasi database sudah disiapkan. Belum menyatakan permainan StockLab sudah dapat dimainkan sampai anonymous auth diaktifkan dan alur dua pemain berhasil diuji end-to-end.
+**Status:** UI room/lobby dan fondasi database sudah disiapkan. Project belum memiliki akun Auth saat pemeriksaan; Anonymous Auth dan alur dua pemain belum diuji end-to-end. Game engine dan efek kartu belum diimplementasikan.
