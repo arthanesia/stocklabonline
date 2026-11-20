@@ -74,6 +74,8 @@ Pengujian otomatis dilakukan pada transaksi database terisolasi dan room tes dih
 - Uji Info Bursa, intipan tiga sektor, +2 koin, dan urutan jual paling akhir.
 - Uji Rumor, Quickbuy dua kartu, Trading Fee, Akuisisi, penyimpanan Reksa Dana, dan penjualan Reksa Dana.
 - Uji kartu utang: satu saham dibalik, +10 koin, dan penalti akhir 13.
+- Uji 12 jenis efek khusus ekonomi dalam enam reveal, termasuk Buyback, Extra Fee, Merger, Resesi, Stimulus, Pajak Jalan, World Oil Regulation, Dividen, dan Restrukturisasi.
+- Uji Stock Crash dan Stock Split: reset harga ke 5, perubahan lembar saham, serta pengembalian/penggunaan token split.
 - Uji pengosongan intipan privat setelah kartu ekonomi dibuka.
 - JavaScript lolos pemeriksaan sintaks dan semua referensi elemen HTML cocok.
 
