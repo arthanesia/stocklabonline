@@ -22,6 +22,8 @@ const ui = {
   joinPanel: byId("join-room-panel"), backFromJoin: byId("back-from-join"),
   createForm: byId("create-room-form"), createButton: byId("create-room-button"),
   maxPlayers: byId("max-players"), createPassword: byId("create-password"),
+  createBiddingSeconds: byId("create-bidding-seconds"), createTurnSeconds: byId("create-turn-seconds"),
+  createIdleMinutes: byId("create-idle-minutes"),
   joinForm: byId("join-room-form"), joinInput: byId("room-code-input"),
   joinPassword: byId("join-password"), joinButton: byId("join-room-button"),
   roomList: byId("room-list"), refreshRooms: byId("refresh-rooms"),
@@ -29,9 +31,15 @@ const ui = {
   lobbyCode: byId("lobby-code"), lobbyCount: byId("lobby-count"), roster: byId("player-roster"),
   lobbyHint: byId("lobby-hint"), copyCode: byId("copy-code-button"), readyButton: byId("ready-button"),
   startButton: byId("start-game-button"), leaveButton: byId("leave-room-button"),
+  roomSettingsForm: byId("room-settings-form"), lobbyBiddingSeconds: byId("lobby-bidding-seconds"),
+  lobbyTurnSeconds: byId("lobby-turn-seconds"), lobbyIdleMinutes: byId("lobby-idle-minutes"),
+  saveRoomSettings: byId("save-room-settings"),
   gameTable: byId("game-table"), gameSubtitle: byId("game-subtitle"), gameRound: byId("game-round"),
   gamePhase: byId("game-phase"), gamePhaseDescription: byId("game-phase-description"),
+  phaseTimer: byId("phase-timer"), leaveGameButton: byId("leave-game-button"),
+  gamePlayerSeats: byId("game-player-seats"),
   marketGrid: byId("market-grid"), mutualFundPrice: byId("mutual-fund-price"),
+  mutualFundBoard: byId("mutual-fund-board"),
   gamePlayers: byId("game-players"), gamePlayerCount: byId("game-player-count"),
   ownCoins: byId("own-coins"), ownShares: byId("own-shares"), ownDebt: byId("own-debt"),
   debtButton: byId("debt-button"), debtForm: byId("debt-form"),
@@ -45,7 +53,8 @@ const ui = {
 
 const sessionState = {
   user: null, username: "", roomId: null, roomCode: "", roomMeta: null,
-  members: [], gameView: null, channel: null, gameLoadSeq: 0
+  members: [], gameView: null, channel: null, gameLoadSeq: 0,
+  phaseTimerHandle: null, autoTimeoutPending: false
 };
 
 const SECTORS = [
@@ -312,7 +321,10 @@ async function createRoom(event) {
     const { data, error } = await db.rpc("create_room", {
       p_display_name: sessionState.username,
       p_max_players: Number(ui.maxPlayers.value),
-      p_password: password
+      p_password: password,
+      p_bidding_seconds: Number(ui.createBiddingSeconds.value),
+      p_turn_seconds: Number(ui.createTurnSeconds.value),
+      p_idle_timeout_minutes: Number(ui.createIdleMinutes.value)
     });
     if (error) throw error;
     ui.createPassword.value = "";
@@ -362,7 +374,7 @@ async function openRoom(roomId, inviteCode) {
   sessionState.roomId = roomId;
   sessionState.roomCode = inviteCode;
   const { data: room, error } = await db.from("rooms")
-    .select("id,invite_code,host_id,max_players,status")
+    .select("id,invite_code,host_id,max_players,status,bidding_seconds,turn_seconds,idle_timeout_minutes,last_activity_at")
     .eq("id", roomId).maybeSingle();
   if (error) throw error;
   if (!room) throw new Error("Room tidak ditemukan atau akses sudah berakhir.");
@@ -418,6 +430,10 @@ async function refreshLobby() {
   const isFinished = sessionState.roomMeta.status === "finished";
   ui.leaveButton.hidden = !(isWaiting || isFinished);
   ui.leaveButton.textContent = isFinished ? "Kembali ke lobi" : "Keluar";
+  ui.roomSettingsForm.hidden = !isHost || !isWaiting;
+  ui.lobbyBiddingSeconds.value = String(sessionState.roomMeta.bidding_seconds || 90);
+  ui.lobbyTurnSeconds.value = String(sessionState.roomMeta.turn_seconds || 45);
+  ui.lobbyIdleMinutes.value = String(sessionState.roomMeta.idle_timeout_minutes || 30);
 
   for (let seat = 1; seat <= capacity; seat += 1) {
     const member = sessionState.members.find((entry) => Number(entry.seat_no) === seat);
@@ -449,7 +465,8 @@ async function refreshLobby() {
 async function syncRoomState() {
   if (!sessionState.roomId) return;
   const { data: room, error } = await db.from("rooms")
-    .select("id,invite_code,host_id,max_players,status").eq("id", sessionState.roomId).maybeSingle();
+    .select("id,invite_code,host_id,max_players,status,bidding_seconds,turn_seconds,idle_timeout_minutes,last_activity_at")
+    .eq("id", sessionState.roomId).maybeSingle();
   if (error || !room) return;
   sessionState.roomMeta = room;
   ui.lobbySubtitle.textContent = room.status === "waiting"
@@ -515,11 +532,64 @@ function renderMarket(market, state) {
     ui.marketGrid.append(cell);
   }
 
-  const pair = Array.isArray(state && state.mutual_fund_pair) ? state.mutual_fund_pair : ["consumer", "agriculture"];
-  const price = Math.floor((
-    Number(market[pair[0]] || 0) + Number(market[pair[1]] || 0)
-  ) / 2);
+  const pair = Array.isArray(state && state.mutual_fund_pair) && state.mutual_fund_pair.length === 2
+    ? state.mutual_fund_pair : ["consumer", "agriculture"];
+  const leftSector = SECTORS.find((item) => item.id === pair[0]) || SECTORS[0];
+  const rightSector = SECTORS.find((item) => item.id === pair[1]) || SECTORS[1];
+  const price = Math.floor((Number(market[leftSector.id] || 0) + Number(market[rightSector.id] || 0)) / 2);
   if (ui.mutualFundPrice) ui.mutualFundPrice.textContent = String(price);
+  if (ui.mutualFundBoard) {
+    ui.mutualFundBoard.replaceChildren();
+    const linkedStock = (sector, side) => {
+      const panel = makeElement("article", "mf-linked-stock " + side);
+      appendCardImage(panel, sectorBoardAsset(sector.id), "Kartu saham " + sector.name + " penentu Reksa Dana", "mf-linked-stock-image");
+      panel.append(makeElement("strong", "", sector.name));
+      panel.append(makeElement("span", "", "Harga " + Number(market[sector.id] || 0)));
+      return panel;
+    };
+    ui.mutualFundBoard.append(linkedStock(leftSector, "left"));
+    const center = makeElement("div", "mutual-fund-center");
+    const artwork = makeElement("div", "mutual-fund-center-art");
+    appendCardImage(artwork, "./assets/cards/boards/papan-reksa-dana.webp", "Papan Reksa Dana StockLab vertikal", "mutual-fund-center-image");
+    center.append(artwork, makeElement("span", "mutual-fund-center-label", "HARGA UNIT"), makeElement("strong", "mutual-fund-center-price", String(price)));
+    ui.mutualFundBoard.append(center, linkedStock(rightSector, "right"));
+  }
+}
+
+function renderGameSeats(players, view, privateState) {
+  ui.gamePlayerSeats.replaceChildren();
+  const byOrder = [...players].sort((a, b) => Number(a.order_no) - Number(b.order_no));
+  const ownIndex = Math.max(0, byOrder.findIndex((player) => player.user_id === sessionState.user.id));
+  const rotated = byOrder.slice(ownIndex).concat(byOrder.slice(0, ownIndex));
+  const positions = {
+    2: ["bottom", "top"],
+    3: ["bottom", "top-left", "top-right"],
+    4: ["bottom", "left", "top", "right"],
+    5: ["bottom", "left", "top-left", "top-right", "right"]
+  }[rotated.length] || ["bottom", "left", "top", "right", "top-left"];
+  for (let index = 0; index < rotated.length; index += 1) {
+    const player = rotated[index];
+    const isOwn = player.user_id === sessionState.user.id;
+    const isTurn = player.user_id === view.active_user_id;
+    const seat = makeElement("article", "game-player-seat seat-" + positions[index] +
+      (isOwn ? " is-you" : "") + (isTurn ? " is-active-turn" : ""));
+    const avatar = makeElement("span", "seat-avatar", String(player.display_name || "P").slice(0, 1).toUpperCase());
+    const identity = makeElement("div", "seat-identity");
+    identity.append(makeElement("strong", "", player.display_name || "Pemain"));
+    const tags = [];
+    if (player.is_host || player.user_id === sessionState.roomMeta?.host_id) tags.push("HOST");
+    if (isOwn) tags.push("KAMU");
+    if (isTurn) tags.push("GILIRAN");
+    if (tags.length) identity.append(makeElement("small", "seat-tags", tags.join(" · ")));
+    const shares = player.shares || {};
+    const stockCount = SECTORS.reduce((sum, sector) => sum + Number(shares[sector.id] || 0), 0);
+    const assets = makeElement("div", "seat-assets");
+    assets.append(makeElement("span", "", stockCount + " saham"));
+    assets.append(makeElement("span", "", Number(shares.mutual_fund || 0) + " RD"));
+    if (isOwn) assets.append(makeElement("span", "seat-own-coins", Number(privateState.coins || 0) + " koin"));
+    seat.append(avatar, identity, assets);
+    ui.gamePlayerSeats.append(seat);
+  }
 }
 
 function renderPortfolio(players) {
@@ -674,6 +744,8 @@ function renderGame(view) {
   ui.gameTable.hidden = false;
   ui.gameRound.textContent = String(view.current_round || 1).padStart(2, "0");
   ui.gamePhase.textContent = phaseName(view.phase);
+  renderPhaseTimer(view);
+  renderGameSeats(players, view, privateState);
   ui.gameSubtitle.textContent = "Meja " + sessionState.roomCode + " · " + players.length + " pemain";
   ui.gamePhaseDescription.textContent = phaseDescription(view, state);
   ui.ownCoins.textContent = String(coins);
@@ -729,6 +801,43 @@ function renderGame(view) {
 
 function phaseName(phase) {
   return ({ bidding: "Bidding", action: "Aksi", sell: "Jual", economy: "Ekonomi", finished: "Selesai" })[phase] || phase;
+}
+
+function renderPhaseTimer(view) {
+  if (sessionState.phaseTimerHandle) {
+    window.clearInterval(sessionState.phaseTimerHandle);
+    sessionState.phaseTimerHandle = null;
+  }
+  sessionState.autoTimeoutPending = false;
+  const deadline = view.phase_deadline ? new Date(view.phase_deadline).getTime() : 0;
+  if (!deadline || view.phase === "finished") {
+    ui.phaseTimer.textContent = "—";
+    return;
+  }
+  const tick = async () => {
+    const remainingMs = Math.max(0, deadline - Date.now());
+    const totalSeconds = Math.ceil(remainingMs / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    ui.phaseTimer.textContent = minutes + ":" + String(seconds).padStart(2, "0");
+    ui.phaseTimer.classList.toggle("is-expired", remainingMs <= 0);
+    if (remainingMs <= 0 && !sessionState.autoTimeoutPending && sessionState.roomId) {
+      sessionState.autoTimeoutPending = true;
+      try {
+        const { error } = await db.rpc("advance_expired_turn", { p_room_id: sessionState.roomId });
+        if (error) throw error;
+        await loadActiveGame();
+      } catch (error) {
+        const message = errorMessage(error);
+        if (!/deadline|expired|not a room member/i.test(message)) {
+          console.warn("Auto phase advance:", error);
+        }
+        sessionState.autoTimeoutPending = false;
+      }
+    }
+  };
+  tick();
+  sessionState.phaseTimerHandle = window.setInterval(tick, 1000);
 }
 
 function phaseDescription(view, state) {
@@ -871,6 +980,12 @@ function renderPhaseControls(view, own, coins) {
   }
 }
 
+function tradingFeeForCard(card, own) {
+  const shares = own && own.shares || {};
+  if (card && card.sector === "mutual_fund") return Number(shares.mutual_fund || 0);
+  return SECTORS.reduce((total, sector) => total + Number(shares[sector.id] || 0), 0);
+}
+
 function displayNameFor(players,userId) {
   const player = (players||[]).find((item)=>item.user_id===userId);
   return player ? player.display_name : "pemain lain";
@@ -901,8 +1016,8 @@ function renderActionMarket(view, own) {
     } else if (card.action === "quickbuy") {
       panel.append(makeElement("small", "action-hint", "Efek: ambil dua kartu lain."));
     } else if (card.action === "trading-fee") {
-      const fee = Number(own && own.shares && own.shares[card.sector] || 0);
-      panel.append(makeElement("small", "action-hint", "Biaya aktivasi saat ini: " + fee + " koin."));
+      const fee = tradingFeeForCard(card, own);
+      panel.append(makeElement("small", "action-hint", "Biaya aktivasi: " + fee + " koin (1 koin per saham sektor yang dimiliki)."));
     } else {
       panel.append(makeElement("small", "action-hint", "Pilih untuk menyimpan atau mengaktifkan."));
     }
@@ -1040,8 +1155,8 @@ function openActivationForm(card, cardElement, own) {
       isChoiceValid = false;
       formWrap.append(makeElement("p", "muted-text", "Kamu belum memiliki saham atau Reksa Dana untuk dijual."));
     }
-    const fee = Number(own && own.shares && own.shares[card.sector] || 0);
-    formWrap.append(makeElement("p", "muted-text", "Biaya aktivasi: " + fee + " koin. Pastikan saldo mencukupi."));
+    const fee = tradingFeeForCard(card, own);
+    formWrap.append(makeElement("p", "muted-text", "Biaya aktivasi: " + fee + " koin (1 koin per saham sektor yang dimiliki). Pastikan saldo mencukupi."));
     getChoice = () => ({ sell_sector: sector.value, quantity: Number(quantity.value) });
   } else if (card.action === "acquisition") {
     const stockOptions = SECTORS.map((s) => ({ value: s.id, label: s.name }));
@@ -1092,7 +1207,7 @@ function openActivationForm(card, cardElement, own) {
   confirm.type = "submit";
   confirm.disabled = !isChoiceValid;
   if (card.action === "trading-fee") {
-    const fee = Number(own && own.shares && own.shares[card.sector] || 0);
+    const fee = tradingFeeForCard(card, own);
     const coins = Number(sessionState.gameView && sessionState.gameView.my_private_state &&
       sessionState.gameView.my_private_state.coins || 0);
     if (coins < fee) confirm.disabled = true;
@@ -1179,11 +1294,48 @@ function subscribeToRoom() {
   sessionState.channel=db.channel("stocklab-room-"+roomId)
     .on("postgres_changes",{event:"*",schema:"public",table:"room_members",filter:"room_id=eq."+roomId},async()=>{await syncRoomState();})
     .on("postgres_changes",{event:"UPDATE",schema:"public",table:"rooms",filter:"id=eq."+roomId},async()=>{await syncRoomState();})
+    .on("postgres_changes",{event:"DELETE",schema:"public",table:"rooms",filter:"id=eq."+roomId},async()=>{
+      if (sessionState.channel) { await db.removeChannel(sessionState.channel); sessionState.channel=null; }
+      if (sessionState.phaseTimerHandle) { window.clearInterval(sessionState.phaseTimerHandle); sessionState.phaseTimerHandle=null; }
+      sessionState.roomId=null; sessionState.roomCode=""; sessionState.roomMeta=null;
+      sessionState.members=[]; sessionState.gameView=null;
+      ui.lobby.hidden=true; ui.gameTable.hidden=true;
+      showRoomHub();
+      showNotice("Room dibubarkan karena melewati batas waktu tidak aktif.","warning");
+      await refreshOpenRooms();
+    })
     .on("postgres_changes",{event:"*",schema:"public",table:"games",filter:"room_id=eq."+roomId},async()=>{await loadActiveGame();})
     .subscribe((status)=>{
       if(status==="SUBSCRIBED")setConnection("Terhubung",true);
       if(status==="CHANNEL_ERROR"||status==="TIMED_OUT")setConnection("Menghubungkan ulang");
     });
+}
+
+async function saveRoomSettings(event) {
+  event.preventDefault();
+  if (!sessionState.roomId || !sessionState.roomMeta ||
+      sessionState.roomMeta.host_id !== sessionState.user.id) return;
+  setBusy(ui.saveRoomSettings, true, "Menyimpan…");
+  try {
+    const { error } = await db.rpc("update_room_settings", {
+      p_room_id: sessionState.roomId,
+      p_bidding_seconds: Number(ui.lobbyBiddingSeconds.value),
+      p_turn_seconds: Number(ui.lobbyTurnSeconds.value),
+      p_idle_timeout_minutes: Number(ui.lobbyIdleMinutes.value)
+    });
+    if (error) throw error;
+    const { data, error: roomError } = await db.from("rooms")
+      .select("id,invite_code,host_id,max_players,status,bidding_seconds,turn_seconds,idle_timeout_minutes,last_activity_at")
+      .eq("id", sessionState.roomId).maybeSingle();
+    if (roomError) throw roomError;
+    if (data) sessionState.roomMeta = data;
+    await refreshLobby();
+    showNotice("Pengaturan room berhasil disimpan.", "success");
+  } catch (error) {
+    showNotice(errorMessage(error), "error");
+  } finally {
+    setBusy(ui.saveRoomSettings, false);
+  }
 }
 
 async function toggleReady() {
@@ -1200,21 +1352,36 @@ async function toggleReady() {
   finally{setBusy(ui.readyButton,false);}
 }
 
-async function leaveRoom() {
-  if(!sessionState.roomId)return;
-  setBusy(ui.leaveButton,true,"Keluar…");
-  try{
-    const {error}=await db.rpc("leave_room",{p_room_id:sessionState.roomId});
-    if(error)throw error;
-    if(sessionState.channel){await db.removeChannel(sessionState.channel);sessionState.channel=null;}
-    sessionState.roomId=null;sessionState.roomCode="";sessionState.roomMeta=null;
-    sessionState.members=[];sessionState.gameView=null;
-    ui.lobby.hidden=true;ui.gameTable.hidden=true;
+async function leaveRoom(button = ui.leaveButton) {
+  if (!sessionState.roomId) return;
+  setBusy(button, true, "Keluar…");
+  try {
+    const { error } = await db.rpc("leave_room", { p_room_id: sessionState.roomId });
+    if (error) throw error;
+    if (sessionState.channel) {
+      await db.removeChannel(sessionState.channel);
+      sessionState.channel = null;
+    }
+    if (sessionState.phaseTimerHandle) {
+      window.clearInterval(sessionState.phaseTimerHandle);
+      sessionState.phaseTimerHandle = null;
+    }
+    sessionState.autoTimeoutPending = false;
+    sessionState.roomId = null;
+    sessionState.roomCode = "";
+    sessionState.roomMeta = null;
+    sessionState.members = [];
+    sessionState.gameView = null;
+    ui.lobby.hidden = true;
+    ui.gameTable.hidden = true;
     showRoomHub();
-    setConnection("Terhubung",true);
+    setConnection("Terhubung", true);
     await refreshOpenRooms();
-  }catch(error){showNotice(errorMessage(error),"error");}
-  finally{setBusy(ui.leaveButton,false);}
+  } catch (error) {
+    showNotice(errorMessage(error), "error");
+  } finally {
+    setBusy(button, false);
+  }
 }
 
 ui.enterForm.addEventListener("submit",enterAsGuest);
@@ -1230,7 +1397,9 @@ ui.joinForm.addEventListener("submit",(event)=>{
 ui.refreshRooms.addEventListener("click",refreshOpenRooms);
 ui.readyButton.addEventListener("click",toggleReady);
 ui.startButton.addEventListener("click",startGame);
-ui.leaveButton.addEventListener("click",leaveRoom);
+ui.leaveButton.addEventListener("click", () => leaveRoom(ui.leaveButton));
+ui.leaveGameButton.addEventListener("click", () => leaveRoom(ui.leaveGameButton));
+ui.roomSettingsForm.addEventListener("submit", saveRoomSettings);
 ui.debtButton.addEventListener("click", () => {
   const own = currentPlayer(sessionState.gameView || {});
   const shares = own && own.shares || {};
