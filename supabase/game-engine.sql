@@ -1074,3 +1074,42 @@ GRANT EXECUTE ON FUNCTION public.perform_action_card(uuid,text,text,jsonb) TO au
 GRANT EXECUTE ON FUNCTION public.complete_sell_turn(uuid,text,integer) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.resolve_economy(uuid) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.take_debt(uuid) TO authenticated;
+
+
+-- The current round's private Info Bursa previews expire after its economy reveal.
+CREATE OR REPLACE FUNCTION public.resolve_economy(p_room_id uuid)
+ RETURNS jsonb
+ LANGUAGE sql
+ SET search_path TO ''
+AS $function$
+  SELECT private.resolve_economy_v3_impl(p_room_id);
+$function$;
+
+CREATE OR REPLACE FUNCTION private.resolve_economy_v3_impl(p_room_id uuid)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+DECLARE
+  v_user_id uuid:=auth.uid();
+  v_result jsonb;
+  v_game_id uuid;
+BEGIN
+  IF v_user_id IS NULL THEN
+    RAISE EXCEPTION 'Authentication required' USING errcode='28000';
+  END IF;
+  v_result:=private.resolve_economy_v2_impl(p_room_id);
+  SELECT id INTO v_game_id FROM public.games WHERE room_id=p_room_id;
+  UPDATE public.game_private_states
+  SET private_state=jsonb_set(private_state,'{peek}','[]'::jsonb,true),
+      updated_at=now()
+  WHERE game_id=v_game_id;
+  RETURN v_result;
+END;
+$function$;
+
+REVOKE ALL ON FUNCTION private.resolve_economy_v3_impl(uuid) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION private.resolve_economy_v3_impl(uuid) TO authenticated;
+REVOKE ALL ON FUNCTION public.resolve_economy(uuid) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.resolve_economy(uuid) TO authenticated;
