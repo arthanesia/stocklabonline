@@ -44,7 +44,7 @@ const ui = {
   gamePlayers: byId("game-players"), gamePlayerCount: byId("game-player-count"),
   ownCoins: byId("own-coins"), ownShares: byId("own-shares"), ownDebt: byId("own-debt"),
   debtButton: byId("debt-button"), debtForm: byId("debt-form"),
-  debtSector: byId("debt-sector"), debtSubmit: byId("debt-submit"),
+  debtSectorOptions: byId("debt-sector-options"), debtSubmit: byId("debt-submit"),
   privatePeek: byId("private-peek"), economyEffectSummary: byId("economy-effect-summary"),
   phaseControls: byId("phase-controls"), actionMarketSection: byId("action-market-section"),
   actionMarket: byId("action-market"), actionMarketCount: byId("action-market-count"),
@@ -56,7 +56,7 @@ const sessionState = {
   user: null, username: "", roomId: null, roomCode: "", roomMeta: null,
   members: [], gameView: null, channel: null, gameLoadSeq: 0,
   phaseTimerHandle: null, autoTimeoutPending: false,
-  selectedActionCardId: null, lastSpotlightEventId: null
+  selectedActionCardId: null, lastSpotlightEventId: null, selectedDebtSector: null
 };
 
 const SECTORS = [
@@ -1829,19 +1829,42 @@ ui.debtButton.addEventListener("click", () => {
   const own = currentPlayer(sessionState.gameView || {});
   const shares = own && own.shares || {};
   const available = SECTORS.filter((sector) => Number(shares[sector.id] || 0) > 0);
-  ui.debtSector.replaceChildren();
-  for (const sector of available) addOption(ui.debtSector, sector.id, sector.name);
-  ui.debtForm.hidden = available.length === 0 || !ui.debtForm.hidden;
+  sessionState.selectedDebtSector = null;
+  ui.debtSectorOptions.replaceChildren();
+  for (const sector of available) {
+    const count = Number(shares[sector.id] || 0);
+    const tile = makeElement("button","debt-share-card");
+    tile.type = "button";
+    appendCardImage(tile,shareCardAsset(sector.id),"Kartu saham "+sector.name,"debt-share-image");
+    tile.append(makeElement("strong","",sector.name));
+    tile.append(makeElement("small","",count+" kartu dimiliki"));
+    tile.addEventListener("click",()=>{
+      sessionState.selectedDebtSector=sector.id;
+      ui.debtSectorOptions.querySelectorAll(".debt-share-card").forEach((node)=>{
+        node.classList.toggle("is-selected",node===tile);
+      });
+      ui.debtSubmit.disabled=false;
+    });
+    ui.debtSectorOptions.append(tile);
+  }
+  ui.debtSubmit.disabled=true;
+  if (!available.length) {
+    ui.debtSectorOptions.append(makeElement("p","interaction-warning","Belum ada kartu saham sektor yang bisa dibalik."));
+    ui.debtForm.hidden=false;
+  } else {
+    ui.debtForm.hidden=!ui.debtForm.hidden;
+  }
 });
 ui.debtForm.addEventListener("submit", async (event) => {
   event.preventDefault();
-  if (!sessionState.roomId || !ui.debtSector.value) return;
+  if (!sessionState.roomId || !sessionState.selectedDebtSector) return;
   setBusy(ui.debtSubmit, true, "Memproses…");
   await runGameAction(() => db.rpc("take_debt", {
     p_room_id: sessionState.roomId,
-    p_sector: ui.debtSector.value
-  }), "Satu saham " + sectorName(ui.debtSector.value) + " dibalik menjadi utang: +10 koin, penalti akhir 13.");
+    p_sector: sessionState.selectedDebtSector
+  }), "Satu saham " + sectorName(sessionState.selectedDebtSector) + " dibalik menjadi utang: +10 koin, penalti akhir 13.");
   ui.debtForm.hidden = true;
+  sessionState.selectedDebtSector = null;
   setBusy(ui.debtSubmit, false);
 });
 ui.copyCode.addEventListener("click",async()=>{
