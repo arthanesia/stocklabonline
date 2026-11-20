@@ -422,7 +422,7 @@ async function refreshLobby() {
   const current = sessionState.members.find((member) => member.user_id === sessionState.user.id);
   const isHost = sessionState.roomMeta.host_id === sessionState.user.id;
   const isWaiting = sessionState.roomMeta.status === "waiting";
-  const allReady = sessionState.members.length >= 2 && sessionState.members.every((member) => member.is_ready);
+  const allReady = sessionState.members.length >= 3 && sessionState.members.every((member) => member.is_ready);
   ui.readyButton.hidden = !isWaiting;
   ui.readyButton.disabled = !current || !isWaiting;
   ui.readyButton.textContent = current && current.is_ready ? "Batalkan siap" : "Saya siap";
@@ -459,7 +459,7 @@ async function refreshLobby() {
   }
 
   if (!isWaiting) ui.lobbyHint.textContent = "Permainan sudah dimulai.";
-  else if (sessionState.members.length < 2) ui.lobbyHint.textContent = "Butuh minimal dua pemain untuk memulai.";
+  else if (sessionState.members.length < 3) ui.lobbyHint.textContent = "Butuh minimal tiga pemain untuk memulai.";
   else if (!allReady) ui.lobbyHint.textContent = "Semua pemain yang bergabung harus menandai siap sebelum host memulai.";
   else ui.lobbyHint.textContent = isHost ? "Semua pemain siap. Host dapat memulai permainan." : "Semua pemain siap. Menunggu host memulai permainan.";
 }
@@ -596,7 +596,10 @@ function renderMarket(market, state) {
 
 function renderGameSeats(players, view, privateState) {
   ui.gamePlayerSeats.replaceChildren();
-  const byOrder = [...players].sort((a, b) => Number(a.order_no) - Number(b.order_no));
+  const drawingOrderCards = Boolean(view && view.state && view.state.phase_status === "awaiting_order_picks");
+  const byOrder = [...players].sort((a, b) => drawingOrderCards
+    ? Number(a.seat_no || 0) - Number(b.seat_no || 0)
+    : Number(a.order_no) - Number(b.order_no));
   const ownIndex = Math.max(0, byOrder.findIndex((player) => player.user_id === sessionState.user.id));
   const rotated = byOrder.slice(ownIndex).concat(byOrder.slice(0, ownIndex));
   const positions = {
@@ -630,7 +633,7 @@ function renderGameSeats(players, view, privateState) {
   }
 }
 
-function renderPortfolio(players) {
+function renderPortfolio(players, drawingOrderCards = false) {
   ui.gamePlayers.replaceChildren();
   const labels = {
     finance: "Keuangan", consumer: "Konsumer", agriculture: "Agrikultur",
@@ -640,7 +643,7 @@ function renderPortfolio(players) {
     const isTurn = player.user_id === (sessionState.gameView && sessionState.gameView.active_user_id);
     const row = makeElement("tr", isTurn ? "portfolio-active-player" : "");
     const name = makeElement("td", "", player.display_name + (player.user_id === sessionState.user.id ? " (kamu)" : ""));
-    const order = " · Urutan " + player.order_no;
+    const order = " · Urutan " + (drawingOrderCards && !player.order_card_id ? "?" : player.order_no || "?");
     name.textContent += order;
     row.append(name);
     for (const key of SHARE_KEYS) row.append(makeElement("td", "", Number(player.shares && player.shares[key] || 0)));
@@ -670,7 +673,8 @@ function renderTableAssets(players) {
     const portfolio = makeElement("article", "table-player-assets" +
       (isTurn ? " is-active-player" : "") + (isOwn ? " is-own-player" : ""));
     const header = makeElement("div", "table-player-assets-heading");
-    header.append(makeElement("span", "table-player-order", "#" + player.order_no));
+    header.append(makeElement("span", "table-player-order",
+      player.order_no == null ? "#?" : "#" + player.order_no));
     header.append(makeElement("strong", "", (player.display_name || "Pemain") + (isOwn ? " · kamu" : "")));
     if (isTurn) header.append(makeElement("small", "table-player-turn", "GILIRAN"));
     portfolio.append(header);
@@ -718,6 +722,9 @@ function describeActivityEvent(event, players) {
     .map((item) => sectorName(item.sector) + " " + item.old_price + " → " + item.new_price)
     .join(" · ");
 
+  if (event.event_type === "order_card_revealed") {
+    return (event.actor_name || "Pemain") + " membuka kartu urutan nomor " + (p.order_no || "—") + ".";
+  }
   if (event.event_type === "action_card_used") {
     if (p.mode === "keep") return actor + " menyimpan 1 kartu saham " + sectorName(p.sector) + ".";
     if (p.action === "quickbuy") {
@@ -847,7 +854,9 @@ function renderPhaseActor(view, players) {
   const hostId = sessionState.roomMeta && sessionState.roomMeta.host_id;
   const active = players.find((player) => player.user_id === view.active_user_id);
   const host = players.find((player) => player.user_id === hostId);
-  if (view.phase === "bidding") {
+  if (view.phase === "bidding" && view.state && view.state.phase_status === "awaiting_order_picks") {
+    ui.phaseActivePlayer.textContent = "Semua pemain memilih kartu urutan";
+  } else if (view.phase === "bidding") {
     ui.phaseActivePlayer.textContent = "Semua pemain mengajukan penawaran";
   } else if (view.phase === "economy") {
     ui.phaseActivePlayer.textContent = (host ? host.display_name : "Host") + " · buka kartu ekonomi";
@@ -991,7 +1000,8 @@ function renderGame(view) {
 
   ui.gameTable.hidden = false;
   ui.gameRound.textContent = String(view.current_round || 1).padStart(2, "0");
-  ui.gamePhase.textContent = phaseName(view.phase);
+  const drawingOrderCards = view.phase === "bidding" && state.phase_status === "awaiting_order_picks";
+  ui.gamePhase.textContent = drawingOrderCards ? "Kartu Urutan" : phaseName(view.phase);
   renderPhaseTimer(view);
   renderGameSeats(players, view, privateState);
   renderPhaseActor(view, players);
@@ -1002,7 +1012,7 @@ function renderGame(view) {
   ui.ownDebt.textContent = debt > 0 ? debt + " kartu utang · penalti akhir " + (debt * 13) : "Tanpa utang";
   ui.gamePlayerCount.textContent = players.length + " pemain";
   renderMarket(market, { ...state, phase: view.phase, round: view.current_round, events: view.events || [] });
-  renderPortfolio(players);
+  renderPortfolio(players, view.phase === "bidding" && state.phase_status === "awaiting_order_picks");
   renderTableAssets(players);
   renderActivityFeed(view.events || [], players);
   renderGameEventSpotlight(view.events || [], players);
@@ -1062,8 +1072,10 @@ function renderPhaseTimer(view) {
     sessionState.phaseTimerHandle = null;
   }
   sessionState.autoTimeoutPending = false;
+  const drawingOrderCards = view.phase === "bidding" && view.state &&
+    view.state.phase_status === "awaiting_order_picks";
   const deadline = view.phase_deadline ? new Date(view.phase_deadline).getTime() : 0;
-  if (!deadline || view.phase === "finished") {
+  if (!deadline || view.phase === "finished" || drawingOrderCards) {
     ui.phaseTimer.textContent = "—";
     return;
   }
@@ -1094,6 +1106,8 @@ function renderPhaseTimer(view) {
 }
 
 function phaseDescription(view, state) {
+  if (view.phase === "bidding" && state.phase_status === "awaiting_order_picks")
+    return "Setiap pemain memilih satu kartu tertutup. Nomor urutan terbuka setelah kartu dipilih.";
   if (view.phase === "bidding") return "Ajukan penawaran koin secara tertutup untuk menentukan urutan pemain.";
   if (view.phase === "action") return state.phase_status === "drafting" ? "Ambil satu kartu secara bergiliran: simpan sebagai saham atau aktifkan efeknya." : "Fase aksi.";
   if (view.phase === "sell") return "Setiap pemain mendapat satu kesempatan untuk menjual satu jenis saham atau melewati fase jual.";
@@ -1105,6 +1119,67 @@ function renderPhaseControls(view, own, coins) {
   ui.phaseControls.replaceChildren();
   const state = view.state || {};
   const isActive = view.active_user_id === sessionState.user.id;
+
+  if (view.phase === "bidding" && state.phase_status === "awaiting_order_picks") {
+    const panel = makeElement("div", "phase-panel order-draw-panel");
+    const players = Array.isArray(state.players) ? state.players : [];
+    const orderCards = Array.isArray(state.order_cards) ? state.order_cards : [];
+    const me = players.find(player => player.user_id === sessionState.user.id);
+    const hasPicked = Boolean(me && me.order_card_id);
+    const pickedCount = orderCards.filter(card => card.picked_by).length;
+    const totalPlayers = players.length;
+    panel.append(makeElement("h4", "", hasPicked ? "Kartu urutanmu sudah terbuka" : "Pilih satu kartu urutan"));
+    panel.append(makeElement("p", "muted-text", hasPicked
+      ? "Kartu sudah dibuka. Tunggu pemain lain memilih sebelum bidding dimulai."
+      : "Pilih satu kartu tertutup di meja. Nomornya akan langsung terbuka untuk semua pemain dan tidak bisa diganti."));
+    const progress = makeElement("div", "order-draw-progress");
+    progress.append(makeElement("strong", "", pickedCount + " / " + totalPlayers + " kartu terbuka"));
+    const progressTrack = makeElement("span", "order-progress-track");
+    const progressBar = makeElement("i", "order-progress-fill");
+    progressBar.style.width = (totalPlayers ? (pickedCount / totalPlayers * 100) : 0) + "%";
+    progressTrack.append(progressBar);
+    progress.append(progressTrack);
+    panel.append(progress);
+    const grid = makeElement("div", "order-draw-grid");
+    const pickerName = userId => {
+      const player = players.find(item => item.user_id === userId);
+      return player ? player.display_name : "Pemain";
+    };
+    for (const card of orderCards) {
+      const picked = Boolean(card.picked_by);
+      const choice = makeElement(picked ? "article" : "button",
+        "order-draw-card" + (picked ? " is-revealed" : " is-face-down") +
+        (picked && card.picked_by === sessionState.user.id ? " is-mine" : ""));
+      if (!picked) {
+        choice.type = "button";
+        choice.disabled = hasPicked;
+        appendCardImage(choice, "./assets/cards/components/stocklab-back-red.webp",
+          "Kartu urutan tertutup", "order-card-back");
+        choice.append(makeElement("span", "order-card-pick-label", hasPicked ? "Menunggu" : "Pilih kartu"));
+        choice.addEventListener("click", async () => {
+          if (hasPicked || choice.disabled) return;
+          setBusy(choice, true, "Membuka…");
+          await runGameAction(() => db.rpc("choose_order_card", {
+            p_room_id: sessionState.roomId, p_card_id: card.id
+          }), "Kartu urutan dibuka.");
+          setBusy(choice, false);
+        });
+      } else {
+        choice.append(makeElement("span", "order-card-caption", "URUTAN"));
+        choice.append(makeElement("strong", "order-card-number", String(card.number)));
+        choice.append(makeElement("small", "order-card-owner", pickerName(card.picked_by)));
+      }
+      grid.append(choice);
+    }
+    panel.append(grid);
+    if (hasPicked) panel.append(makeElement("p", "order-draw-waiting",
+      "Nomor urutanmu: " + me.order_no + " · " +
+      (pickedCount < totalPlayers ? "menunggu " + (totalPlayers - pickedCount) + " pemain lagi." : "semua kartu sudah dibuka.")));
+    else panel.append(makeElement("p", "order-draw-waiting",
+      "Setiap pemain hanya boleh mengambil satu kartu. Kartu yang telah terbuka tidak dapat dipilih lagi."));
+    ui.phaseControls.append(panel);
+    return;
+  }
 
   if (view.phase === "bidding") {
     const panel = makeElement("div", "phase-panel");
@@ -1162,7 +1237,8 @@ function renderPhaseControls(view, own, coins) {
       ? "Klik tumpukan asetmu, tentukan jumlah kartu, lalu konfirmasi penjualan."
       : "Sedang menunggu " + displayNameFor(state.players,view.active_user_id) + " menjual."));
     if (isActive) {
-      const owned = SHARE_KEYS.filter((key) => Number(own && own.shares && own.shares[key] || 0) > 0);
+      const owned = SECTORS.filter((sector) => Number(own && own.shares && own.shares[sector.id] || 0) > 0)
+        .map((sector) => sector.id);
       const pair = Array.isArray(state.mutual_fund_pair) ? state.mutual_fund_pair : ["consumer","agriculture"];
       const selected = { sector: owned[0] || null, quantity: 1 };
       const picker = makeElement("div", "asset-choice-grid");
@@ -1283,14 +1359,17 @@ function renderPhaseControls(view, own, coins) {
 }
 
 function tradingFeeForCard(card, own) {
-  const shares = own && own.shares || {};
-  if (card && card.sector === "mutual_fund") return Number(shares.mutual_fund || 0);
-  return SECTORS.reduce((total, sector) => total + Number(shares[sector.id] || 0), 0);
+  const sector = card && card.sector;
+  return sector ? Math.max(0, Number(own && own.shares && own.shares[sector] || 0)) : 0;
+}
+function tradingFeeOnKeep(card, own) {
+  // Kept Trading Fee card adds one more share in its printed sector before the tax is counted.
+  return tradingFeeForCard(card, own) + 1;
 }
 function tradingFeeDescription(card) {
   return card && card.sector === "mutual_fund"
-    ? "1 koin per unit Reksa Dana"
-    : "1 koin per saham sektor yang kamu miliki";
+    ? "1 koin per unit Reksa Dana yang dimiliki"
+    : "1 koin per saham " + sectorName(card && card.sector) + " yang dimiliki";
 }
 
 function displayNameFor(players,userId) {
@@ -1323,9 +1402,13 @@ function renderActionMarket(view, own) {
     header.append(makeElement("strong", "action-title", card.title));
     panel.append(header);
     appendCardImage(panel, actionCardAsset(card), card.title + " — " + sectorName(card.sector), "action-card-image");
+    const playerCoins = Number(sessionState.gameView && sessionState.gameView.my_private_state &&
+      sessionState.gameView.my_private_state.coins || 0);
+    const keepFee = card.action === "trading-fee" ? tradingFeeOnKeep(card, own) : 0;
     const hint = card.action === "info-bursa" ? "Klik untuk memilih 3 sektor"
       : card.action === "quickbuy" ? "Klik untuk memilih 2 kartu lain"
-      : card.action === "trading-fee" ? "Biaya aktivasi: " + tradingFeeForCard(card, own) + " koin"
+      : card.action === "trading-fee" ? "Pajak " + keepFee + " koin bila disimpan · " +
+        sectorName(card.sector) + " (" + tradingFeeDescription(card) + ")"
       : card.action === "acquisition" ? "Klik untuk memilih saham pemain lain"
       : card.action === "rumor" ? "Klik untuk menggerakkan harga saham"
       : "Klik kartu untuk memilih aksi";
@@ -1333,8 +1416,15 @@ function renderActionMarket(view, own) {
     const actions = makeElement("div", "action-card-buttons");
     actions.hidden = !isActive || !isPicked;
     const keepButton = makeElement("button", "button secondary",
-      card.sector === "mutual_fund" ? "Simpan Reksa Dana" : "Simpan saham");
+      card.action === "trading-fee"
+        ? "Simpan · bayar " + keepFee + " koin"
+        : card.sector === "mutual_fund" ? "Simpan Reksa Dana" : "Simpan saham");
     keepButton.type = "button";
+    if (card.action === "trading-fee" && playerCoins < keepFee) {
+      keepButton.disabled = true;
+      keepButton.title = "Saldo kurang. Pajak sektor " + sectorName(card.sector) + " adalah " +
+        keepFee + " koin, saldo kamu " + playerCoins + " koin.";
+    }
     keepButton.addEventListener("click", async (event) => {
       event.stopPropagation();
       setBusy(keepButton,true,"Menyimpan…");
@@ -1579,11 +1669,13 @@ function openActivationForm(card, cardElement, own) {
     const fee=tradingFeeForCard(card,own);
     const coins=Number(sessionState.gameView&&sessionState.gameView.my_private_state&&
       sessionState.gameView.my_private_state.coins||0);
-    const sellable=SHARE_KEYS.filter(key=>Number(own&&own.shares&&own.shares[key]||0)>0);
+    const sellable=SECTORS.filter(sector=>Number(own&&own.shares&&own.shares[sector.id]||0)>0)
+      .map(sector=>sector.id);
     let selectedSector=sellable[0]||null,quantity=1;
     const draw=()=>{
       stage.replaceChildren(makeElement("p","interaction-instruction",
-        "Pilih tumpukan aset yang akan dijual. Biaya Trading Fee dihitung otomatis dari seluruh aset pada keluarga kartu ini."));
+        "Pilih saham yang akan dijual. Pajak kartu dihitung dari jumlah saham " +
+        sectorName(card.sector) + " yang kamu pegang, bukan dari seluruh portofolio."));
       stage.append(makeElement("div","trading-fee-equation","Biaya: "+fee+" koin · Saldo: "+coins+" koin"));
       const grid=makeElement("div","asset-choice-grid");
       for(const key of sellable) {
@@ -1631,10 +1723,11 @@ function openActivationForm(card, cardElement, own) {
     let selectedSector=card.sector==="mutual_fund"?null:card.sector,selectedTarget=null;
     const eligibleTargets=(sector)=>{
       if(!sector)return [];
-      const ownCount=Number(own&&own.shares&&own.shares[sector]||0);
-      return players.filter(player=>player.user_id!==sessionState.user.id&&
-        Number(player.shares&&player.shares[sector]||0)>0&&
-        Number(player.shares&&player.shares[sector]||0)<=ownCount);
+      const ownCount=Math.max(0,Number(own&&own.shares&&own.shares[sector]||0));
+      return players.filter(player=>{
+        const targetCount=Math.max(0,Number(player.shares&&player.shares[sector]||0));
+        return player.user_id!==sessionState.user.id && targetCount>0 && targetCount<=ownCount;
+      });
     };
     const draw=()=>{
       stage.replaceChildren(makeElement("p","interaction-instruction",
@@ -1659,7 +1752,9 @@ function openActivationForm(card, cardElement, own) {
           target.type="button";
           target.append(makeElement("span","target-avatar",String(player.display_name||"P").slice(0,1).toUpperCase()));
           target.append(makeElement("strong","",player.display_name));
-          target.append(makeElement("small","",Number(player.shares[selectedSector])+" saham"));
+          target.append(makeElement("small","",Number(player.shares[selectedSector])+
+            " saham · kamu "+Number(own.shares&&own.shares[selectedSector]||0)+
+            " · jumlah sama boleh"));
           target.addEventListener("click",()=>{selectedTarget=player.user_id;draw();});
           targetGrid.append(target);
         }
