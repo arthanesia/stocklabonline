@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101831">
+  <meta name="description" content="Atur tema, ukuran teks, kepadatan kartu, gerakan, dan nama pemain StockLab Online.">
+  <title>Pengaturan — StockLab Online</title>
+  <link rel="stylesheet" href="./style.css?v=20261121-unified-subpages-v14">
+</head>
+<body class="guide-body">
+  <div class="dashboard-shell">
+    <aside class="dashboard-sidebar" aria-label="Navigasi utama">
+      <a class="sidebar-brand" href="./" aria-label="StockLab Beranda"><span class="sidebar-brand-mark"><i></i><b></b><em></em></span><span>StockLab</span></a>
+      <nav class="sidebar-nav">
+        <a class="side-link" href="./"><span class="side-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5M5.5 9v11h13V9M9 20v-6h6v6"/></svg></span><span>Beranda</span></a>
+        <a class="side-link" href="./guide.html"><span class="side-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5c2.7-1.3 5.4-1.3 8 0v14c-2.6-1.3-5.3-1.3-8 0zM20 5.5c-2.7-1.3-5.4-1.3-8 0v14c2.6-1.3 5.3-1.3 8 0z"/></svg></span><span>Aturan</span></a>
+        <a class="side-link" href="./about.html"><span class="side-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.5h.01"/></svg></span><span>Tentang</span></a>
+        <a class="side-link is-active" href="./settings.html"><span class="side-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.3a3.7 3.7 0 1 0 0 7.4 3.7 3.7 0 0 0 0-7.4Z"/><path d="m19.4 13.5 1.1.8-1.1 1.9-1.3-.4a7.8 7.8 0 0 1-1.4.8l-.2 1.4h-2.2l-.4-1.3a7.7 7.7 0 0 1-1.7 0l-.4 1.3H9.6l-.2-1.4a7.8 7.8 0 0 1-1.4-.8l-1.3.4-1.1-1.9 1.1-.8a7.5 7.5 0 0 1 0-1.7l-1.1-.8 1.1-1.9 1.3.4a7.8 7.8 0 0 1 1.4-.8l.2-1.4h2.2l.4 1.3a7.7 7.7 0 0 1 1.7 0l.4-1.3h2.2l.2 1.4a7.8 7.8 0 0 1 1.4.8l1.3-.4 1.1 1.9-1.1.8a7.5 7.5 0 0 1 0 1.7Z"/></svg></span><span>Pengaturan</span></a>
+      </nav>
+      <div class="sidebar-bottom"><span>STOCKLAB ONLINE</span><strong>v1.1.0</strong></div>
+    </aside>
+    <div class="dashboard-main">
+      <header class="topbar dashboard-topbar subpage-topbar">
+        <a class="mobile-brand" href="./">Stock<span>Lab</span></a>
+        <div class="topbar-right">
+          <span class="subpage-topbar-label">PERSONAL SETTINGS</span>
+          <a class="button secondary subpage-return-button" href="./"><span aria-hidden="true">←</span> Kembali ke Beranda</a>
+        </div>
+      </header>
+      <main class="dashboard-subpage-main">
+        
+<div class="guide-main settings-page-content">
+  <section class="guide-hero settings-page-hero">
+    <p class="eyebrow">PERSONALIZE YOUR EXPERIENCE</p>
+    <h1>Atur pengalaman<br><span>bermainmu.</span></h1>
+    <p>Sesuaikan tampilan StockLab Online di perangkat ini. Preferensi dan nama pemain disimpan secara lokal di browser, bukan ke Supabase.</p>
+    <div class="about-status-pill"><span></span> PREFERENSI PERANGKAT INI</div>
+  </section>
+
+  <section class="settings-page-card">
+    <div class="settings-card-heading">
+      <p class="guide-section-kicker">PLAYER PROFILE</p>
+      <h2>Identitas pemain</h2>
+      <p>Nama ini akan digunakan saat membuat atau bergabung ke room berikutnya.</p>
+    </div>
+    <form id="profile-settings-form" class="profile-settings-form settings-form">
+      <div class="settings-form-field settings-name-field">
+        <label for="profile-settings-name">Nama pemain</label>
+        <input id="profile-settings-name" type="text" minlength="2" maxlength="24" placeholder="Masukkan nama pemain" autocomplete="nickname">
+      </div>
+      <div class="settings-card-heading settings-preferences-heading">
+        <p class="guide-section-kicker">DISPLAY PREFERENCES</p>
+        <h2>Tampilan website</h2>
+      </div>
+      <div class="settings-form-grid">
+        <div class="settings-form-field">
+          <label for="setting-theme">Tema dashboard</label>
+          <select id="setting-theme">
+            <option value="midnight">Midnight Navy & Gold</option>
+            <option value="forest">Emerald Market</option>
+          </select>
+        </div>
+        <div class="settings-form-field">
+          <label for="setting-text-size">Ukuran teks</label>
+          <select id="setting-text-size">
+            <option value="normal">Normal</option>
+            <option value="large">Lebih besar</option>
+          </select>
+        </div>
+        <div class="settings-form-field">
+          <label for="setting-room-density">Kerapatan kartu room</label>
+          <select id="setting-room-density">
+            <option value="comfortable">Nyaman</option>
+            <option value="compact">Ringkas</option>
+          </select>
+        </div>
+      </div>
+      <label class="setting-check-row settings-motion-option"><input id="setting-reduce-motion" type="checkbox"> Kurangi animasi dan gerakan</label>
+      <p class="settings-note">Perubahan tampilan dapat dipreview sebelum disimpan. Pengaturan ini hanya berlaku pada browser/perangkat yang sedang digunakan.</p>
+      <div class="settings-form-actions">
+        <button class="button primary" type="submit">Simpan pengaturan</button>
+        <a class="button secondary settings-back-link" href="./">Kembali ke Beranda</a>
+      </div>
+      <p class="settings-feedback" id="settings-feedback" role="status" aria-live="polite"></p>
+    </form>
+  </section>
+</div>
+      </main>
+      <footer class="dashboard-footer"><span>STOCKLAB ONLINE · INDEPENDENT DIGITAL PROJECT</span><a href="./">← Kembali ke Beranda</a></footer>
+    </div>
+  </div>
+  <script src="./settings.js?v=20261121-unified-subpages-v14"></script>
+</body>
+</html>
