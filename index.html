@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#111b21">
-  <meta name="description" content="StockLab Online — digital tabletop game project.">
+  <meta name="description" content="StockLab Online — masuk sebagai tamu, buat meja, dan main bersama.">
   <title>StockLab Online — Digital Table</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -17,22 +17,31 @@
       <span class="brand-mark">S</span>
       <span><b>STOCKLAB</b><small>ONLINE · DIGITAL TABLE</small></span>
     </a>
-    <span class="status"><i></i> DEVELOPMENT BUILD</span>
+    <span class="status" id="connection-indicator"><i>●</i> GUEST TABLE</span>
   </header>
 
   <main>
-    <section class="hero">
+    <section class="hero" id="home">
       <div class="hero-copy">
         <p class="eyebrow">DIGITAL TABLETOP PROJECT</p>
         <h1>Strategi pasar.<br><em>Satu meja, banyak pemain.</em></h1>
-        <p class="lead">Proyek permainan StockLab berbasis browser. Fondasi awal memuat katalog aset dari set yang diunggah dan dokumentasi untuk membangun game engine sesuai Guide Resmi.</p>
-        <div class="hero-actions">
-          <a class="button primary" href="#assets">Jelajahi aset <span>↘</span></a>
-          <a class="button secondary" href="#roadmap">Lihat tahapan</a>
+        <p class="lead">Masuk cukup dengan username. Buat ruangan sendiri atau bergabung ke meja yang sedang menunggu pemain. Tanpa email dan tanpa password.</p>
+
+        <div class="guest-entry" id="guest-entry">
+          <form id="enter-form">
+            <label for="username-input">USERNAME PEMAIN</label>
+            <div class="entry-row">
+              <input id="username-input" name="username" type="text" minlength="2" maxlength="24" placeholder="Contoh: Dzaky" autocomplete="nickname" required>
+              <button class="button primary" id="enter-button" type="submit">Lanjutkan <span>→</span></button>
+            </div>
+          </form>
+          <p class="entry-foot">Identitas tamu disimpan di browser ini. Tidak perlu membuat akun manual.</p>
         </div>
+        <div id="app-notice" class="app-notice" role="status" hidden></div>
       </div>
+
       <div class="hero-panel">
-        <div class="panel-head"><span>GAME FLOW</span><span class="pulse">● PROJECT</span></div>
+        <div class="panel-head"><span>GAME FLOW</span><span class="pulse">● STOCKLAB</span></div>
         <div class="phase"><b>01</b><span><strong>Bidding</strong><small>Urutan pemain ditentukan melalui penawaran</small></span><i>↗</i></div>
         <div class="phase"><b>02</b><span><strong>Aksi</strong><small>Ambil, simpan, atau aktifkan kartu</small></span><i>↗</i></div>
         <div class="phase"><b>03</b><span><strong>Jual</strong><small>Kelola saham dan Reksa Dana</small></span><i>↗</i></div>
@@ -42,11 +51,85 @@
       <div class="hero-orb"></div>
     </section>
 
-    <section class="stats" aria-label="Ringkasan aset">
+    <section class="stats" aria-label="Ringkasan proyek">
       <div><strong id="total-assets">56</strong><span>CATALOG ENTRIES</span></div>
-      <div><strong>4</strong><span>STOCK SECTORS</span></div>
-      <div><strong>4</strong><span>GAME PHASES</span></div>
-      <div><strong>01</strong><span>OFFICIAL GUIDE</span></div>
+      <div><strong>2–5</strong><span>PLAYERS / ROOM</span></div>
+      <div><strong>04</strong><span>GAME PHASES</span></div>
+      <div><strong>LIVE</strong><span>ROOM LOBBY</span></div>
+    </section>
+
+    <section class="section multiplayer" id="multiplayer">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">MULTIPLAYER LOBBY</p>
+          <h2>Pilih meja permainan</h2>
+          <p class="section-subtitle">Buat ruangan baru atau masuk ke ruangan yang tersedia.</p>
+        </div>
+        <div class="player-pill" id="player-pill" hidden><span class="online-dot"></span><span id="player-name-label">Pemain</span><small>TAMU</small></div>
+      </div>
+
+      <div class="room-workspace" id="room-workspace" hidden>
+        <div class="room-layout">
+          <div class="room-actions">
+            <article class="room-box">
+              <div class="room-box-heading"><span class="room-icon">＋</span><div><h3>Buat ruangan</h3><p>Jadilah host dan bagikan kode meja.</p></div></div>
+              <form id="create-room-form" class="stack-form">
+                <label for="max-players">Jumlah maksimal pemain</label>
+                <select id="max-players" name="maxPlayers">
+                  <option value="2">2 pemain</option>
+                  <option value="3">3 pemain</option>
+                  <option value="4">4 pemain</option>
+                  <option value="5" selected>5 pemain</option>
+                </select>
+                <button class="button primary" id="create-room-button" type="submit">Buat meja baru <span>→</span></button>
+              </form>
+            </article>
+
+            <article class="room-box">
+              <div class="room-box-heading"><span class="room-icon">⌕</span><div><h3>Masuk dengan kode</h3><p>Punya kode undangan dari teman?</p></div></div>
+              <form id="join-room-form" class="stack-form">
+                <label for="room-code-input">KODE RUANGAN</label>
+                <input id="room-code-input" name="roomCode" type="text" minlength="6" maxlength="6" placeholder="ABC123" autocomplete="off" autocapitalize="characters" required>
+                <button class="button secondary" id="join-room-button" type="submit">Gabung ruangan</button>
+              </form>
+            </article>
+          </div>
+
+          <article class="room-box available-box">
+            <div class="available-heading">
+              <div><h3>Ruangan tersedia</h3><p>Meja yang sedang menunggu pemain.</p></div>
+              <button class="icon-button" id="refresh-rooms" type="button" aria-label="Muat ulang ruangan" title="Muat ulang">↻</button>
+            </div>
+            <div id="room-list" class="room-list" aria-live="polite"><div class="loading">Masuk dulu untuk melihat ruangan…</div></div>
+          </article>
+        </div>
+
+        <article class="room-box lobby-panel" id="room-lobby" hidden>
+          <div class="lobby-top">
+            <div>
+              <p class="eyebrow">WAITING ROOM</p>
+              <h3 id="lobby-title">Meja StockLab</h3>
+              <p class="section-subtitle" id="lobby-subtitle">Menunggu pemain bergabung.</p>
+            </div>
+            <div class="room-code-box"><small>KODE UNDANGAN</small><strong id="lobby-code">------</strong><button id="copy-code-button" type="button">Salin kode</button></div>
+          </div>
+          <div class="roster-heading"><h4>Pemain di meja</h4><span id="lobby-count">0 / 5 pemain</span></div>
+          <div id="player-roster" class="player-roster" aria-live="polite"></div>
+          <div class="lobby-footer">
+            <p id="lobby-hint">Bagikan kode ini agar teman bisa bergabung.</p>
+            <div class="lobby-buttons">
+              <button class="button secondary" id="leave-room-button" type="button">Keluar dari ruangan</button>
+              <button class="button primary" id="ready-button" type="button">Saya siap ✓</button>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <div class="workspace-locked" id="workspace-locked">
+        <div class="locked-mark">♧</div>
+        <h3>Masukkan username untuk mulai</h3>
+        <p>Setelah masuk, daftar ruangan dan fitur buat meja akan muncul di sini.</p>
+      </div>
     </section>
 
     <section class="section" id="assets">
@@ -68,17 +151,18 @@
     </section>
 
     <section class="section roadmap" id="roadmap">
-      <div class="section-heading"><div><p class="eyebrow">BUILD PLAN</p><h2>Dari katalog ke meja permainan</h2><p class="section-subtitle">Setiap tahapan diuji sebelum fitur berikutnya dibangun.</p></div></div>
+      <div class="section-heading"><div><p class="eyebrow">BUILD PLAN</p><h2>Dari lobby ke meja permainan</h2><p class="section-subtitle">Setiap tahapan diuji sebelum fitur berikutnya dibangun.</p></div></div>
       <div class="roadmap-grid">
-        <article class="roadmap-card done"><span>01 / FOUNDATION</span><h3>Asset library</h3><p>Manifest dan tampilan katalog aset tersedia.</p><b>IN PROGRESS</b></article>
-        <article class="roadmap-card"><span>02 / BACKEND</span><h3>Rooms & identity</h3><p>Login pemain, room, lobby, dan status siap.</p><b>PLANNED</b></article>
+        <article class="roadmap-card done"><span>01 / FOUNDATION</span><h3>Asset library</h3><p>Manifest dan katalog aset tersedia.</p><b>READY</b></article>
+        <article class="roadmap-card done"><span>02 / MULTIPLAYER LOBBY</span><h3>Guest & rooms</h3><p>Username tamu, buat room, kode undangan, lobby, dan status siap.</p><b>IN PROGRESS</b></article>
         <article class="roadmap-card"><span>03 / GAME ENGINE</span><h3>Official mechanics</h3><p>Bidding, aksi, jual, ekonomi, dan seluruh efek kartu.</p><b>PLANNED</b></article>
-        <article class="roadmap-card"><span>04 / MULTIPLAYER</span><h3>Realtime table</h3><p>Sinkronisasi giliran dan state antarpemain.</p><b>PLANNED</b></article>
+        <article class="roadmap-card"><span>04 / LIVE TABLE</span><h3>Realtime gameplay</h3><p>Sinkronisasi state, giliran, dan aksi antarpemain.</p><b>PLANNED</b></article>
       </div>
     </section>
   </main>
 
   <footer><span>STOCKLAB ONLINE</span><span>Independent digital implementation · Not an official StockLab product</span></footer>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.2/dist/umd/supabase.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
   <script src="app.js"></script>
 </body>
