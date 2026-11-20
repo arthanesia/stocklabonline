@@ -393,7 +393,7 @@ $new$      jsonb_set(
   SELECT pg_get_functiondef('private.submit_bid_impl(uuid,integer)'::regprocedure) INTO v_def;
   v_def:=replace(v_def,
     '(p.value->>''order_no'')::integer ASC',
-    '(p.value->>''order_card_number'')::integer ASC');
+    'coalesce((p.value->>''order_card_number'')::integer,(p.value->>''order_no'')::integer) ASC');
   IF position('order_card_number' in v_def)=0 THEN
     RAISE EXCEPTION 'submit_bid stable tie-break patch incomplete';
   END IF;
@@ -402,7 +402,7 @@ $new$      jsonb_set(
   SELECT pg_get_functiondef('private.advance_expired_turn_impl(uuid)'::regprocedure) INTO v_def;
   v_def:=replace(v_def,
     '(x.value->>''order_no'')::integer ASC',
-    '(x.value->>''order_card_number'')::integer ASC');
+    'coalesce((x.value->>''order_card_number'')::integer,(x.value->>''order_no'')::integer) ASC');
   IF position('order_card_number' in v_def)=0 THEN
     RAISE EXCEPTION 'auto-timeout stable tie-break patch incomplete';
   END IF;
