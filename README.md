@@ -30,9 +30,13 @@ Permainan StockLab multiplayer berbasis browser. Pemain masuk dengan username ta
 Website memakai **56 gambar WebP yang diekstrak dari paket aset StockLab yang diunggah ke proyek**. Gambar tidak dibuat ulang: muka kartu aksi, kartu ekonomi, papan/tumpukan sektor, papan Reksa Dana, kartu utang, koin/token, dan sisi kartu diambil dari `stocklab-assets-upload.zip`.
 
 - Kartu aksi tampil sebagai deretan kartu bergambar yang dapat digeser; pada giliran sendiri pemain memilih **Simpan** atau **Aktifkan**.
-- Empat papan sektor menampilkan gambar asli serta harga saham dan jumlah kartu ekonomi tersisa.
+- Pasar saham ditampilkan dalam satu blok berisi lima kartu: dua sektor yang memengaruhi Reksa Dana berada tepat di kiri dan kanannya, sementara dua sektor lain berada di sisi luar.
+- Kartu Reksa Dana berada di tengah secara vertikal; harga unit dan rumus rata-rata dua saham penentunya ditampilkan langsung pada kartu.
+- Setiap kartu saham menampilkan harga dan indikator arah ▲ naik, ▼ turun, atau • belum berubah berdasarkan pergerakan terakhir.
+- Aset saham dan Reksa Dana seluruh pemain terlihat di meja. Kartu sejenis ditumpuk secara visual, dengan nama sektor dan jumlah unit tetap terbaca.
+- Log aktivitas meja menampilkan transaksi dan kejadian terbaru, termasuk Quickbuy, Trading Fee beserta biaya dan saham yang dijual, Akuisisi, penjualan biasa, kartu ekonomi, dan timeout.
+- Banner permainan menampilkan fase aktif, pemain yang sedang mendapat giliran, dan timer.
 - Kartu ekonomi yang dibuka tampil menggunakan gambar muka kartu sesuai efeknya.
-- Papan Reksa Dana ditampilkan di area pasar.
 - Animasi kartu dibuat singkat dan dapat dinonaktifkan melalui pengaturan reduced-motion perangkat.
 
 ### Publikasi aset ke GitHub Pages
@@ -93,8 +97,9 @@ Pada project Supabase baru, jalankan file berikut secara berurutan di SQL Editor
 2. [supabase/game-engine.sql](supabase/game-engine.sql)
 3. [supabase/room-passwords.sql](supabase/room-passwords.sql)
 4. [supabase/room-game-settings.sql](supabase/room-game-settings.sql)
+5. [supabase/tabletop-activity-feed.sql](supabase/tabletop-activity-feed.sql)
 
-File kedua membuat penyimpanan deck privat dan mengganti fungsi awal menjadi engine permainan lengkap. File ketiga menambahkan password room dan mengganti RPC buat/join room dengan verifikasi hash bcrypt. File keempat menambahkan papan Reksa Dana acak, biaya Trading Fee, pengaturan durasi, timeout otomatis, pembersihan room idle, dan aturan leave/host handover. Pada project pengembangan saat ini, SQL diterapkan langsung; riwayat migration Supabase belum direkonsiliasi.
+File kedua membuat penyimpanan deck privat dan mengganti fungsi awal menjadi engine permainan lengkap. File ketiga menambahkan password room dan mengganti RPC buat/join room dengan verifikasi hash bcrypt. File keempat menambahkan papan Reksa Dana acak, biaya Trading Fee, pengaturan durasi, timeout otomatis, pembersihan room idle, dan aturan leave/host handover. File kelima menambahkan catatan aktivitas publik yang aman untuk anggota room, merinci transaksi kartu dan penjualan, serta mengirim event terbaru melalui RPC tampilan permainan. Pada project pengembangan saat ini, SQL diterapkan langsung; riwayat migration Supabase belum direkonsiliasi.
 
 ## Pengujian
 
