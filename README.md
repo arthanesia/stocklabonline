@@ -33,8 +33,12 @@ Website memakai **56 gambar WebP yang diekstrak dari paket aset StockLab yang di
 - Pasar saham ditampilkan dalam satu blok berisi lima kartu: dua sektor yang memengaruhi Reksa Dana berada tepat di kiri dan kanannya, sementara dua sektor lain berada di sisi luar.
 - Kartu Reksa Dana berada di tengah secara vertikal; harga unit dan rumus rata-rata dua saham penentunya ditampilkan langsung pada kartu.
 - Setiap kartu saham menampilkan harga dan indikator arah ▲ naik, ▼ turun, atau • belum berubah berdasarkan pergerakan terakhir.
-- Aset saham dan Reksa Dana seluruh pemain terlihat di meja. Kartu sejenis ditumpuk secara visual, dengan nama sektor dan jumlah unit tetap terbaca.
-- Log aktivitas meja menampilkan transaksi dan kejadian terbaru, termasuk Quickbuy, Trading Fee beserta biaya dan saham yang dijual, Akuisisi, penjualan biasa, kartu ekonomi, dan timeout.
+- Aset saham dan Reksa Dana seluruh pemain ditampilkan memakai gambar kartu WebP proyek; kartu sejenis ditumpuk dan label sektor tetap terbaca.
+- Pasar kartu aksi memakai interaksi langsung: klik kartu untuk memilih Simpan atau Aktifkan, lalu pilih kartu/sektor/pemain target melalui kartu-kartu visual.
+- Quickbuy mengambil dua kartu dengan klik; Info Bursa memilih tiga sektor dengan klik; Trading Fee dan Akuisisi memilih kartu aset/pemain secara visual.
+- Rumor memilih sektor dan arah perubahan melalui kartu sektor. Harga dijaga pada rentang 1–9; perubahan yang melewati batas ditolak di UI dan divalidasi ulang di server.
+- Fase jual memilih tumpukan kartu aset, jumlahnya, dan menampilkan hasil penjualan sebelum konfirmasi. Fase ekonomi dibuka lewat kartu pembuka bergambar.
+- Aksi terbaru muncul sebagai kartu sorotan di meja dan tersimpan pada log aktivitas bersama, sehingga pemain lain melihat efek transaksi yang sama.
 - Banner permainan menampilkan fase aktif, pemain yang sedang mendapat giliran, dan timer.
 - Kartu ekonomi yang dibuka tampil menggunakan gambar muka kartu sesuai efeknya.
 - Animasi kartu dibuat singkat dan dapat dinonaktifkan melalui pengaturan reduced-motion perangkat.
@@ -98,8 +102,9 @@ Pada project Supabase baru, jalankan file berikut secara berurutan di SQL Editor
 3. [supabase/room-passwords.sql](supabase/room-passwords.sql)
 4. [supabase/room-game-settings.sql](supabase/room-game-settings.sql)
 5. [supabase/tabletop-activity-feed.sql](supabase/tabletop-activity-feed.sql)
+6. [supabase/rumor-price-boundaries.sql](supabase/rumor-price-boundaries.sql)
 
-File kedua membuat penyimpanan deck privat dan mengganti fungsi awal menjadi engine permainan lengkap. File ketiga menambahkan password room dan mengganti RPC buat/join room dengan verifikasi hash bcrypt. File keempat menambahkan papan Reksa Dana acak, biaya Trading Fee, pengaturan durasi, timeout otomatis, pembersihan room idle, dan aturan leave/host handover. File kelima menambahkan catatan aktivitas publik yang aman untuk anggota room, merinci transaksi kartu dan penjualan, serta mengirim event terbaru melalui RPC tampilan permainan. Pada project pengembangan saat ini, SQL diterapkan langsung; riwayat migration Supabase belum direkonsiliasi.
+File kedua membuat penyimpanan deck privat dan mengganti fungsi awal menjadi engine permainan lengkap. File ketiga menambahkan password room dan mengganti RPC buat/join room dengan verifikasi hash bcrypt. File keempat menambahkan papan Reksa Dana acak, biaya Trading Fee, pengaturan durasi, timeout otomatis, pembersihan room idle, dan aturan leave/host handover. File kelima menambahkan catatan aktivitas publik yang aman untuk anggota room, merinci transaksi kartu dan penjualan, serta mengirim event terbaru melalui RPC tampilan permainan. File keenam menolak gerakan Rumor yang melampaui batas harga saham 1–9. Pada project pengembangan saat ini, SQL diterapkan langsung; riwayat migration Supabase belum direkonsiliasi.
 
 ## Pengujian
 
