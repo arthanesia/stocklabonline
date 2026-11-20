@@ -502,6 +502,7 @@ using (
       and rm.user_id = (select auth.uid())
   )
 );
+revoke all privileges on public.game_private_states from public, anon, authenticated;
 grant select on public.game_private_states to authenticated;
 
 create table public.bidding_submissions (
@@ -526,4 +527,5 @@ using (
       and rm.user_id = (select auth.uid())
   )
 );
+revoke all privileges on public.bidding_submissions from public, anon, authenticated;
 grant select on public.bidding_submissions to authenticated;
