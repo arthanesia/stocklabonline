@@ -169,3 +169,73 @@ footer { display: flex; justify-content: space-between; gap: 12px; padding: 18px
   .player-assets { gap: 14px; flex-wrap: wrap; }
   footer { padding: 15px 14px; flex-direction: column; }
 }
+
+.game-overview{display:grid;grid-template-columns:1.3fr .7fr;gap:14px;margin-top:18px}
+.game-overview .board-section{margin-top:0}
+.wallet-section{padding:13px;background:#fbfaf6;border:1px solid var(--line)}
+.wallet-section .board-section-heading{margin-top:0}
+.player-assets{margin-top:10px;border-top:0;padding:8px 0;gap:18px;flex-wrap:wrap}
+.player-assets div{display:flex;align-items:baseline;gap:6px}
+.debt-button{width:100%;margin-top:6px}
+.private-peek{margin-top:12px;padding-top:10px;border-top:1px solid var(--line);font-size:10px;line-height:1.5}
+.private-peek strong{color:var(--green)}
+.private-peek p{margin:5px 0;color:var(--muted)}
+.portfolio-wrap{overflow-x:auto;border:1px solid var(--line)}
+.portfolio-table{width:100%;border-collapse:collapse;min-width:620px;font-size:10px}
+.portfolio-table th,.portfolio-table td{padding:10px 9px;border-bottom:1px solid #eeece5;text-align:right}
+.portfolio-table th:first-child,.portfolio-table td:first-child{text-align:left}
+.portfolio-table th{background:#f7f5ef;color:var(--muted);font-size:9px;font-weight:700}
+.portfolio-table tbody tr:last-child td{border-bottom:0}
+.phase-controls{margin-top:18px}
+.phase-panel{padding:17px;background:#f8f7f1;border:1px solid var(--line);border-left:3px solid var(--green)}
+.phase-panel h4{margin:0 0 7px;font-family:Georgia,serif;font-size:18px;font-weight:500}
+.phase-panel p{max-width:760px}
+.muted-text{margin:7px 0;color:var(--muted);font-size:10px;line-height:1.65}
+.turn-status{padding:8px 10px;background:#fffefa;border:1px solid var(--line);font-size:10px;color:var(--green-dark)}
+.inline-game-form,.choice-form{display:flex;align-items:end;gap:10px;flex-wrap:wrap;margin-top:12px}
+.game-field{display:grid;gap:6px;min-width:125px;flex:1;color:var(--muted);font-size:9px;font-weight:700}
+.game-input{width:100%;min-width:0;padding:9px 10px;border:1px solid #d4d2c9;border-radius:4px;background:#fff;color:var(--ink);font-size:11px}
+.inline-game-form .button,.phase-panel>.button{min-height:36px}
+.action-market{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.action-card{padding:14px;border:1px solid var(--line);background:#fffefa}
+.action-card-header{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.action-sector{padding:4px 7px;background:var(--green-pale);color:var(--green);font-size:8px;font-weight:750}
+.action-title{font-family:Georgia,serif;font-size:15px;font-weight:500}
+.action-body{margin:10px 0;color:#59635b;font-size:10px;line-height:1.65}
+.action-hint{display:block;margin:-3px 0 9px;color:var(--orange);font-size:9px}
+.action-card-buttons,.choice-buttons{display:flex;justify-content:flex-end;gap:7px;flex-wrap:wrap}
+.action-card-buttons .button{min-height:34px;padding:0 10px;font-size:9px}
+.activation-form{margin-top:12px;padding:12px;background:#f5f3ed;border:1px solid var(--line)}
+.activation-form>strong{font-size:10px}
+.choice-form{align-items:end}
+.choice-fields{display:flex;gap:9px;flex-wrap:wrap;width:100%}
+.choice-fields .game-field{min-width:110px}
+.choice-buttons{width:100%;margin-top:6px}
+.economy-reveal{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.economy-card{padding:11px;border:1px solid var(--line);background:#fffefa}
+.economy-card strong,.economy-card span{display:block}
+.economy-card strong{font-family:Georgia,serif;font-size:13px;font-weight:500}
+.economy-card span{margin-top:4px;color:var(--muted);font-size:8px}
+.economy-card p{margin:8px 0;color:#60685f;font-size:9px;line-height:1.5}
+.economy-effect{display:block;margin-top:5px;color:var(--green);font-size:8px;line-height:1.5}
+.final-scores{display:grid;gap:8px}
+.score-card{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:5px 12px;padding:12px;border:1px solid var(--line);background:#fffefa}
+.score-card strong{font-size:11px}
+.score-card .score-total{color:var(--green);font-family:Georgia,serif;font-size:18px}
+.score-card small{grid-column:1/-1;color:var(--muted);font-size:9px}
+.score-card.winner{border-color:#789d82;background:#edf3ed}
+.finished-message{background:#edf3ed}
+@media(max-width:800px){
+ .game-overview{grid-template-columns:1fr}
+ .economy-reveal{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:620px){
+ .action-market{grid-template-columns:1fr}
+ .economy-reveal{grid-template-columns:1fr 1fr}
+ .inline-game-form,.choice-form{align-items:stretch;flex-direction:column}
+ .inline-game-form .game-field,.choice-form .game-field{width:100%}
+ .action-card-buttons{justify-content:stretch}
+ .action-card-buttons .button{flex:1}
+ .choice-buttons{justify-content:stretch}
+ .choice-buttons .button{flex:1}
+}
