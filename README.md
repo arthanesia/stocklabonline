@@ -16,9 +16,10 @@ Permainan StockLab multiplayer berbasis browser. Pemain masuk dengan username ta
 - Bidding yang habis waktu menganggap pemain yang belum menawar memasukkan 0; giliran aksi otomatis menyimpan kartu teratas; giliran jual otomatis dilewati; fase ekonomi dibuka otomatis.
 - Room yang tidak menerima aktivitas manusia akan dibubarkan. Batas tidak aktif dapat diatur host; pemeriksaan berjalan setiap menit.
 - Jika host keluar dari lobby atau pertandingan, host berpindah ke pemain berikutnya. Jika pemain tersisa kurang dari dua saat pertandingan aktif, room dibubarkan.
+- Riwayat room mencatat nama pemain yang keluar dan menampilkannya secara realtime kepada pemain yang masih bergabung.
 - Enam ronde permainan: Bidding, Aksi/Draft, Jual, dan Ekonomi.
 - Pada awal permainan, setiap pemain memilih satu kartu urutan tertutup. Nomor langsung terbuka untuk semua pemain dan menentukan tie-break saat nilai bidding sama. Setelah setiap pembukaan Ekonomi (kecuali ronde terakhir), pemain ditawari Kartu Utang secara opsional sebelum bidding berikutnya. Bidding tertutup: pemain hanya melihat status bid miliknya sampai seluruh pemain mengirim.
-- Kartu aksi: Info Bursa, Rumor, Quickbuy, Trading Fee, dan Akuisisi.
+- Kartu aksi: Info Bursa, Rumor, Quickbuy, Trading Fee, dan Akuisisi. Quickbuy mengambil dua kartu saham sekaligus dan melewati giliran berikutnya milik pengaktif jika kartu pasar masih tersisa.
 - Kartu aksi dapat disimpan sebagai saham atau unit Reksa Dana sesuai keluarga kartu yang diambil.
 - Fase jual biasa hanya menjual saham sektor; Reksa Dana hanya dapat dijual pada akhir permainan.
 - Fase ekonomi membuka satu kartu dari setiap sektor, menjalankan perubahan harga serta efek khusus.
@@ -35,7 +36,7 @@ Website memakai **56 gambar WebP yang diekstrak dari paket aset StockLab yang di
 - Setiap kartu saham menampilkan harga dan indikator arah ▲ naik, ▼ turun, atau • belum berubah berdasarkan pergerakan terakhir.
 - Aset saham dan Reksa Dana ditampilkan langsung di bawah nama masing-masing pemain pada kartu tempat duduk; gambar kartu menunjukkan jenis aset dan badge menunjukkan jumlah kepemilikan.
 - Pasar kartu aksi memakai interaksi langsung: klik kartu untuk memilih Simpan atau Aktifkan, lalu pilih kartu/sektor/pemain target melalui kartu-kartu visual.
-- Quickbuy mengambil dua kartu dengan klik; Info Bursa memilih tiga sektor dengan klik; Trading Fee dan Akuisisi memilih kartu aset/pemain secara visual.
+- Quickbuy mengambil dua kartu dengan klik; ketika kartu pasar masih tersisa, giliran berikutnya milik pengaktif otomatis dilewati. Info Bursa memilih tiga sektor dengan klik; Trading Fee dan Akuisisi memilih kartu aset/pemain secara visual.
 - Rumor memilih sektor dan arah perubahan melalui kartu sektor. Harga dijaga pada rentang 1–9; perubahan yang melewati batas ditolak di UI dan divalidasi ulang di server.
 - Fase jual memilih tumpukan kartu aset, jumlahnya, dan menampilkan hasil penjualan sebelum konfirmasi. Fase ekonomi dibuka lewat kartu pembuka bergambar.
 - Aksi terbaru muncul sebagai kartu sorotan di meja dan tersimpan pada log aktivitas bersama, sehingga pemain lain melihat efek transaksi yang sama.
@@ -69,7 +70,7 @@ Panduan tata cara permainan yang dijadikan referensi: [Tutorial Bermain StockLab
 
 - **Info Bursa:** pilih tiga sektor untuk mengintip kartu ekonomi teratasnya secara privat, lalu dapatkan 2 koin. Pemakainya menjual setelah pemain lain.
 - **Rumor:** gerakkan satu sektor sebesar ±2 atau dua sektor masing-masing ±1 tanpa memicu Crash/Split.
-- **Quickbuy:** pilih dua kartu aksi lain yang masih tersedia; kedua kartu tersebut disimpan sebagai kepemilikan sesuai keluarga sektornya.
+- **Quickbuy:** pilih dua kartu aksi lain yang masih tersedia; kedua kartu tersebut disimpan sebagai kepemilikan sesuai keluarga sektornya. Setelah aktivasi, giliran berikutnya milik pengaktif dilewati jika kartu masih tersisa di pasar.
 - **Trading Fee:** bayar 1 koin per unit dari keluarga sektor kartu, lalu jual satu jenis saham/Reksa Dana pilihan.
 - **Akuisisi:** ambil satu saham sektor dari pemain lain jika kepemilikanmu pada sektor yang sama minimal sebesar kepemilikan target. Kartu Akuisisi keluarga Reksa Dana tetap harus memilih sektor saham biasa; Reksa Dana tidak dapat diakuisisi.
 - **Kartu utang:** setelah pembukaan ekonomi dan sebelum bidding ronde berikutnya, pemain ditawari pinjaman 10 koin. Terima untuk menambah 10 koin dan mencatat satu utang; tolak tanpa konsekuensi. Tidak perlu membalik saham. Setiap pemain maksimal satu kartu utang; 13 koin dikurangi dari total aset pada akhir permainan.
@@ -110,8 +111,9 @@ Pada project Supabase baru, jalankan file berikut secara berurutan di SQL Editor
 10. [supabase/rpc-invoker-privileges.sql](supabase/rpc-invoker-privileges.sql)
 11. [supabase/drop-legacy-player-profiles.sql](supabase/drop-legacy-player-profiles.sql)
 12. [supabase/disable-legacy-take-debt-rpc.sql](supabase/disable-legacy-take-debt-rpc.sql)
+13. [supabase/quickbuy-skip-room-status-events.sql](supabase/quickbuy-skip-room-status-events.sql)
 
-File kedua membuat penyimpanan deck privat dan mengganti fungsi awal menjadi engine permainan lengkap. File ketiga menambahkan password room dan mengganti RPC buat/join room dengan verifikasi hash bcrypt. File keempat menambahkan papan Reksa Dana acak, biaya Trading Fee, pengaturan durasi, timeout otomatis, pembersihan room idle, dan aturan leave/host handover. File kelima menambahkan catatan aktivitas publik yang aman untuk anggota room, merinci transaksi kartu dan penjualan, serta mengirim event terbaru melalui RPC tampilan permainan. File keenam menolak gerakan Rumor yang melampaui batas harga saham 1–9. File ketujuh menambahkan pengambilan kartu urutan tertutup sebelum bidding, menyembunyikan nomor yang belum dibuka dari game view, menetapkan batas meja 3–5 pemain, memperbaiki Trading Fee dan aturan penjualan Reksa Dana, serta mengulang pengundian pasar aksi bila komposisinya melanggar aturan. File kedelapan memindahkan nama pemain ke keanggotaan room, mengosongkan profil permanen, membuat password opsional tanpa batas karakter, dan menambahkan fase penawaran utang setelah Ekonomi. File kesembilan memperbaiki alokasi stok kartu utang agar hanya menghitung pemain yang belum pernah menerima pinjaman. File kesepuluh memastikan wrapper RPC publik memakai hak invoker dan hanya dapat dijalankan role authenticated. File kesebelas menghapus tabel profil permanen yang sudah tidak digunakan. File kedua belas menonaktifkan RPC utang lama yang membalik satu saham secara langsung sehingga utang hanya dapat diambil lewat fase penawaran baru. Pada project pengembangan saat ini, SQL diterapkan langsung; riwayat migration Supabase belum direkonsiliasi.
+File kedua membuat penyimpanan deck privat dan mengganti fungsi awal menjadi engine permainan lengkap. File ketiga menambahkan password room dan mengganti RPC buat/join room dengan verifikasi hash bcrypt. File keempat menambahkan papan Reksa Dana acak, biaya Trading Fee, pengaturan durasi, timeout otomatis, pembersihan room idle, dan aturan leave/host handover. File kelima menambahkan catatan aktivitas publik yang aman untuk anggota room, merinci transaksi kartu dan penjualan, serta mengirim event terbaru melalui RPC tampilan permainan. File keenam menolak gerakan Rumor yang melampaui batas harga saham 1–9. File ketujuh menambahkan pengambilan kartu urutan tertutup sebelum bidding, menyembunyikan nomor yang belum dibuka dari game view, menetapkan batas meja 3–5 pemain, memperbaiki Trading Fee dan aturan penjualan Reksa Dana, serta mengulang pengundian pasar aksi bila komposisinya melanggar aturan. File kedelapan memindahkan nama pemain ke keanggotaan room, mengosongkan profil permanen, membuat password opsional tanpa batas karakter, dan menambahkan fase penawaran utang setelah Ekonomi. File kesembilan memperbaiki alokasi stok kartu utang agar hanya menghitung pemain yang belum pernah menerima pinjaman. File kesepuluh memastikan wrapper RPC publik memakai hak invoker dan hanya dapat dijalankan role authenticated. File kesebelas menghapus tabel profil permanen yang sudah tidak digunakan. File kedua belas menonaktifkan RPC utang lama yang membalik satu saham secara langsung sehingga utang hanya dapat diambil lewat fase penawaran baru. File ketiga belas menerapkan aturan Quickbuy yang melewati giliran berikutnya milik pengaktif dan menambahkan riwayat keluar room yang dibagikan realtime kepada anggota yang tersisa. Pada project pengembangan saat ini, SQL diterapkan langsung; riwayat migration Supabase belum direkonsiliasi.
 
 ## Pengujian
 
@@ -122,6 +124,8 @@ Pengujian otomatis dilakukan pada transaksi database terisolasi dan room tes dih
 - Uji Info Bursa, intipan tiga sektor, +2 koin, dan urutan jual paling akhir.
 - Uji Rumor, Quickbuy dua kartu, Trading Fee, Akuisisi, penyimpanan Reksa Dana, dan penjualan Reksa Dana.
 - Uji logika penawaran utang: penerimaan menambah 10 koin dan mencatat penalti akhir 13; penolakan tidak mengubah saldo/aset; penawaran yang timeout otomatis ditolak.
+- Validasi Quickbuy: setelah mengambil dua kartu bonus, giliran berikutnya milik pengaktif dilewati bila pasar belum kosong.
+- Validasi event keluar room: nama pemain dicatat sebelum keanggotaan dihapus dan dibaca realtime oleh anggota room yang masih aktif.
 - Uji 12 jenis efek khusus ekonomi dalam enam reveal, termasuk Buyback, Extra Fee, Merger, Resesi, Stimulus, Pajak Jalan, World Oil Regulation, Dividen, dan Restrukturisasi.
 - Uji Stock Crash dan Stock Split: reset harga ke 5, perubahan lembar saham, serta pengembalian/penggunaan token split.
 - Uji pengosongan intipan privat setelah kartu ekonomi dibuka.
@@ -132,6 +136,7 @@ Pengujian transaksi ini membuktikan alur backend dan simulasi permainan; bukan j
 
 ## Akses
 
+- Panduan permainan: [guide.html](guide.html), ringkasan booklet National StockLab Competition 2025.
 - Repository: https://github.com/arthanesia/stocklabonline
 - Website: https://arthanesia.github.io/stocklabonline/
 
