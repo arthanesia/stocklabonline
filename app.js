@@ -369,15 +369,15 @@ async function openRoom(roomId, inviteCode) {
   sessionState.roomMeta = room;
   sessionState.roomCode = room.invite_code;
   ui.roomHub.hidden = true;
-  ui.lobby.hidden = room.status !== "waiting";
+  ui.lobby.hidden = room.status === "in_progress";
   ui.gameTable.hidden = room.status === "waiting";
   ui.lobbyCode.textContent = room.invite_code;
   ui.lobbyTitle.textContent = "Room " + room.invite_code;
   ui.lobbySubtitle.textContent = room.status === "waiting"
     ? "Bagikan kode dan password room kepada teman."
-    : "Permainan sedang berlangsung.";
-  if (room.status === "waiting") await refreshLobby();
-  else await loadActiveGame();
+    : room.status === "finished" ? "Permainan selesai." : "Permainan sedang berlangsung.";
+  if (room.status === "waiting" || room.status === "finished") await refreshLobby();
+  if (room.status === "in_progress" || room.status === "finished") await loadActiveGame();
   subscribeToRoom();
 }
 
@@ -454,12 +454,12 @@ async function syncRoomState() {
   sessionState.roomMeta = room;
   ui.lobbySubtitle.textContent = room.status === "waiting"
     ? "Bagikan kode dan password room kepada teman."
-    : "Permainan sedang berlangsung.";
+    : room.status === "finished" ? "Permainan selesai." : "Permainan sedang berlangsung.";
   ui.roomHub.hidden = true;
-  ui.lobby.hidden = room.status !== "waiting";
+  ui.lobby.hidden = room.status === "in_progress";
   ui.gameTable.hidden = room.status === "waiting";
-  if (room.status === "waiting") await refreshLobby();
-  else await loadActiveGame();
+  if (room.status === "waiting" || room.status === "finished") await refreshLobby();
+  if (room.status === "in_progress" || room.status === "finished") await loadActiveGame();
   await refreshOpenRooms();
 }
 
