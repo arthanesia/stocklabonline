@@ -645,7 +645,8 @@ function renderPortfolio(players, drawingOrderCards = false) {
     const name = makeElement("td", "", player.display_name + (player.user_id === sessionState.user.id ? " (kamu)" : ""));
     const order = drawingOrderCards
       ? " · Kartu urutan " + (player.order_card_number || "?")
-      : " · Giliran " + (player.order_no || "?") + " · Kartu " + (player.order_card_number || "?");
+      : " · Giliran " + (player.order_no || "?") + " · Kartu " +
+        (player.order_card_number || player.order_no || "?");
     name.textContent += order;
     row.append(name);
     for (const key of SHARE_KEYS) row.append(makeElement("td", "", Number(player.shares && player.shares[key] || 0)));
