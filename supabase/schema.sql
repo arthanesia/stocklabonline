@@ -633,33 +633,33 @@ TO service_role;
 -- All RPCs validate auth.uid(). SECURITY DEFINER is limited to private
 -- implementation functions; public functions remain SECURITY INVOKER wrappers.
 ALTER FUNCTION private.is_room_member(uuid) SET search_path = '';
-ALTER FUNCTION private.create_room_impl(text, smallint) SET search_path = '';
+ALTER FUNCTION private.create_room_impl(text, integer) SET search_path = '';
 ALTER FUNCTION private.join_room_by_code_impl(text) SET search_path = '';
 ALTER FUNCTION private.list_open_rooms_impl() SET search_path = '';
 ALTER FUNCTION private.leave_room_impl(uuid) SET search_path = '';
-ALTER FUNCTION public.create_room(text, smallint) SET search_path = '';
+ALTER FUNCTION public.create_room(text, integer) SET search_path = '';
 ALTER FUNCTION public.get_room_lobby(uuid) SET search_path = '';
 ALTER FUNCTION public.join_room_by_code(text) SET search_path = '';
 ALTER FUNCTION public.list_open_rooms() SET search_path = '';
 ALTER FUNCTION public.leave_room(uuid) SET search_path = '';
 
 REVOKE ALL ON FUNCTION private.is_room_member(uuid) FROM PUBLIC, anon;
-REVOKE ALL ON FUNCTION private.create_room_impl(text, smallint) FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION private.create_room_impl(text, integer) FROM PUBLIC, anon;
 REVOKE ALL ON FUNCTION private.join_room_by_code_impl(text) FROM PUBLIC, anon;
 REVOKE ALL ON FUNCTION private.list_open_rooms_impl() FROM PUBLIC, anon;
 REVOKE ALL ON FUNCTION private.leave_room_impl(uuid) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION private.is_room_member(uuid) TO authenticated;
-GRANT EXECUTE ON FUNCTION private.create_room_impl(text, smallint) TO authenticated;
+GRANT EXECUTE ON FUNCTION private.create_room_impl(text, integer) TO authenticated;
 GRANT EXECUTE ON FUNCTION private.join_room_by_code_impl(text) TO authenticated;
 GRANT EXECUTE ON FUNCTION private.list_open_rooms_impl() TO authenticated;
 GRANT EXECUTE ON FUNCTION private.leave_room_impl(uuid) TO authenticated;
 
-REVOKE ALL ON FUNCTION public.create_room(text, smallint) FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION public.create_room(text, integer) FROM PUBLIC, anon;
 REVOKE ALL ON FUNCTION public.get_room_lobby(uuid) FROM PUBLIC, anon;
 REVOKE ALL ON FUNCTION public.join_room_by_code(text) FROM PUBLIC, anon;
 REVOKE ALL ON FUNCTION public.list_open_rooms() FROM PUBLIC, anon;
 REVOKE ALL ON FUNCTION public.leave_room(uuid) FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.create_room(text, smallint) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.create_room(text, integer) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.get_room_lobby(uuid) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.join_room_by_code(text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.list_open_rooms() TO authenticated;
