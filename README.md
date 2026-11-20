@@ -16,6 +16,24 @@ Permainan StockLab multiplayer berbasis browser. Pemain masuk dengan username ta
 - Stock Crash, Stock Split, token split, kartu utang, nilai Reksa Dana, dan penghitungan skor akhir.
 - Hasil pertandingan disimpan; pemain dapat kembali ke lobi setelah permainan selesai.
 
+## Visual kartu dan meja permainan
+
+Website memakai **56 gambar WebP yang diekstrak dari paket aset StockLab yang diunggah ke proyek**. Gambar tidak dibuat ulang: muka kartu aksi, kartu ekonomi, papan/tumpukan sektor, papan Reksa Dana, kartu utang, koin/token, dan sisi kartu diambil dari `stocklab-assets-upload.zip`.
+
+- Kartu aksi tampil sebagai deretan kartu bergambar yang dapat digeser; pada giliran sendiri pemain memilih **Simpan** atau **Aktifkan**.
+- Empat papan sektor menampilkan gambar asli serta harga saham dan jumlah kartu ekonomi tersisa.
+- Kartu ekonomi yang dibuka tampil menggunakan gambar muka kartu sesuai efeknya.
+- Papan Reksa Dana ditampilkan di area pasar.
+- Animasi kartu dibuat singkat dan dapat dinonaktifkan melalui pengaturan reduced-motion perangkat.
+
+### Publikasi aset ke GitHub Pages
+
+Repository menyimpan paket `stocklab-assets-upload.zip` di root. Workflow `.github/workflows/deploy-pages.yml` mengekstrak 56 gambar ke folder hasil build sebelum mengunggah artefak GitHub Pages.
+
+**Satu kali pengaturan repository:** buka Settings → Pages → Build and deployment → Source, lalu pilih **GitHub Actions**. Ini diperlukan agar workflow `actions/deploy-pages` dapat menerbitkan hasil ekstraksi aset. Petunjuk resmi GitHub: https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site
+
+Panduan tata cara permainan yang dijadikan referensi: [Tutorial Bermain StockLab — KSPM FEB ULM](https://www.youtube.com/watch?v=0bd47voPuUs). UI mengikuti alur empat fase Bidding → Aksi → Jual → Ekonomi, dengan presentasi meja kartu digital.
+
 ## Cara bermain
 
 1. Masuk dengan username, lalu buat meja atau gabung memakai kode.
