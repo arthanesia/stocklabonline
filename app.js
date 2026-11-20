@@ -16,6 +16,10 @@ const ui = {
   guestEntry: byId("guest-entry"), workspace: byId("room-workspace"), locked: byId("workspace-locked"),
   notice: byId("app-notice"), connection: byId("connection-indicator"),
   profileSettingsForm: byId("profile-settings-form"), profileSettingsName: byId("profile-settings-name"),
+  settingTheme: byId("setting-theme"), settingTextSize: byId("setting-text-size"),
+  settingRoomDensity: byId("setting-room-density"), settingReduceMotion: byId("setting-reduce-motion"),
+  lobbyRoomStatusPanel: byId("lobby-room-status-panel"), lobbyRoomStatusFeed: byId("lobby-room-status-feed"),
+  gameRoomStatusPanel: byId("game-room-status-panel"), gameRoomStatusFeed: byId("game-room-status-feed"),
   playerPill: byId("player-pill"), playerAvatar: byId("player-avatar"), playerName: byId("player-name-label"),
   roomHub: byId("room-hub"), showCreatePanel: byId("show-create-panel"),
   createPanel: byId("create-room-panel"), backFromCreate: byId("back-from-create"),
@@ -408,6 +412,7 @@ async function openRoom(roomId, inviteCode) {
     : room.status === "finished" ? "Permainan selesai." : "Permainan sedang berlangsung.";
   if (room.status === "waiting" || room.status === "finished") await refreshLobby();
   if (room.status === "in_progress" || room.status === "finished") await loadActiveGame();
+  await refreshRoomActivity();
   subscribeToRoom();
 }
 
@@ -431,6 +436,7 @@ async function refreshLobby() {
     return;
   }
   sessionState.members = Array.isArray(data) ? data : [];
+  await refreshRoomActivity();
   const capacity = Number(sessionState.roomMeta.max_players || 5);
   ui.lobbyCount.textContent = sessionState.members.length + " / " + capacity + " pemain";
   ui.roster.replaceChildren();
@@ -478,6 +484,46 @@ async function refreshLobby() {
   else if (sessionState.members.length < 3) ui.lobbyHint.textContent = "Butuh minimal tiga pemain untuk memulai.";
   else if (!allReady) ui.lobbyHint.textContent = "Semua pemain yang bergabung harus menandai siap sebelum host memulai.";
   else ui.lobbyHint.textContent = isHost ? "Semua pemain siap. Host dapat memulai permainan." : "Semua pemain siap. Menunggu host memulai permainan.";
+}
+
+async function refreshRoomActivity() {
+  if (!sessionState.roomId || !sessionState.user) return;
+  const { data, error } = await db.from("room_status_events")
+    .select("id,actor_name,event_type,created_at")
+    .eq("room_id", sessionState.roomId)
+    .order("created_at", { ascending: false })
+    .limit(8);
+  if (error) {
+    console.warn("Could not load room status events:", error);
+    return;
+  }
+  const events = Array.isArray(data) ? data : [];
+  const renderFeed = (target) => {
+    if (!target) return;
+    target.replaceChildren();
+    if (!events.length) {
+      target.append(makeElement("p", "room-status-empty", "Belum ada pemain yang keluar."));
+      return;
+    }
+    for (const event of events) {
+      const row = makeElement("div", "room-status-event");
+      const icon = makeElement("span", "room-status-icon", "↗");
+      const copy = makeElement("div", "room-status-copy");
+      copy.append(makeElement("strong", "", event.actor_name + " keluar dari room"));
+      const time = event.created_at
+        ? new Date(event.created_at).toLocaleString("id-ID", {
+            day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit"
+          })
+        : "";
+      copy.append(makeElement("small", "", time));
+      row.append(icon, copy);
+      target.append(row);
+    }
+  };
+  renderFeed(ui.lobbyRoomStatusFeed);
+  renderFeed(ui.gameRoomStatusFeed);
+  if (ui.lobbyRoomStatusPanel) ui.lobbyRoomStatusPanel.hidden = false;
+  if (ui.gameRoomStatusPanel) ui.gameRoomStatusPanel.hidden = false;
 }
 
 async function syncRoomState() {
@@ -722,7 +768,8 @@ function describeActivityEvent(event, players) {
       const taken = (Array.isArray(p.quickbuy_cards) ? p.quickbuy_cards : [])
         .map((item) => sectorName(item.sector)).join(" dan ");
       return actor + " mengaktifkan Quickbuy dan mengambil saham " +
-        (taken || "dari dua kartu pilihan") + ".";
+        (taken || "dari dua kartu pilihan") +
+        (p.skipped_next_turn ? ". Giliran berikutnya otomatis dilewati." : ".");
     }
     if (p.action === "trading-fee") {
       const sale = Number(p.sell_quantity || 0) + " " + sectorName(p.sell_sector);
@@ -1893,6 +1940,7 @@ function subscribeToRoom() {
   const roomId=sessionState.roomId;
   sessionState.channel=db.channel("stocklab-room-"+roomId)
     .on("postgres_changes",{event:"*",schema:"public",table:"room_members",filter:"room_id=eq."+roomId},async()=>{await syncRoomState();})
+    .on("postgres_changes",{event:"INSERT",schema:"public",table:"room_status_events",filter:"room_id=eq."+roomId},async()=>{await refreshRoomActivity();})
     .on("postgres_changes",{event:"UPDATE",schema:"public",table:"rooms",filter:"id=eq."+roomId},async()=>{await syncRoomState();})
     .on("postgres_changes",{event:"DELETE",schema:"public",table:"rooms",filter:"id=eq."+roomId},async()=>{
       if (sessionState.channel) { await db.removeChannel(sessionState.channel); sessionState.channel=null; }
@@ -1984,24 +2032,65 @@ async function leaveRoom(button = ui.leaveButton) {
   }
 }
 
+function readSitePreferences() {
+  try {
+    return JSON.parse(localStorage.getItem("stocklab_site_preferences") || "{}");
+  } catch (_) {
+    return {};
+  }
+}
+
+function applySitePreferences(preferences = {}) {
+  const theme = preferences.theme === "forest" ? "forest" : "midnight";
+  const textSize = preferences.textSize === "large" ? "large" : "normal";
+  const density = preferences.roomDensity === "compact" ? "compact" : "comfortable";
+  const reduceMotion = Boolean(preferences.reduceMotion);
+  document.body.dataset.interfaceTheme = theme;
+  document.body.classList.toggle("ui-large-text", textSize === "large");
+  document.body.classList.toggle("ui-compact-cards", density === "compact");
+  document.body.classList.toggle("ui-reduced-motion", reduceMotion);
+  if (ui.settingTheme) ui.settingTheme.value = theme;
+  if (ui.settingTextSize) ui.settingTextSize.value = textSize;
+  if (ui.settingRoomDensity) ui.settingRoomDensity.value = density;
+  if (ui.settingReduceMotion) ui.settingReduceMotion.checked = reduceMotion;
+}
+
+function loadSitePreferences() {
+  const preferences = readSitePreferences();
+  applySitePreferences(preferences);
+  const savedName = localStorage.getItem("stocklab_guest_username") || "";
+  if (savedName && ui.profileSettingsName) ui.profileSettingsName.value = savedName;
+}
+
 ui.profileSettingsForm.addEventListener("submit", (event) => {
   event.preventDefault();
-  if (sessionState.roomId) {
-    showNotice("Keluar dari ruangan terlebih dahulu sebelum mengganti nama pemain.", "warning");
-    return;
-  }
-  const name = cleanPlayerName(ui.profileSettingsName.value);
-  if (name.length < 2 || name.length > 24) {
+  const name = cleanPlayerName(ui.profileSettingsName.value || "");
+  const currentName = cleanPlayerName(sessionState.username || "");
+  if (name && (name.length < 2 || name.length > 24)) {
     showNotice("Nama pemain harus terdiri dari 2 sampai 24 karakter.", "warning");
     return;
   }
-  sessionState.username = name;
-  localStorage.setItem("stocklab_guest_username", name);
-  ui.usernameInput.value = name;
-  ui.playerName.textContent = name;
-  ui.playerAvatar.textContent = name.slice(0, 1).toUpperCase();
-  ui.playerPill.hidden = false;
-  showNotice("Nama pemain berhasil diperbarui untuk ruangan berikutnya.", "success");
+  if (name && name !== currentName && sessionState.roomId) {
+    showNotice("Preferensi tersimpan, tetapi nama pemain baru berlaku setelah kamu keluar dari room.", "warning");
+  } else if (name && name !== currentName) {
+    sessionState.username = name;
+    localStorage.setItem("stocklab_guest_username", name);
+    ui.usernameInput.value = name;
+    ui.playerName.textContent = name;
+    ui.playerAvatar.textContent = name.slice(0, 1).toUpperCase();
+    ui.playerPill.hidden = false;
+  }
+  const preferences = {
+    theme: ui.settingTheme.value,
+    textSize: ui.settingTextSize.value,
+    roomDensity: ui.settingRoomDensity.value,
+    reduceMotion: ui.settingReduceMotion.checked
+  };
+  localStorage.setItem("stocklab_site_preferences", JSON.stringify(preferences));
+  applySitePreferences(preferences);
+  if (!(name && name !== currentName && sessionState.roomId)) {
+    showNotice("Pengaturan website berhasil disimpan di perangkat ini.", "success");
+  }
 });
 document.querySelectorAll(".side-link").forEach((link) => {
   link.addEventListener("click", () => {
@@ -2032,6 +2121,7 @@ ui.copyCode.addEventListener("click",async()=>{
 
 const rememberedName=localStorage.getItem("stocklab_guest_username");
 if(rememberedName) { ui.usernameInput.value=rememberedName; ui.profileSettingsName.value=rememberedName; }
+loadSitePreferences();
 if(!db){
   showNotice("Library Supabase gagal dimuat. Periksa koneksi lalu muat ulang halaman.","error");
   setConnection("Gagal dimuat");
