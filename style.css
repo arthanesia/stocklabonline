@@ -245,3 +245,145 @@ footer { display: flex; justify-content: space-between; gap: 12px; padding: 18px
 .debt-form .button{width:100%}
 .economy-effect-summary{margin-top:12px;padding:10px 12px;background:#f8f7f1;border-left:3px solid var(--green)}
 .economy-effect-summary p{margin:3px 0;color:#59635b;font-size:10px;line-height:1.5}
+
+
+/* Original StockLab artwork: tabletop board and physical-card presentation. */
+.tutorial-link{
+  display:inline-flex;align-items:center;gap:7px;margin-top:12px;
+  color:var(--green);font-size:10px;font-weight:700;text-decoration:underline;
+  text-underline-offset:3px
+}
+.market-grid{
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;
+  border:0;align-items:start
+}
+.market-cell.market-board-card{
+  padding:10px;background:#f9f7f1;border:1px solid var(--line);
+  border-radius:6px;display:flex;flex-direction:column;gap:8px;min-width:0;
+  box-shadow:0 1px 2px #26332d0a
+}
+.market-card-heading{
+  display:flex;align-items:center;justify-content:space-between;gap:6px
+}
+.market-card-heading strong{font-size:10px;font-weight:750}
+.market-card-heading .deck-count{
+  color:var(--muted);font-size:8px;white-space:nowrap
+}
+.market-board-art{
+  position:relative;overflow:hidden;border:1px solid #e1ddd3;border-radius:4px;
+  background:#fff;aspect-ratio:3/4;display:grid;place-items:center
+}
+.market-board-image{
+  display:block;width:100%;height:100%;object-fit:contain;object-position:center
+}
+.market-price-chip{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  padding:7px 9px;border-radius:4px;background:#e8efe9;color:var(--green-dark)
+}
+.market-price-chip span{font-size:8px;font-weight:750;letter-spacing:.08em}
+.market-price-chip strong{font:700 18px Georgia,serif}
+.mutual-fund-board{
+  display:flex;align-items:center;gap:14px;margin-top:12px;padding:10px 14px;
+  border:1px solid var(--line);border-radius:6px;background:#f7f6f0
+}
+.mutual-fund-board img{
+  width:min(230px,48%);height:auto;max-height:110px;object-fit:contain;
+  border-radius:3px;background:#fff
+}
+.mutual-fund-copy{display:grid;gap:4px}
+.mutual-fund-copy span{font-size:8px;font-weight:800;letter-spacing:.12em;color:#287f7a}
+.mutual-fund-copy strong{font:24px Georgia,serif;color:#287f7a}
+.mutual-fund-copy small{font-size:9px;color:var(--muted)}
+.card-table-hint{margin:0 0 12px;color:var(--muted);font-size:10px;line-height:1.5}
+.action-market{
+  display:flex;gap:14px;overflow-x:auto;overflow-y:hidden;padding:5px 4px 16px;
+  scroll-snap-type:x mandatory;scrollbar-width:thin
+}
+.action-card{
+  flex:0 0 184px;min-width:184px;padding:10px;border:1px solid var(--line);
+  border-radius:7px;background:#fffefa;scroll-snap-align:start;
+  transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease;
+  animation:stocklab-card-deal .28s ease-out both
+}
+.action-card.is-selectable{border-color:#cbd6cb}
+.action-card.is-selectable:hover{
+  transform:translateY(-5px);border-color:#89a58f;
+  box-shadow:0 8px 18px #233a2b18
+}
+.action-card.is-waiting{opacity:.76}
+.action-card-header{
+  display:flex;align-items:center;justify-content:space-between;gap:7px;
+  margin-bottom:8px
+}
+.action-sector{
+  padding:4px 7px;background:#f0eee7;color:#536457;
+  border-radius:3px;font-size:8px;font-weight:750
+}
+.action-title{font:500 14px Georgia,serif}
+.action-card-image{
+  width:100%;aspect-ratio:3/4;display:block;object-fit:contain;
+  background:#f4f1e9;border:1px solid #e7e2d8;border-radius:4px
+}
+.action-hint{
+  display:block;min-height:28px;margin:8px 0;color:#72786f;
+  font-size:8px;line-height:1.45
+}
+.action-card-buttons{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.action-card-buttons .button{
+  min-height:34px;padding:0 5px;border-radius:4px;font-size:9px
+}
+.card-image-fallback{
+  display:grid;place-items:center;min-height:110px;padding:12px;text-align:center;
+  border:1px dashed #c9c5b9;background:#f6f3eb;color:var(--muted);
+  font-size:10px;line-height:1.5
+}
+.economy-reveal{
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px
+}
+.economy-card{
+  padding:10px;border:1px solid var(--line);border-radius:6px;
+  background:#fffefa;min-width:0
+}
+.economy-card-image{
+  width:100%;aspect-ratio:3/4;object-fit:contain;display:block;
+  background:#f5f2eb;border:1px solid #e9e4db;border-radius:4px;margin-bottom:9px
+}
+.economy-card.is-revealed{animation:stocklab-card-flip .42s ease-out both}
+.economy-card strong{font:500 14px Georgia,serif}
+.economy-card span{font-size:8px;letter-spacing:.03em}
+.economy-card p{font-size:9px;line-height:1.55}
+.economy-effect{font-size:8px;line-height:1.5}
+.portfolio-active-player td{background:#edf3ed}
+.portfolio-active-player td:first-child{font-weight:800;color:var(--green)}
+@keyframes stocklab-card-deal{
+  from{opacity:0;transform:translateY(12px) rotate(-1deg)}
+  to{opacity:1;transform:translateY(0) rotate(0)}
+}
+@keyframes stocklab-card-flip{
+  0%{opacity:0;transform:rotateY(80deg) scale(.94)}
+  100%{opacity:1;transform:rotateY(0) scale(1)}
+}
+@media(max-width:850px){
+  .market-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .economy-reveal{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:620px){
+  .market-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .market-cell.market-board-card{padding:7px}
+  .market-card-heading strong{font-size:9px}
+  .market-card-heading .deck-count{font-size:7px}
+  .market-price-chip{padding:6px 7px}
+  .market-price-chip strong{font-size:16px}
+  .mutual-fund-board{gap:9px;padding:8px}
+  .mutual-fund-board img{width:52%;max-height:90px}
+  .mutual-fund-copy strong{font-size:20px}
+  .action-market{gap:10px;padding-bottom:13px}
+  .action-card{flex-basis:68vw;min-width:68vw;max-width:250px}
+  .action-card-image{max-height:300px}
+  .economy-reveal{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .economy-card{padding:7px}
+}
+@media(prefers-reduced-motion:reduce){
+  .action-card,.economy-card.is-revealed{animation:none;transition:none}
+  .action-card.is-selectable:hover{transform:none}
+}
