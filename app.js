@@ -1,4 +1,4 @@
-// StockLab Online — guest-first multiplayer lobby + asset catalog.
+// StockLab Online — guest access, room lobby and initial game table.
 const SUPABASE_URL = "https://euzilxlmhuxftycgaqwh.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_YGViDDZQTaXVpUFJDeHDtA_jfZxWy9m";
 
@@ -9,53 +9,72 @@ const db = typeof supabaseFactory === "function"
     })
   : null;
 
+const byId = (id) => document.getElementById(id);
 const ui = {
-  enterForm: document.querySelector("#enter-form"),
-  usernameInput: document.querySelector("#username-input"),
-  enterButton: document.querySelector("#enter-button"),
-  guestEntry: document.querySelector("#guest-entry"),
-  workspace: document.querySelector("#room-workspace"),
-  locked: document.querySelector("#workspace-locked"),
-  notice: document.querySelector("#app-notice"),
-  connection: document.querySelector("#connection-indicator"),
-  playerPill: document.querySelector("#player-pill"),
-  playerName: document.querySelector("#player-name-label"),
-  createForm: document.querySelector("#create-room-form"),
-  createButton: document.querySelector("#create-room-button"),
-  maxPlayers: document.querySelector("#max-players"),
-  joinForm: document.querySelector("#join-room-form"),
-  joinInput: document.querySelector("#room-code-input"),
-  joinButton: document.querySelector("#join-room-button"),
-  roomList: document.querySelector("#room-list"),
-  refreshRooms: document.querySelector("#refresh-rooms"),
-  lobby: document.querySelector("#room-lobby"),
-  lobbyTitle: document.querySelector("#lobby-title"),
-  lobbySubtitle: document.querySelector("#lobby-subtitle"),
-  lobbyCode: document.querySelector("#lobby-code"),
-  lobbyCount: document.querySelector("#lobby-count"),
-  roster: document.querySelector("#player-roster"),
-  lobbyHint: document.querySelector("#lobby-hint"),
-  copyCode: document.querySelector("#copy-code-button"),
-  readyButton: document.querySelector("#ready-button"),
-  leaveButton: document.querySelector("#leave-room-button")
+  enterForm: byId("enter-form"),
+  usernameInput: byId("username-input"),
+  enterButton: byId("enter-button"),
+  guestEntry: byId("guest-entry"),
+  workspace: byId("room-workspace"),
+  locked: byId("workspace-locked"),
+  notice: byId("app-notice"),
+  connection: byId("connection-indicator"),
+  playerPill: byId("player-pill"),
+  playerAvatar: byId("player-avatar"),
+  playerName: byId("player-name-label"),
+  createForm: byId("create-room-form"),
+  createButton: byId("create-room-button"),
+  maxPlayers: byId("max-players"),
+  joinForm: byId("join-room-form"),
+  joinInput: byId("room-code-input"),
+  joinButton: byId("join-room-button"),
+  roomList: byId("room-list"),
+  refreshRooms: byId("refresh-rooms"),
+  lobby: byId("room-lobby"),
+  lobbyTitle: byId("lobby-title"),
+  lobbySubtitle: byId("lobby-subtitle"),
+  lobbyCode: byId("lobby-code"),
+  lobbyCount: byId("lobby-count"),
+  roster: byId("player-roster"),
+  lobbyHint: byId("lobby-hint"),
+  copyCode: byId("copy-code-button"),
+  readyButton: byId("ready-button"),
+  startButton: byId("start-game-button"),
+  leaveButton: byId("leave-room-button"),
+  gameTable: byId("game-table"),
+  gameSubtitle: byId("game-subtitle"),
+  gameRound: byId("game-round"),
+  gamePhase: byId("game-phase"),
+  gamePhaseDescription: byId("game-phase-description"),
+  marketGrid: byId("market-grid"),
+  gamePlayers: byId("game-players"),
+  gamePlayerCount: byId("game-player-count"),
+  ownCoins: byId("own-coins"),
+  ownShares: byId("own-shares"),
+  gameNote: byId("game-note")
 };
 
-const gameSession = {
+const sessionState = {
   user: null,
   username: "",
   roomId: null,
   roomCode: "",
   roomMeta: null,
   members: [],
+  game: null,
   channel: null
 };
 
+const SECTORS = [
+  { id: "finance", name: "Keuangan" },
+  { id: "consumer", name: "Konsumer" },
+  { id: "agriculture", name: "Agrikultur" },
+  { id: "mining", name: "Tambang" }
+];
+
 function setConnection(label, online = false) {
-  ui.connection.innerHTML = "";
-  const dot = document.createElement("i");
-  dot.textContent = "●";
-  const text = document.createTextNode(" " + label);
-  ui.connection.append(dot, text);
+  const text = ui.connection.querySelector("span");
+  if (text) text.textContent = label;
   ui.connection.classList.toggle("connected", online);
 }
 
@@ -99,8 +118,12 @@ function setBusy(button, busy, busyText) {
   }
 }
 
+function cleanPlayerName(value) {
+  return String(value || "").trim().replace(/\s+/g, " ");
+}
+
 async function ensureGuestSession() {
-  if (!db) throw new Error("Library Supabase belum berhasil dimuat. Periksa koneksi lalu muat ulang halaman.");
+  if (!db) throw new Error("Library Supabase belum berhasil dimuat. Muat ulang halaman.");
   const { data: sessionData, error: sessionError } = await db.auth.getSession();
   if (sessionError) throw sessionError;
   if (sessionData.session && sessionData.session.user) return sessionData.session;
@@ -108,9 +131,7 @@ async function ensureGuestSession() {
   const { data, error } = await db.auth.signInAnonymously();
   if (error) {
     if (error.code === "anonymous_provider_disabled" || /anonymous.*disabled/i.test(error.message || "")) {
-      throw Object.assign(new Error("Mode pemain tamu belum diaktifkan pada project Supabase."), {
-        needsAnonymousSetup: true
-      });
+      throw Object.assign(new Error("Mode pemain tamu belum aktif di Supabase."), { needsAnonymousSetup: true });
     }
     throw error;
   }
@@ -119,22 +140,22 @@ async function ensureGuestSession() {
 }
 
 async function savePlayerProfile(username) {
-  if (!gameSession.user) throw new Error("Sesi pemain belum tersedia.");
-  const cleanName = username.trim().replace(/\s+/g, " ");
+  const cleanName = cleanPlayerName(username);
+  if (!sessionState.user) throw new Error("Sesi pemain belum tersedia.");
   if (cleanName.length < 2 || cleanName.length > 24) {
     throw new Error("Username harus terdiri dari 2 sampai 24 karakter.");
   }
-
   const { error } = await db.from("profiles").upsert({
-    id: gameSession.user.id,
+    id: sessionState.user.id,
     display_name: cleanName,
     updated_at: new Date().toISOString()
   }, { onConflict: "id" });
-
   if (error) throw error;
-  gameSession.username = cleanName;
+
+  sessionState.username = cleanName;
   localStorage.setItem("stocklab_guest_username", cleanName);
   ui.playerName.textContent = cleanName;
+  ui.playerAvatar.textContent = cleanName.slice(0, 1).toUpperCase();
   ui.playerPill.hidden = false;
   return cleanName;
 }
@@ -143,13 +164,11 @@ function showWorkspace() {
   ui.guestEntry.hidden = true;
   ui.workspace.hidden = false;
   ui.locked.hidden = true;
-  ui.playerPill.hidden = false;
-  document.querySelector("#multiplayer").scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 function showGuestSetupError() {
   showNotice(
-    "Fitur pemain tanpa email/password membutuhkan Anonymous Sign-Ins aktif. Buka Authentication → Sign In / Providers → Anonymous pada Supabase, lalu aktifkan Allow anonymous sign-ins.",
+    "Pemain tamu memerlukan Anonymous Sign-Ins yang aktif. Pastikan pengaturan tersebut sudah disimpan di Supabase.",
     "warning",
     "Buka pengaturan Auth",
     "https://supabase.com/dashboard/project/euzilxlmhuxftycgaqwh/auth/providers"
@@ -158,31 +177,30 @@ function showGuestSetupError() {
 
 async function enterAsGuest(event) {
   event.preventDefault();
-  const username = ui.usernameInput.value;
-  if (username.trim().length < 2 || username.trim().length > 24) {
+  const username = cleanPlayerName(ui.usernameInput.value);
+  if (username.length < 2 || username.length > 24) {
     showNotice("Username harus terdiri dari 2 sampai 24 karakter.", "warning");
     return;
   }
-
-  setBusy(ui.enterButton, true, "Menyiapkan pemain…");
+  setBusy(ui.enterButton, true, "Masuk…");
   clearNotice();
-  setConnection("CONNECTING");
+  setConnection("Menghubungkan");
   try {
     const session = await ensureGuestSession();
-    gameSession.user = session.user;
+    sessionState.user = session.user;
     await savePlayerProfile(username);
     showWorkspace();
-    setConnection("CONNECTED", true);
+    setConnection("Terhubung", true);
     await refreshOpenRooms();
-    await restoreWaitingRoom();
+    await restoreRoom();
   } catch (error) {
     console.error("Guest entry failed:", error);
     if (error.needsAnonymousSetup) {
       showGuestSetupError();
-      setConnection("SETUP NEEDED");
+      setConnection("Perlu pengaturan");
     } else {
       showNotice(errorMessage(error), "error");
-      setConnection("OFFLINE");
+      setConnection("Terputus");
     }
   } finally {
     setBusy(ui.enterButton, false);
@@ -191,7 +209,7 @@ async function enterAsGuest(event) {
 
 async function restoreExistingGuest() {
   if (!db) {
-    showNotice("Library Supabase belum berhasil dimuat. Muat ulang halaman.", "error");
+    showNotice("Library Supabase gagal dimuat. Muat ulang halaman.", "error");
     return;
   }
   try {
@@ -200,44 +218,45 @@ async function restoreExistingGuest() {
     const session = data.session;
     if (!session || !session.user) return;
 
-    gameSession.user = session.user;
+    sessionState.user = session.user;
     const { data: profile, error: profileError } = await db
       .from("profiles")
       .select("display_name")
       .eq("id", session.user.id)
       .maybeSingle();
-
     if (profileError) throw profileError;
     if (!profile || !profile.display_name) return;
 
     ui.usernameInput.value = profile.display_name;
-    gameSession.username = profile.display_name;
+    sessionState.username = profile.display_name;
     ui.playerName.textContent = profile.display_name;
+    ui.playerAvatar.textContent = profile.display_name.slice(0, 1).toUpperCase();
+    ui.playerPill.hidden = false;
     showWorkspace();
-    setConnection("RECONNECTED", true);
+    setConnection("Terhubung", true);
     await refreshOpenRooms();
-    await restoreWaitingRoom();
+    await restoreRoom();
   } catch (error) {
     console.warn("Could not restore previous guest session:", error);
-    setConnection("RECONNECT NEEDED");
+    setConnection("Perlu masuk ulang");
   }
 }
 
 async function refreshOpenRooms() {
-  if (!gameSession.user) return;
+  if (!sessionState.user) return;
   ui.roomList.replaceChildren();
   const loading = document.createElement("div");
-  loading.className = "loading";
-  loading.textContent = "Mencari ruangan…";
+  loading.className = "empty-state";
+  loading.textContent = "Mencari meja…";
   ui.roomList.append(loading);
 
   const { data, error } = await db.rpc("list_open_rooms");
   if (error) {
     ui.roomList.replaceChildren();
-    const empty = document.createElement("div");
-    empty.className = "empty";
-    empty.textContent = errorMessage(error);
-    ui.roomList.append(empty);
+    const message = document.createElement("div");
+    message.className = "empty-state";
+    message.textContent = errorMessage(error);
+    ui.roomList.append(message);
     return;
   }
 
@@ -245,17 +264,13 @@ async function refreshOpenRooms() {
   ui.roomList.replaceChildren();
   if (!rooms.length) {
     const empty = document.createElement("div");
-    empty.className = "empty";
-    const title = document.createElement("strong");
-    title.textContent = "Belum ada ruangan terbuka.";
-    const help = document.createElement("span");
-    help.textContent = "Buat meja baru atau bagikan kode ruanganmu ke teman.";
-    empty.append(title, help);
+    empty.className = "empty-state";
+    empty.textContent = "Belum ada meja terbuka. Buat meja baru atau masukkan kode undangan.";
     ui.roomList.append(empty);
     return;
   }
 
-  rooms.forEach((room) => {
+  for (const room of rooms) {
     const item = document.createElement("article");
     item.className = "room-item";
 
@@ -263,42 +278,40 @@ async function refreshOpenRooms() {
     details.className = "room-item-details";
     const name = document.createElement("strong");
     name.textContent = "Meja " + room.host_name;
-    const sub = document.createElement("span");
-    sub.textContent = String(room.member_count) + " / " + String(room.max_players) + " pemain";
-    details.append(name, sub);
+    const count = document.createElement("span");
+    count.textContent = room.member_count + " / " + room.max_players + " pemain";
+    details.append(name, count);
 
     const code = document.createElement("code");
     code.textContent = room.invite_code;
 
     const join = document.createElement("button");
-    join.type = "button";
     join.className = "small-join";
-    const full = Number(room.member_count) >= Number(room.max_players);
-    join.disabled = full;
-    join.textContent = full ? "Penuh" : "Gabung";
+    join.type = "button";
+    join.textContent = Number(room.member_count) >= Number(room.max_players) ? "Penuh" : "Gabung";
+    join.disabled = Number(room.member_count) >= Number(room.max_players);
     join.addEventListener("click", () => joinRoom(room.invite_code, join));
 
     item.append(details, code, join);
     ui.roomList.append(item);
-  });
+  }
 }
 
 async function createRoom(event) {
   event.preventDefault();
-  if (!gameSession.user) return;
-  setBusy(ui.createButton, true, "Membuat meja…");
+  if (!sessionState.user) return;
+  setBusy(ui.createButton, true, "Membuat…");
   clearNotice();
   try {
-    await savePlayerProfile(gameSession.username);
-    const maxPlayers = Number(ui.maxPlayers.value);
+    await savePlayerProfile(sessionState.username);
     const { data, error } = await db.rpc("create_room", {
-      p_display_name: gameSession.username,
-      p_max_players: maxPlayers
+      p_display_name: sessionState.username,
+      p_max_players: Number(ui.maxPlayers.value)
     });
     if (error) throw error;
     await openRoom(data.room_id, data.invite_code);
     await refreshOpenRooms();
-    showNotice("Ruangan berhasil dibuat. Bagikan kode " + data.invite_code + " kepada teman.", "success");
+    showNotice("Meja berhasil dibuat. Bagikan kode undangan kepada teman.", "success");
   } catch (error) {
     console.error("Create room failed:", error);
     showNotice(errorMessage(error), "error");
@@ -308,16 +321,16 @@ async function createRoom(event) {
 }
 
 async function joinRoom(code, button = ui.joinButton) {
-  if (!gameSession.user) return;
+  if (!sessionState.user) return;
   const normalizedCode = String(code || "").trim().toUpperCase();
   if (!/^[A-Z0-9]{6}$/.test(normalizedCode)) {
-    showNotice("Kode ruangan harus terdiri dari 6 huruf atau angka.", "warning");
+    showNotice("Kode undangan harus terdiri dari 6 huruf atau angka.", "warning");
     return;
   }
-  setBusy(button, true, "Menghubungkan…");
+  setBusy(button, true, "Menggabungkan…");
   clearNotice();
   try {
-    await savePlayerProfile(gameSession.username);
+    await savePlayerProfile(sessionState.username);
     const { data, error } = await db.rpc("join_room_by_code", { p_code: normalizedCode });
     if (error) throw error;
     await openRoom(data.room_id, normalizedCode);
@@ -331,129 +344,263 @@ async function joinRoom(code, button = ui.joinButton) {
 }
 
 async function openRoom(roomId, inviteCode) {
-  gameSession.roomId = roomId;
-  gameSession.roomCode = inviteCode;
+  sessionState.roomId = roomId;
+  sessionState.roomCode = inviteCode;
   ui.lobby.hidden = false;
-  ui.lobby.scrollIntoView({ behavior: "smooth", block: "nearest" });
-
   const { data: room, error } = await db
     .from("rooms")
     .select("id,invite_code,host_id,max_players,status")
     .eq("id", roomId)
     .maybeSingle();
   if (error) throw error;
-  if (!room) throw new Error("Ruangan tidak ditemukan atau akses sudah berakhir.");
+  if (!room) throw new Error("Meja tidak ditemukan atau akses sudah berakhir.");
 
-  gameSession.roomMeta = room;
-  gameSession.roomCode = room.invite_code;
+  sessionState.roomMeta = room;
+  sessionState.roomCode = room.invite_code;
   ui.lobbyCode.textContent = room.invite_code;
   ui.lobbyTitle.textContent = "Meja " + room.invite_code;
-  ui.lobbySubtitle.textContent = "Bagikan kode ini untuk mengundang pemain lain.";
+  ui.lobbySubtitle.textContent = room.status === "in_progress"
+    ? "Permainan sedang berlangsung."
+    : "Bagikan kode ini agar teman bisa bergabung.";
   await refreshLobby();
+  if (room.status === "in_progress") await loadActiveGame();
+  else ui.gameTable.hidden = true;
   subscribeToRoom();
 }
 
+async function restoreRoom() {
+  if (!sessionState.user) return;
+  const { data: membership, error } = await db.from("room_members")
+    .select("room_id,joined_at")
+    .eq("user_id", sessionState.user.id)
+    .order("joined_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error || !membership) return;
+
+  const { data: room, error: roomError } = await db.from("rooms")
+    .select("id,invite_code,status")
+    .eq("id", membership.room_id)
+    .maybeSingle();
+  if (roomError || !room || !["waiting", "in_progress"].includes(room.status)) return;
+  await openRoom(room.id, room.invite_code);
+}
+
 async function refreshLobby() {
-  if (!gameSession.roomId || !gameSession.user) return;
-  const { data, error } = await db.rpc("get_room_lobby", {
-    p_room_id: gameSession.roomId
-  });
+  if (!sessionState.roomId || !sessionState.user || !sessionState.roomMeta) return;
+  const { data, error } = await db.rpc("get_room_lobby", { p_room_id: sessionState.roomId });
   if (error) {
     showNotice(errorMessage(error), "error");
     return;
   }
 
-  gameSession.members = Array.isArray(data) ? data : [];
-  const capacity = gameSession.roomMeta ? gameSession.roomMeta.max_players : 5;
-  ui.lobbyCount.textContent = gameSession.members.length + " / " + capacity + " pemain";
+  sessionState.members = Array.isArray(data) ? data : [];
+  const capacity = Number(sessionState.roomMeta.max_players || 5);
+  ui.lobbyCount.textContent = sessionState.members.length + " / " + capacity + " pemain";
   ui.roster.replaceChildren();
 
-  const current = gameSession.members.find((member) => member.user_id === gameSession.user.id);
-  ui.readyButton.disabled = !current;
-  ui.readyButton.textContent = current && current.is_ready ? "Batalkan kesiapan" : "Saya siap ✓";
+  const current = sessionState.members.find((member) => member.user_id === sessionState.user.id);
+  const isHost = sessionState.roomMeta.host_id === sessionState.user.id;
+  const isWaiting = sessionState.roomMeta.status === "waiting";
+  const allReady = sessionState.members.length >= 2 && sessionState.members.every((member) => member.is_ready);
+
+  ui.readyButton.hidden = !isWaiting;
+  ui.readyButton.disabled = !current || !isWaiting;
+  ui.readyButton.textContent = current && current.is_ready ? "Batalkan siap" : "Saya siap";
   ui.readyButton.classList.toggle("is-ready", Boolean(current && current.is_ready));
 
-  for (let seat = 1; seat <= Number(capacity); seat += 1) {
-    const member = gameSession.members.find((entry) => Number(entry.seat_no) === seat);
+  ui.startButton.hidden = !isWaiting || !isHost;
+  ui.startButton.disabled = !allReady;
+  ui.leaveButton.hidden = !isWaiting;
+
+  for (let seat = 1; seat <= capacity; seat += 1) {
+    const member = sessionState.members.find((entry) => Number(entry.seat_no) === seat);
     const row = document.createElement("div");
     row.className = member ? "roster-player" : "roster-player vacant";
 
-    const seatLabel = document.createElement("span");
-    seatLabel.className = "seat-number";
-    seatLabel.textContent = String(seat).padStart(2, "0");
+    const seatNo = document.createElement("span");
+    seatNo.className = "seat-number";
+    seatNo.textContent = String(seat).padStart(2, "0");
 
     const name = document.createElement("strong");
-    name.textContent = member ? member.display_name : "Menunggu pemain";
+    name.textContent = member ? member.display_name : "Kursi kosong";
 
-    const meta = document.createElement("span");
+    const status = document.createElement("span");
     if (!member) {
-      meta.className = "roster-state vacant-label";
-      meta.textContent = "KURSI KOSONG";
+      status.className = "roster-state vacant-label";
+      status.textContent = "BELUM TERISI";
     } else {
       const tags = [];
-      if (gameSession.roomMeta && member.user_id === gameSession.roomMeta.host_id) tags.push("HOST");
-      if (member.user_id === gameSession.user.id) tags.push("KAMU");
-      meta.className = "roster-state " + (member.is_ready ? "ready" : "pending");
-      meta.textContent = tags.concat(member.is_ready ? "SIAP" : "BELUM SIAP").join(" · ");
+      if (member.user_id === sessionState.roomMeta.host_id) tags.push("HOST");
+      if (member.user_id === sessionState.user.id) tags.push("KAMU");
+      tags.push(member.is_ready ? "SIAP" : "BELUM SIAP");
+      status.className = "roster-state " + (member.is_ready ? "ready" : "pending");
+      status.textContent = tags.join(" · ");
     }
-
-    row.append(seatLabel, name, meta);
+    row.append(seatNo, name, status);
     ui.roster.append(row);
   }
 
-  const allReady = gameSession.members.length >= 2 && gameSession.members.length === Number(capacity)
-    ? gameSession.members.every((member) => member.is_ready)
-    : false;
-  if (gameSession.members.length >= 2 && gameSession.members.every((member) => member.is_ready)) {
-    ui.lobbyHint.textContent = "Semua pemain yang hadir sudah siap. Menunggu fitur mulai permainan.";
+  if (!isWaiting) {
+    ui.lobbyHint.textContent = "Permainan sudah dimulai. Papan permainan ada di bawah.";
+  } else if (sessionState.members.length < 2) {
+    ui.lobbyHint.textContent = "Butuh minimal dua pemain untuk memulai.";
+  } else if (!allReady) {
+    ui.lobbyHint.textContent = "Semua pemain yang bergabung harus menandai siap sebelum host memulai.";
   } else {
-    ui.lobbyHint.textContent = "Bagikan kode undangan dan tandai kesiapan setelah semua pemain bergabung.";
+    ui.lobbyHint.textContent = isHost
+      ? "Semua pemain siap. Host dapat memulai permainan."
+      : "Semua pemain siap. Menunggu host memulai permainan.";
   }
-  if (allReady) ui.lobbyHint.textContent = "Semua kursi terisi dan pemain sudah siap. Game engine belum diaktifkan.";
+}
+
+async function syncRoomState() {
+  if (!sessionState.roomId) return;
+  const { data: room, error } = await db.from("rooms")
+    .select("id,invite_code,host_id,max_players,status")
+    .eq("id", sessionState.roomId)
+    .maybeSingle();
+  if (error || !room) return;
+  sessionState.roomMeta = room;
+  ui.lobbySubtitle.textContent = room.status === "in_progress"
+    ? "Permainan sedang berlangsung."
+    : "Bagikan kode ini agar teman bisa bergabung.";
+  await refreshLobby();
+  if (room.status === "in_progress") await loadActiveGame();
+  else ui.gameTable.hidden = true;
+  await refreshOpenRooms();
+}
+
+async function startGame() {
+  if (!sessionState.roomId || !sessionState.user) return;
+  setBusy(ui.startButton, true, "Memulai…");
+  clearNotice();
+  try {
+    const { data, error } = await db.rpc("start_game", { p_room_id: sessionState.roomId });
+    if (error) throw error;
+    await syncRoomState();
+    showNotice("Permainan dimulai. Papan awal dan modal pemain sudah disiapkan.", "success");
+  } catch (error) {
+    console.error("Start game failed:", error);
+    showNotice(errorMessage(error), "error");
+    await syncRoomState();
+  } finally {
+    setBusy(ui.startButton, false);
+  }
+}
+
+async function loadActiveGame() {
+  if (!sessionState.roomId || !sessionState.user) return;
+  const { data: game, error } = await db.from("games")
+    .select("id,room_id,current_round,phase,active_user_id,state,version")
+    .eq("room_id", sessionState.roomId)
+    .maybeSingle();
+  if (error) {
+    showNotice(errorMessage(error), "error");
+    return;
+  }
+  if (!game) return;
+
+  sessionState.game = game;
+  const { data: privateRow, error: privateError } = await db.from("game_private_states")
+    .select("private_state")
+    .eq("game_id", game.id)
+    .eq("user_id", sessionState.user.id)
+    .maybeSingle();
+  if (privateError) console.warn("Could not load private player state:", privateError);
+
+  renderGame(game, privateRow ? privateRow.private_state : null);
+}
+
+function renderGame(game, privateState) {
+  const state = game.state || {};
+  const market = state.market || {};
+  const players = Array.isArray(state.players) ? state.players : [];
+  const coins = Number(privateState && privateState.coins);
+  const shares = privateState && privateState.shares ? privateState.shares : {};
+  const totalShares = Object.values(shares).reduce((sum, value) => sum + Number(value || 0), 0);
+
+  ui.gameTable.hidden = false;
+  ui.gameRound.textContent = String(game.current_round || 1).padStart(2, "0");
+  ui.gamePhase.textContent = phaseName(game.phase);
+  ui.gamePhaseDescription.textContent = game.phase === "bidding"
+    ? "Pemain menentukan urutan bermain melalui penawaran tertutup."
+    : "Permainan sedang berlangsung.";
+  ui.gameSubtitle.textContent = "Meja " + sessionState.roomCode + " · " + players.length + " pemain";
+  ui.gamePlayerCount.textContent = players.length + " pemain";
+
+  ui.marketGrid.replaceChildren();
+  for (const sector of SECTORS) {
+    const cell = document.createElement("div");
+    cell.className = "market-cell";
+    const label = document.createElement("span");
+    label.textContent = sector.name;
+    const value = document.createElement("strong");
+    value.textContent = String(Number(market[sector.id] || 5));
+    cell.append(label, value);
+    ui.marketGrid.append(cell);
+  }
+
+  ui.gamePlayers.replaceChildren();
+  for (const player of players) {
+    const card = document.createElement("div");
+    card.className = "game-player";
+    const name = document.createElement("strong");
+    name.textContent = player.display_name + (player.user_id === sessionState.user.id ? " (Kamu)" : "");
+    const meta = document.createElement("span");
+    meta.textContent = "Kursi " + player.seat_no;
+    card.append(name, meta);
+    ui.gamePlayers.append(card);
+  }
+
+  ui.ownCoins.textContent = Number.isFinite(coins) ? String(coins) : "—";
+  ui.ownShares.textContent = String(totalShares);
+  ui.gameNote.textContent = "Sesi dan papan awal sudah dibuat. Tahap berikutnya adalah mengaktifkan bidding tertutup, pengambilan kartu aksi, fase jual, dan fase ekonomi. Saldo pemain lain tidak ditampilkan.";
+}
+
+function phaseName(phase) {
+  return ({ bidding: "Bidding", action: "Aksi", sell: "Jual", economy: "Ekonomi", finished: "Selesai" })[phase] || phase;
 }
 
 function subscribeToRoom() {
-  if (!gameSession.roomId || !db) return;
-  if (gameSession.channel) db.removeChannel(gameSession.channel);
+  if (!sessionState.roomId || !db) return;
+  if (sessionState.channel) db.removeChannel(sessionState.channel);
 
-  const roomId = gameSession.roomId;
-  gameSession.channel = db
+  const roomId = sessionState.roomId;
+  sessionState.channel = db
     .channel("stocklab-room-" + roomId)
     .on("postgres_changes", {
-      event: "*",
-      schema: "public",
-      table: "room_members",
-      filter: "room_id=eq." + roomId
+      event: "*", schema: "public", table: "room_members", filter: "room_id=eq." + roomId
     }, async () => {
-      await refreshLobby();
-      await refreshOpenRooms();
+      await syncRoomState();
     })
     .on("postgres_changes", {
-      event: "UPDATE",
-      schema: "public",
-      table: "rooms",
-      filter: "id=eq." + roomId
+      event: "UPDATE", schema: "public", table: "rooms", filter: "id=eq." + roomId
     }, async () => {
-      await refreshLobby();
-      await refreshOpenRooms();
+      await syncRoomState();
+    })
+    .on("postgres_changes", {
+      event: "*", schema: "public", table: "games", filter: "room_id=eq." + roomId
+    }, async () => {
+      await loadActiveGame();
     })
     .subscribe((status) => {
-      if (status === "SUBSCRIBED") setConnection("ROOM LIVE", true);
-      if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") setConnection("RECONNECTING");
+      if (status === "SUBSCRIBED") setConnection("Terhubung", true);
+      if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") setConnection("Menghubungkan ulang");
     });
 }
 
 async function toggleReady() {
-  if (!gameSession.roomId || !gameSession.user) return;
-  const current = gameSession.members.find((member) => member.user_id === gameSession.user.id);
+  if (!sessionState.roomId || !sessionState.user || sessionState.roomMeta.status !== "waiting") return;
+  const current = sessionState.members.find((member) => member.user_id === sessionState.user.id);
   if (!current) return;
 
   setBusy(ui.readyButton, true, "Menyimpan…");
   try {
     const { error } = await db.from("room_members")
       .update({ is_ready: !current.is_ready })
-      .eq("room_id", gameSession.roomId)
-      .eq("user_id", gameSession.user.id);
+      .eq("room_id", sessionState.roomId)
+      .eq("user_id", sessionState.user.id);
     if (error) throw error;
     await refreshLobby();
   } catch (error) {
@@ -464,47 +611,29 @@ async function toggleReady() {
 }
 
 async function leaveRoom() {
-  if (!gameSession.roomId) return;
+  if (!sessionState.roomId) return;
   setBusy(ui.leaveButton, true, "Keluar…");
   try {
-    const { error } = await db.rpc("leave_room", { p_room_id: gameSession.roomId });
+    const { error } = await db.rpc("leave_room", { p_room_id: sessionState.roomId });
     if (error) throw error;
-    if (gameSession.channel) {
-      await db.removeChannel(gameSession.channel);
-      gameSession.channel = null;
+    if (sessionState.channel) {
+      await db.removeChannel(sessionState.channel);
+      sessionState.channel = null;
     }
-    gameSession.roomId = null;
-    gameSession.roomCode = "";
-    gameSession.roomMeta = null;
-    gameSession.members = [];
+    sessionState.roomId = null;
+    sessionState.roomCode = "";
+    sessionState.roomMeta = null;
+    sessionState.members = [];
+    sessionState.game = null;
     ui.lobby.hidden = true;
-    setConnection("CONNECTED", true);
+    ui.gameTable.hidden = true;
+    setConnection("Terhubung", true);
     await refreshOpenRooms();
   } catch (error) {
-    showNotice(errorMessage(error), "warning");
+    showNotice(errorMessage(error), "error");
   } finally {
     setBusy(ui.leaveButton, false);
   }
-}
-
-async function restoreWaitingRoom() {
-  if (!gameSession.user) return;
-  const { data, error } = await db.from("room_members")
-    .select("room_id,joined_at")
-    .eq("user_id", gameSession.user.id)
-    .order("joined_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  if (error || !data) return;
-
-  const { data: room, error: roomError } = await db.from("rooms")
-    .select("id,invite_code,host_id,max_players,status")
-    .eq("id", data.room_id)
-    .maybeSingle();
-
-  if (roomError || !room || room.status !== "waiting") return;
-  await openRoom(room.id, room.invite_code);
 }
 
 ui.enterForm.addEventListener("submit", enterAsGuest);
@@ -515,183 +644,23 @@ ui.joinForm.addEventListener("submit", (event) => {
 });
 ui.refreshRooms.addEventListener("click", refreshOpenRooms);
 ui.readyButton.addEventListener("click", toggleReady);
+ui.startButton.addEventListener("click", startGame);
 ui.leaveButton.addEventListener("click", leaveRoom);
 ui.copyCode.addEventListener("click", async () => {
   try {
-    await navigator.clipboard.writeText(gameSession.roomCode);
-    ui.copyCode.textContent = "Tersalin ✓";
-    setTimeout(() => { ui.copyCode.textContent = "Salin kode"; }, 1600);
+    await navigator.clipboard.writeText(sessionState.roomCode);
+    ui.copyCode.textContent = "Tersalin";
+    window.setTimeout(() => { ui.copyCode.textContent = "Salin kode"; }, 1500);
   } catch (_) {
-    showNotice("Salin kode secara manual: " + gameSession.roomCode, "info");
+    showNotice("Salin kode secara manual: " + sessionState.roomCode, "info");
   }
 });
 
 const rememberedName = localStorage.getItem("stocklab_guest_username");
 if (rememberedName) ui.usernameInput.value = rememberedName;
 if (!db) {
-  showNotice("Supabase SDK gagal dimuat. Muat ulang halaman atau periksa koneksi.", "error");
-  setConnection("SDK ERROR");
+  showNotice("Library Supabase gagal dimuat. Periksa koneksi lalu muat ulang halaman.", "error");
+  setConnection("Gagal dimuat");
 } else {
   restoreExistingGuest();
 }
-
-// Asset catalog
-const gallery = document.querySelector("#gallery");
-const search = document.querySelector("#search");
-const filter = document.querySelector("#filter");
-const assetNotice = document.querySelector("#asset-notice");
-
-let assets = [];
-let imageUrls = new Map();
-let archiveStatus = "loading";
-let archiveError = "";
-let failedImages = 0;
-
-async function initializeCatalog() {
-  try {
-    const response = await fetch("assets/manifest.json");
-    if (!response.ok) throw new Error("Manifest katalog tidak dapat dimuat.");
-    const manifest = await response.json();
-    assets = Array.isArray(manifest.assets) ? manifest.assets : [];
-    document.querySelector("#total-assets").textContent = String(assets.length);
-
-    updateAssetNotice();
-    await loadOriginalAssetArchive();
-    renderCatalog();
-  } catch (error) {
-    archiveStatus = "failed";
-    archiveError = error instanceof Error ? error.message : "Terjadi kesalahan saat memuat katalog.";
-    renderCatalog();
-    updateAssetNotice();
-    console.error(error);
-  }
-}
-
-async function loadOriginalAssetArchive() {
-  if (!window.JSZip) {
-    throw new Error("Library pembaca arsip tidak tersedia. Periksa koneksi internet lalu muat ulang halaman.");
-  }
-
-  const response = await fetch("stocklab-assets-upload.zip", { cache: "force-cache" });
-  if (!response.ok) {
-    throw new Error("Arsip foto kartu belum tersedia di hosting (HTTP " + response.status + ").");
-  }
-
-  const archive = await window.JSZip.loadAsync(await response.arrayBuffer());
-  const files = await Promise.all(assets.map(async (asset) => {
-    const entry = archive.file(asset.path);
-    if (!entry) return null;
-    const blob = await entry.async("blob");
-    return [asset.path, URL.createObjectURL(blob)];
-  }));
-
-  imageUrls = new Map(files.filter(Boolean));
-  const missing = assets.filter((asset) => !imageUrls.has(asset.path));
-  if (missing.length) throw new Error("Arsip berhasil dibaca, tetapi " + missing.length + " gambar tidak ditemukan.");
-
-  archiveStatus = "ready";
-  archiveError = "";
-}
-
-function renderCatalog() {
-  const query = search.value.trim().toLowerCase();
-  const category = filter.value;
-  const list = assets.filter((asset) => {
-    const matchesCategory = category === "all" || asset.category === category;
-    const searchable = [asset.title, asset.group, asset.category, asset.path]
-      .filter(Boolean).join(" ").toLowerCase();
-    return matchesCategory && searchable.includes(query);
-  });
-
-  failedImages = 0;
-  gallery.replaceChildren();
-
-  if (!list.length) {
-    const empty = document.createElement("div");
-    empty.className = "empty";
-    empty.textContent = "Tidak ada aset yang cocok dengan pencarian.";
-    gallery.append(empty);
-    updateAssetNotice();
-    return;
-  }
-
-  for (const asset of list) {
-    const card = document.createElement("article");
-    card.className = "asset-card";
-
-    const art = document.createElement("div");
-    art.className = "asset-art";
-
-    const img = document.createElement("img");
-    img.src = imageUrls.get(asset.path) || asset.path;
-    img.alt = asset.title || "Aset StockLab";
-    img.loading = "lazy";
-    img.addEventListener("error", () => showImageFallback(art, asset, img), { once: true });
-    art.append(img);
-
-    const meta = document.createElement("div");
-    meta.className = "asset-meta";
-
-    const kind = document.createElement("span");
-    kind.className = "asset-kind";
-    kind.textContent = (asset.category || "Aset") + " · " + (asset.group || "Komponen");
-
-    const title = document.createElement("h3");
-    title.textContent = asset.title || "Aset StockLab";
-
-    const page = document.createElement("p");
-    page.textContent = "Halaman sumber " + (Number(asset.page) || "-");
-
-    const source = document.createElement("div");
-    source.className = "asset-page";
-    source.textContent = "SOURCE PDF · PAGE " + String(asset.page || "-").padStart(2, "0");
-
-    meta.append(kind, title, page, source);
-    card.append(art, meta);
-    gallery.append(card);
-  }
-  updateAssetNotice();
-}
-
-function showImageFallback(container, asset, img) {
-  if (img.parentElement !== container) return;
-  img.remove();
-  container.classList.add("missing");
-
-  const fallback = document.createElement("div");
-  fallback.className = "asset-placeholder";
-
-  const initial = document.createElement("b");
-  initial.textContent = (asset.title || "S").slice(0, 1).toUpperCase();
-
-  const title = document.createElement("span");
-  title.textContent = asset.title || "Aset StockLab";
-
-  fallback.append(initial, title);
-  container.append(fallback);
-  failedImages += 1;
-  updateAssetNotice();
-}
-
-function updateAssetNotice() {
-  if (archiveStatus === "loading") {
-    assetNotice.hidden = false;
-    assetNotice.textContent = "Memuat arsip foto asli StockLab. Pada kunjungan pertama, browser perlu mengunduh arsip sekitar 24,6 MB.";
-    return;
-  }
-  if (archiveStatus === "failed") {
-    assetNotice.hidden = false;
-    assetNotice.textContent = archiveError || "Foto asli belum dapat dimuat. Metadata katalog tetap tersedia.";
-    return;
-  }
-  if (failedImages > 0) {
-    assetNotice.hidden = false;
-    assetNotice.textContent = failedImages + " gambar tidak berhasil ditampilkan. Muat ulang halaman atau periksa koneksi.";
-    return;
-  }
-  assetNotice.hidden = true;
-}
-
-search.addEventListener("input", renderCatalog);
-filter.addEventListener("change", renderCatalog);
-initializeCatalog();
