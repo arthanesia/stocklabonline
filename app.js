@@ -15,11 +15,11 @@ const ui = {
   enterForm: byId("enter-form"), usernameInput: byId("username-input"), enterButton: byId("enter-button"),
   guestEntry: byId("guest-entry"), workspace: byId("room-workspace"), locked: byId("workspace-locked"),
   notice: byId("app-notice"), connection: byId("connection-indicator"),
+  profileSettingsForm: byId("profile-settings-form"), profileSettingsName: byId("profile-settings-name"),
   playerPill: byId("player-pill"), playerAvatar: byId("player-avatar"), playerName: byId("player-name-label"),
-  roomHub: byId("room-hub"), roomModeGrid: byId("room-mode-grid"),
-  showCreatePanel: byId("show-create-panel"), showJoinPanel: byId("show-join-panel"),
+  roomHub: byId("room-hub"), showCreatePanel: byId("show-create-panel"),
   createPanel: byId("create-room-panel"), backFromCreate: byId("back-from-create"),
-  joinPanel: byId("join-room-panel"), backFromJoin: byId("back-from-join"),
+  joinPanel: byId("join-room-panel"),
   createForm: byId("create-room-form"), createButton: byId("create-room-button"),
   maxPlayers: byId("max-players"), createPassword: byId("create-password"),
   createBiddingSeconds: byId("create-bidding-seconds"), createTurnSeconds: byId("create-turn-seconds"),
@@ -166,6 +166,7 @@ async function savePlayerProfile(username) {
   if (cleanName.length < 2 || cleanName.length > 24) throw new Error("Username harus terdiri dari 2 sampai 24 karakter.");
   sessionState.username = cleanName;
   localStorage.setItem("stocklab_guest_username", cleanName);
+  ui.profileSettingsName.value = cleanName;
   ui.playerName.textContent = cleanName;
   ui.playerAvatar.textContent = cleanName.slice(0, 1).toUpperCase();
   ui.playerPill.hidden = false;
@@ -173,29 +174,32 @@ async function savePlayerProfile(username) {
 }
 
 function showRoomHub() {
+  ui.welcome.hidden = false;
+  ui.multiplayer.hidden = false;
+  ui.workspace.hidden = false;
   ui.roomHub.hidden = false;
-  ui.roomModeGrid.hidden = false;
   ui.createPanel.hidden = true;
-  ui.joinPanel.hidden = true;
+  ui.joinPanel.hidden = false;
   ui.lobby.hidden = true;
   ui.gameTable.hidden = true;
 }
 function openCreatePanel() {
-  ui.roomModeGrid.hidden = true;
+  if (!sessionState.user) {
+    showNotice("Masukkan nama pemain terlebih dahulu untuk membuat ruangan.", "warning");
+    ui.usernameInput.focus();
+  }
   ui.createPanel.hidden = false;
-  ui.joinPanel.hidden = true;
   ui.createPassword.value = "";
+  ui.createPanel.scrollIntoView({ behavior: "smooth", block: "center" });
 }
 function openJoinPanel(code = "") {
-  ui.roomModeGrid.hidden = true;
-  ui.createPanel.hidden = true;
-  ui.joinPanel.hidden = false;
   ui.joinInput.value = String(code || "").toUpperCase();
   ui.joinPassword.value = "";
+  ui.joinPanel.hidden = false;
   if (code) ui.joinPassword.focus();
 }
 function showWorkspace() {
-  ui.welcome.hidden = true;
+  ui.welcome.hidden = false;
   ui.multiplayer.hidden = false;
   ui.guestEntry.hidden = true;
   ui.workspace.hidden = false;
@@ -257,6 +261,7 @@ async function restoreExistingGuest() {
     sessionState.user = data.session.user;
     sessionState.username = rememberedName;
     ui.usernameInput.value = rememberedName;
+    ui.profileSettingsName.value = rememberedName;
     ui.playerName.textContent = rememberedName;
     ui.playerAvatar.textContent = rememberedName.slice(0, 1).toUpperCase();
     ui.playerPill.hidden = false;
@@ -284,26 +289,43 @@ async function refreshOpenRooms() {
     ui.roomList.append(makeElement("div", "empty-state", "Belum ada meja terbuka. Buat meja baru atau masukkan kode undangan."));
     return;
   }
-  for (const room of rooms) {
+  const roomArt = ["bull", "market", "vault"];
+  for (let index = 0; index < rooms.length; index += 1) {
+    const room = rooms[index];
     const item = makeElement("article", "room-item");
+    const cover = makeElement("div", "room-card-cover room-cover-" + roomArt[index % roomArt.length]);
+    cover.append(makeElement("span", "room-card-state", room.has_password ? "PRIVATE ROOM" : "OPEN ROOM"));
+    cover.append(makeElement("strong", "room-card-cover-title", "STOCKLAB"));
     const details = makeElement("div", "room-item-details");
     details.append(makeElement("strong", "", "Meja " + room.host_name));
     details.append(makeElement("span", "", room.member_count + " / " + room.max_players + " pemain"));
-    details.append(makeElement("small", "room-password-state",
-      room.has_password ? "TERKUNCI · PASSWORD" : "TERBUKA · TANPA PASSWORD"));
-    const code = makeElement("code", "", room.invite_code);
-    const join = makeElement("button", "small-join", Number(room.member_count) >= Number(room.max_players) ? "Penuh" : "Gabung");
+    details.append(makeElement("small", "room-password-state", room.has_password ? "TERKUNCI · PASSWORD" : "TERBUKA · TANPA PASSWORD"));
+    const footer = makeElement("div", "room-card-footer");
+    footer.append(makeElement("code", "", room.invite_code));
+    const join = makeElement("button", "small-join", Number(room.member_count) >= Number(room.max_players) ? "Penuh" : "Masuk");
     join.type = "button";
     join.disabled = Number(room.member_count) >= Number(room.max_players);
-    join.addEventListener("click", () => openJoinPanel(room.invite_code));
-    item.append(details, code, join);
+    join.addEventListener("click", () => {
+      if (room.has_password) {
+        openJoinPanel(room.invite_code);
+        showNotice("Ruangan ini memakai password. Masukkan password pada panel Quick Join.", "info");
+      } else {
+        joinRoom(room.invite_code, "", join);
+      }
+    });
+    footer.append(join);
+    item.append(cover, details, footer);
     ui.roomList.append(item);
   }
 }
 
 async function createRoom(event) {
   event.preventDefault();
-  if (!sessionState.user) return;
+  if (!sessionState.user) {
+    showNotice("Masukkan nama pemain terlebih dahulu untuk membuat ruangan.", "warning");
+    ui.usernameInput.focus();
+    return;
+  }
   const password = String(ui.createPassword.value || "");
   setBusy(ui.createButton, true, "Membuat room…");
   clearNotice();
@@ -332,7 +354,11 @@ async function createRoom(event) {
 }
 
 async function joinRoom(code, password, button = ui.joinButton) {
-  if (!sessionState.user) return;
+  if (!sessionState.user) {
+    showNotice("Masukkan nama pemain terlebih dahulu, lalu gabung menggunakan kode ruangan.", "warning");
+    ui.usernameInput.focus();
+    return;
+  }
   const normalizedCode = String(code || "").trim().toUpperCase();
   if (!/^[A-Z0-9]{6}$/.test(normalizedCode)) {
     showNotice("Kode room harus terdiri dari 6 huruf atau angka.", "warning");
@@ -370,6 +396,7 @@ async function openRoom(roomId, inviteCode) {
   if (!room) throw new Error("Room tidak ditemukan atau akses sudah berakhir.");
   sessionState.roomMeta = room;
   sessionState.roomCode = room.invite_code;
+  ui.welcome.hidden = true;
   ui.roomHub.hidden = true;
   ui.lobby.hidden = room.status === "in_progress";
   ui.gameTable.hidden = room.status === "waiting";
@@ -1956,11 +1983,33 @@ async function leaveRoom(button = ui.leaveButton) {
   }
 }
 
+ui.profileSettingsForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  if (sessionState.roomId) {
+    showNotice("Keluar dari ruangan terlebih dahulu sebelum mengganti nama pemain.", "warning");
+    return;
+  }
+  const name = cleanPlayerName(ui.profileSettingsName.value);
+  if (name.length < 2 || name.length > 24) {
+    showNotice("Nama pemain harus terdiri dari 2 sampai 24 karakter.", "warning");
+    return;
+  }
+  sessionState.username = name;
+  localStorage.setItem("stocklab_guest_username", name);
+  ui.usernameInput.value = name;
+  ui.playerName.textContent = name;
+  ui.playerAvatar.textContent = name.slice(0, 1).toUpperCase();
+  ui.playerPill.hidden = false;
+  showNotice("Nama pemain berhasil diperbarui untuk ruangan berikutnya.", "success");
+});
+document.querySelectorAll(".side-link").forEach((link) => {
+  link.addEventListener("click", () => {
+    document.querySelectorAll(".side-link").forEach(item => item.classList.toggle("is-active", item === link));
+  });
+});
 ui.enterForm.addEventListener("submit",enterAsGuest);
 ui.showCreatePanel.addEventListener("click",openCreatePanel);
-ui.showJoinPanel.addEventListener("click",() => { openJoinPanel(); refreshOpenRooms(); });
 ui.backFromCreate.addEventListener("click",showRoomHub);
-ui.backFromJoin.addEventListener("click",showRoomHub);
 ui.createForm.addEventListener("submit",createRoom);
 ui.joinForm.addEventListener("submit",(event)=>{
   event.preventDefault();
@@ -1981,7 +2030,7 @@ ui.copyCode.addEventListener("click",async()=>{
 });
 
 const rememberedName=localStorage.getItem("stocklab_guest_username");
-if(rememberedName)ui.usernameInput.value=rememberedName;
+if(rememberedName) { ui.usernameInput.value=rememberedName; ui.profileSettingsName.value=rememberedName; }
 if(!db){
   showNotice("Library Supabase gagal dimuat. Periksa koneksi lalu muat ulang halaman.","error");
   setConnection("Gagal dimuat");
