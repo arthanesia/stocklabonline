@@ -2984,3 +2984,42 @@ body[data-interface-theme="forest"] #create-room-panel { background:linear-gradi
   .about-profile-card,.about-beta-card { padding:18px; }
   .dashboard-settings-section { margin-top:22px; }
 }
+
+/* Shared subpage shell: same navigation and dashboard frame as the home page. */
+.subpage-topbar { justify-content:space-between; }
+.subpage-topbar-label { color:#8f9bb5; font-size:9px; font-weight:800; letter-spacing:.16em; }
+.subpage-return-button { display:inline-flex; align-items:center; gap:8px; min-height:38px; padding:0 14px; border-radius:10px; color:#e8d3a5; text-decoration:none; white-space:nowrap; }
+.subpage-return-button span { font-size:16px; }
+.dashboard-subpage-main { min-width:0; }
+.dashboard-subpage-main>.guide-main { padding:10px clamp(22px,2.9vw,42px) 42px; }
+.settings-page-content { max-width:1100px; }
+.settings-page-hero { margin-bottom:20px; }
+.settings-page-card { max-width:850px; padding:25px; border:1px solid #303e5e; border-radius:18px; background:linear-gradient(145deg,#192441,#151f39); }
+.settings-card-heading h2 { margin:0 0 7px; color:#f0f2f8; font-size:20px; letter-spacing:-.03em; }
+.settings-card-heading>p:not(.guide-section-kicker) { margin:0 0 15px; color:#aebbd0; font-size:11px; line-height:1.7; }
+.settings-preferences-heading { margin:24px 0 13px; padding-top:18px; border-top:1px solid #34415e; }
+.settings-preferences-heading h2 { font-size:17px; }
+.settings-form { max-width:680px; gap:12px; }
+.settings-form-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+.settings-form-field { display:grid; gap:7px; min-width:0; }
+.settings-form-field label { margin:0 !important; color:#cbd4e5; font-size:10px; }
+.settings-form-field input,.settings-form-field select { width:100%; box-sizing:border-box; min-height:42px; padding:0 12px; border:1px solid #3c4969; border-radius:9px; background:#101a33; color:#f2f4f9; font-size:11px; }
+.settings-form-field input::placeholder { color:#7f8ba6; }
+.settings-motion-option { margin:7px 0 0 !important; }
+.settings-form-actions { display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin-top:3px; }
+.settings-form-actions .button { min-height:40px; padding:0 16px; }
+.settings-back-link { display:inline-flex; align-items:center; text-decoration:none; }
+.settings-feedback { min-height:18px; margin:0; color:#a9d3b4; font-size:10px; }
+.settings-feedback[data-state="error"] { color:#f0b3ba; }
+.dashboard-footer a { color:#d8b66f; text-decoration:none; }
+@media(max-width:940px) {
+  .dashboard-subpage-main>.guide-main { padding:7px 18px 36px; }
+  .subpage-topbar-label { display:none; }
+}
+@media(max-width:700px) {
+  .dashboard-subpage-main>.guide-main { padding:4px 12px 28px; }
+  .settings-page-card { padding:17px; }
+  .settings-form-grid { grid-template-columns:1fr; }
+  .subpage-return-button { min-height:34px; padding:0 10px; font-size:9px; }
+  .subpage-topbar { padding:0 12px !important; }
+}
