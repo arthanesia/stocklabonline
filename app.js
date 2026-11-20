@@ -728,9 +728,10 @@ function describeActivityEvent(event, players) {
     }
     if (p.action === "trading-fee") {
       const sale = Number(p.sell_quantity || 0) + " " + sectorName(p.sell_sector);
+      const basis = p.sector === "mutual_fund" ? "unit Reksa Dana" : "saham sektor";
       return actor + " membayar " + Number(p.fee_paid || 0) +
         " koin Trading Fee karena memiliki " + Number(p.fee_units || 0) +
-        " kartu aset yang dihitung, lalu menjual " + sale + " dan menerima " +
+        " " + basis + ", lalu menjual " + sale + " dan menerima " +
         Number(p.sale_proceeds || 0) + " koin.";
     }
     if (p.action === "acquisition") {
