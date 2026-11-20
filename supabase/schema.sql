@@ -73,13 +73,13 @@ language sql
 stable
 security definer
 set search_path = pg_catalog, public, auth
-as $
+as $$
   select auth.uid() is not null
     and exists (
       select 1 from public.room_members rm
       where rm.room_id = p_room_id and rm.user_id = auth.uid()
     );
-$;
+$$;
 revoke all on function private.is_room_member(uuid) from public, anon;
 grant execute on function private.is_room_member(uuid) to authenticated;
 
