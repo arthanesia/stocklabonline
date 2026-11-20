@@ -26,7 +26,9 @@ const ui = {
   gamePhase: byId("game-phase"), gamePhaseDescription: byId("game-phase-description"),
   marketGrid: byId("market-grid"), gamePlayers: byId("game-players"), gamePlayerCount: byId("game-player-count"),
   ownCoins: byId("own-coins"), ownShares: byId("own-shares"), ownDebt: byId("own-debt"),
-  debtButton: byId("debt-button"), privatePeek: byId("private-peek"),
+  debtButton: byId("debt-button"), debtForm: byId("debt-form"),
+  debtSector: byId("debt-sector"), debtSubmit: byId("debt-submit"),
+  privatePeek: byId("private-peek"), economyEffectSummary: byId("economy-effect-summary"),
   phaseControls: byId("phase-controls"), actionMarketSection: byId("action-market-section"),
   actionMarket: byId("action-market"), actionMarketCount: byId("action-market-count"),
   economySection: byId("economy-section"), economyReveal: byId("economy-reveal"),
@@ -519,8 +521,19 @@ function renderGame(view) {
   renderPortfolio(players);
   renderEconomyLast(state);
 
-  ui.debtButton.hidden = view.phase === "finished" || coins !== 0 || debt >= 1;
-  ui.debtButton.disabled = !own || coins !== 0 || debt >= 1;
+  const canFlipShare = SECTORS.some((sector) => Number(shares[sector.id] || 0) > 0);
+  const debtAvailable = view.phase !== "finished" && debt < 1 && canFlipShare;
+  ui.debtButton.hidden = !debtAvailable;
+  ui.debtButton.disabled = !debtAvailable;
+  if (!debtAvailable) ui.debtForm.hidden = true;
+  if (ui.economyEffectSummary) {
+    const messages = Array.isArray(state.last_economy_effects) ? state.last_economy_effects : [];
+    ui.economyEffectSummary.replaceChildren();
+    for (const effect of messages) {
+      if (effect.message) ui.economyEffectSummary.append(makeElement("p", "muted-text", effect.message));
+    }
+    ui.economyEffectSummary.hidden = messages.length === 0;
+  }
   ui.actionMarketSection.hidden = view.phase !== "action";
   ui.economySection.hidden = !(Array.isArray(state.last_economy) && state.last_economy.length);
   ui.finalSection.hidden = view.phase !== "finished";
@@ -621,14 +634,14 @@ function renderPhaseControls(view, own, coins) {
     const panel = makeElement("div", "phase-panel");
     panel.append(makeElement("h4", "", isActive ? "Giliran jual saham" : "Menunggu pemain menjual"));
     panel.append(makeElement("p", "muted-text", isActive
-      ? "Jual satu jenis saham dalam jumlah yang kamu tentukan, atau lewati giliran. Reksa Dana dijual pada akhir permainan."
+      ? "Jual satu jenis saham atau Reksa Dana dalam jumlah yang kamu tentukan, atau lewati giliran."
       : "Sedang menunggu " + displayNameFor(state.players,view.active_user_id) + "."));
     if (isActive) {
       const form = makeElement("form", "inline-game-form");
-      const owned = SECTORS.filter((sector) => Number(own && own.shares && own.shares[sector.id] || 0)>0);
+      const owned = SHARE_KEYS.filter((key) => Number(own && own.shares && own.shares[key] || 0)>0);
       const sectorSelect = makeSelect(
-        owned.map((sector) => ({value:sector.id,label:sector.name})),
-        owned.length ? owned[0].id : ""
+        owned.map((key) => ({value:key,label:sectorName(key)})),
+        owned.length ? owned[0] : ""
       );
       const quantitySelect = document.createElement("select");
       quantitySelect.className = "game-input";
@@ -643,7 +656,7 @@ function renderPhaseControls(view, own, coins) {
       sectorSelect.addEventListener("change",updateQuantities);
       form.append(makeField("Saham yang dijual",sectorSelect));
       form.append(makeField("Jumlah",quantitySelect));
-      const sellButton = makeElement("button","button primary","Jual saham");
+      const sellButton = makeElement("button","button primary","Jual");
       sellButton.type = "submit"; sellButton.disabled = owned.length===0;
       form.append(sellButton);
       form.addEventListener("submit",async(event)=>{
@@ -706,39 +719,48 @@ function renderActionMarket(view, own) {
   const isActive = view.active_user_id === sessionState.user.id;
   ui.actionMarket.replaceChildren();
   ui.actionMarketCount.textContent = cards.length + " kartu tersisa";
+
   for (const card of cards) {
-    const panel = makeElement("article","action-card");
-    const header = makeElement("div","action-card-header");
-    header.append(makeElement("span","action-sector",sectorName(card.sector)));
-    header.append(makeElement("strong","action-title",card.title));
-    panel.append(header);
-    panel.append(makeElement("p","action-body",card.body || ""));
-    if(card.action==="info-bursa") panel.append(makeElement("small","action-hint","Setelah aktif, giliran jualmu dipindahkan ke posisi terakhir."));
-    const feeCount = card.action==="trading-fee" ? Number(own && own.shares && own.shares[card.sector] || 0) : 0;
-    if (card.action==="trading-fee") panel.append(makeElement("small","action-hint","Biaya aktivasi saat ini: "+feeCount+" koin."));
-    const actions = makeElement("div","action-card-buttons");
-    const keepStock = makeElement("button","button secondary","Simpan saham");
-    keepStock.type="button"; keepStock.disabled=!isActive;
-    keepStock.addEventListener("click",async()=>{
-      setBusy(keepStock,true,"Menyimpan…");
-      await runGameAction(()=>db.rpc("perform_action_card",{
-        p_room_id:sessionState.roomId,p_card_id:card.id,p_mode:"keep",p_choice:{keep_as:"stock"}
-      }),"Kartu disimpan sebagai saham "+sectorName(card.sector)+".");
-      setBusy(keepStock,false);
+    const panel = makeElement("article", "action-card");
+    const header = makeElement("div", "action-card-header");
+    header.append(makeElement("span", "action-sector", sectorName(card.sector)));
+    header.append(makeElement("strong", "action-title", card.title));
+    panel.append(header, makeElement("p", "action-body", card.body || ""));
+
+    if (card.action === "info-bursa") {
+      panel.append(makeElement("small", "action-hint", "Pemain yang memakai Info Bursa mendapat giliran jual setelah pemain lain."));
+    }
+    if (card.action === "trading-fee") {
+      const fee = Number(own && own.shares && own.shares[card.sector] || 0);
+      panel.append(makeElement("small", "action-hint", "Biaya aktivasi saat ini: " + fee + " koin."));
+    }
+
+    const actions = makeElement("div", "action-card-buttons");
+    const keepLabel = card.sector === "mutual_fund"
+      ? "Simpan Reksa Dana"
+      : "Simpan saham";
+    const keepButton = makeElement("button", "button secondary", keepLabel);
+    keepButton.type = "button";
+    keepButton.disabled = !isActive;
+    keepButton.addEventListener("click", async () => {
+      setBusy(keepButton, true, "Menyimpan…");
+      const keepAs = card.sector === "mutual_fund" ? "mutual_fund" : "stock";
+      await runGameAction(() => db.rpc("perform_action_card", {
+        p_room_id: sessionState.roomId,
+        p_card_id: card.id,
+        p_mode: "keep",
+        p_choice: { keep_as: keepAs }
+      }), card.sector === "mutual_fund"
+        ? "Kartu disimpan sebagai Reksa Dana."
+        : "Kartu disimpan sebagai saham " + sectorName(card.sector) + ".");
+      setBusy(keepButton, false);
     });
-    const keepFund = makeElement("button","button secondary","Simpan Reksa Dana");
-    keepFund.type="button"; keepFund.disabled=!isActive;
-    keepFund.addEventListener("click",async()=>{
-      setBusy(keepFund,true,"Menyimpan…");
-      await runGameAction(()=>db.rpc("perform_action_card",{
-        p_room_id:sessionState.roomId,p_card_id:card.id,p_mode:"keep",p_choice:{keep_as:"mutual_fund"}
-      }),"Kartu disimpan sebagai Reksa Dana.");
-      setBusy(keepFund,false);
-    });
-    const activate = makeElement("button","button primary","Aktifkan");
-    activate.type="button"; activate.disabled=!isActive;
-    activate.addEventListener("click",()=>openActivationForm(card,panel,own));
-    actions.append(keepStock,keepFund,activate);
+
+    const activate = makeElement("button", "button primary", "Aktifkan");
+    activate.type = "button";
+    activate.disabled = !isActive;
+    activate.addEventListener("click", () => openActivationForm(card, panel, own));
+    actions.append(keepButton, activate);
     panel.append(actions);
     ui.actionMarket.append(panel);
   }
@@ -747,100 +769,191 @@ function renderActionMarket(view, own) {
 function openActivationForm(card, cardElement, own) {
   const old = cardElement.querySelector(".activation-form");
   if (old) old.remove();
-  const formWrap = makeElement("div","activation-form");
-  formWrap.append(makeElement("strong","","Pilihan aktivasi"));
-  const form = makeElement("form","choice-form");
-  let getChoice = () => ({});
 
-  if (card.action==="info-bursa") {
-    const a=makeSelect(SECTORS.map(s=>({value:s.id,label:s.name})));
-    const b=makeSelect(SECTORS.map(s=>({value:s.id,label:s.name})), "consumer");
-    form.append(makeField("Sektor pertama",a),makeField("Sektor kedua",b));
-    getChoice=()=>({sector_a:a.value,sector_b:b.value});
-  } else if (card.action==="rumor") {
-    const mode=makeSelect([{value:"single",label:"Satu sektor ±2"},{value:"double",label:"Dua sektor ±1"}]);
-    const choices=makeElement("div","choice-fields");
-    const fill=()=>{
+  const state = sessionState.gameView && sessionState.gameView.state || {};
+  const marketCards = Array.isArray(state.action_market) ? state.action_market : [];
+  const players = viewPlayers();
+  const formWrap = makeElement("div", "activation-form");
+  formWrap.append(makeElement("strong", "", "Pilihan aktivasi"));
+  const form = makeElement("form", "choice-form");
+  let getChoice = () => ({});
+  let isChoiceValid = true;
+
+  if (card.action === "info-bursa") {
+    const sectors = SECTORS.map((s) => ({ value: s.id, label: s.name }));
+    const a = makeSelect(sectors, "finance");
+    const b = makeSelect(sectors, "consumer");
+    const c = makeSelect(sectors, "agriculture");
+    form.append(
+      makeField("Sektor pertama", a),
+      makeField("Sektor kedua", b),
+      makeField("Sektor ketiga", c)
+    );
+    getChoice = () => ({ sector_a: a.value, sector_b: b.value, sector_c: c.value });
+  } else if (card.action === "rumor") {
+    const mode = makeSelect([
+      { value: "single", label: "Satu sektor ±2" },
+      { value: "double", label: "Dua sektor ±1" }
+    ]);
+    const choices = makeElement("div", "choice-fields");
+    const fill = () => {
       choices.replaceChildren();
-      if(mode.value==="single"){
-        const sector=makeSelect(SECTORS.map(s=>({value:s.id,label:s.name})));
-        const delta=makeSelect([{value:"2",label:"Naik 2"},{value:"-2",label:"Turun 2"}]);
-        choices.append(makeField("Sektor",sector),makeField("Perubahan",delta));
-        getChoice=()=>({mode:"single",sector:sector.value,delta:Number(delta.value)});
+      if (mode.value === "single") {
+        const sector = makeSelect(SECTORS.map((s) => ({ value: s.id, label: s.name })));
+        const delta = makeSelect([
+          { value: "2", label: "Naik 2" },
+          { value: "-2", label: "Turun 2" }
+        ]);
+        choices.append(makeField("Sektor", sector), makeField("Perubahan", delta));
+        getChoice = () => ({ mode: "single", sector: sector.value, delta: Number(delta.value) });
       } else {
-        const sectors=SECTORS.map(s=>({value:s.id,label:s.name}));
-        const a=makeSelect(sectors);
-        const b=makeSelect(sectors,"consumer");
-        const da=makeSelect([{value:"1",label:"Naik 1"},{value:"-1",label:"Turun 1"}]);
-        const dbb=makeSelect([{value:"1",label:"Naik 1"},{value:"-1",label:"Turun 1"}]);
-        choices.append(makeField("Sektor pertama",a),makeField("Perubahan pertama",da),
-          makeField("Sektor kedua",b),makeField("Perubahan kedua",dbb));
-        getChoice=()=>({mode:"double",sector_a:a.value,delta_a:Number(da.value),sector_b:b.value,delta_b:Number(dbb.value)});
+        const options = SECTORS.map((s) => ({ value: s.id, label: s.name }));
+        const a = makeSelect(options, "finance");
+        const b = makeSelect(options, "consumer");
+        const da = makeSelect([{ value: "1", label: "Naik 1" }, { value: "-1", label: "Turun 1" }]);
+        const dbb = makeSelect([{ value: "1", label: "Naik 1" }, { value: "-1", label: "Turun 1" }]);
+        choices.append(
+          makeField("Sektor pertama", a), makeField("Perubahan pertama", da),
+          makeField("Sektor kedua", b), makeField("Perubahan kedua", dbb)
+        );
+        getChoice = () => ({
+          mode: "double", sector_a: a.value, delta_a: Number(da.value),
+          sector_b: b.value, delta_b: Number(dbb.value)
+        });
       }
     };
-    form.append(makeField("Pola Rumor",mode),choices);
-    mode.addEventListener("change",fill);
+    form.append(makeField("Pola Rumor", mode), choices);
+    mode.addEventListener("change", fill);
     fill();
-  } else if (card.action==="trading-fee") {
-    const sellable=SECTORS.filter(s=>Number(own && own.shares && own.shares[s.id] || 0)>0);
-    const sector=makeSelect(sellable.map(s=>({value:s.id,label:s.name})));
-    const quantity=makeSelect([]);
-    const fill=()=>{
+  } else if (card.action === "quickbuy") {
+    const choices = marketCards.filter((item) => item.id !== card.id);
+    if (choices.length < 2) {
+      isChoiceValid = false;
+      form.append(makeElement("p", "muted-text", "Quickbuy memerlukan dua kartu lain yang masih tersedia. Tidak ada cukup kartu untuk dipilih."));
+    } else {
+      const options = choices.map((item) => ({
+        value: item.id,
+        label: sectorName(item.sector) + " · " + item.title
+      }));
+      const first = makeSelect(options, options[0].value);
+      const second = makeSelect(options, options[1].value);
+      const updateSecond = () => {
+        const selected = second.value;
+        second.replaceChildren();
+        for (const option of options.filter((item) => item.value !== first.value)) {
+          addOption(second, option.value, option.label);
+        }
+        if (options.some((item) => item.value === selected && item.value !== first.value)) {
+          second.value = selected;
+        }
+      };
+      first.addEventListener("change", updateSecond);
+      form.append(makeField("Kartu pertama", first), makeField("Kartu kedua", second));
+      getChoice = () => ({ card_ids: [first.value, second.value] });
+    }
+    form.append(makeElement("p", "muted-text", "Pilih dua kartu lain. Keduanya disimpan sebagai saham sesuai sektor kartunya; kartu Quickbuy dibuang."));
+  } else if (card.action === "trading-fee") {
+    const sellable = SHARE_KEYS.filter((key) => Number(own && own.shares && own.shares[key] || 0) > 0);
+    const sector = makeSelect(sellable.map((key) => ({ value: key, label: sectorName(key) })));
+    const quantity = makeSelect([]);
+    const fill = () => {
       quantity.replaceChildren();
-      const count=Number(own && own.shares && own.shares[sector.value] || 0);
-      for(let i=1;i<=count;i++) addOption(quantity,String(i),String(i)+" lembar");
+      const count = Number(own && own.shares && own.shares[sector.value] || 0);
+      for (let i = 1; i <= count; i += 1) addOption(quantity, String(i), i + " unit");
     };
-    sector.disabled=sellable.length===0;
-    quantity.disabled=sellable.length===0;
+    sector.disabled = sellable.length === 0;
+    quantity.disabled = sellable.length === 0;
     fill();
-    sector.addEventListener("change",fill);
-    form.append(makeField("Saham yang dijual",sector),makeField("Jumlah",quantity));
-    if (!sellable.length) formWrap.append(makeElement("p","muted-text","Kamu belum memiliki saham yang bisa dijual."));
-    getChoice=()=>({sell_sector:sector.value,quantity:Number(quantity.value)});
-  } else if (card.action==="acquisition") {
-    const myCount=Number(own && own.shares && own.shares[card.sector] || 0);
-    const players=viewPlayers();
-    const eligible=players.filter(p=>p.user_id!==sessionState.user.id &&
-      Number(p.shares && p.shares[card.sector] || 0)>0 &&
-      Number(p.shares && p.shares[card.sector] || 0)<=myCount);
-    const target=makeSelect(eligible.map(p=>({value:p.user_id,label:p.display_name+" ("+p.shares[card.sector]+" saham)"})));
-    target.disabled=eligible.length===0;
-    form.append(makeField("Target Akuisisi",target));
-    if (!eligible.length) formWrap.append(makeElement("p","muted-text","Belum ada pemain yang memenuhi syarat Akuisisi untuk sektor ini."));
-    getChoice=()=>({target_user_id:target.value});
-  } else if (card.action==="quickbuy") {
-    form.append(makeElement("p","muted-text","Kartu ini langsung menambah dua saham sektor "+sectorName(card.sector)+"."));
+    sector.addEventListener("change", fill);
+    form.append(makeField("Jenis yang dijual", sector), makeField("Jumlah", quantity));
+    if (!sellable.length) {
+      isChoiceValid = false;
+      formWrap.append(makeElement("p", "muted-text", "Kamu belum memiliki saham atau Reksa Dana untuk dijual."));
+    }
+    const fee = Number(own && own.shares && own.shares[card.sector] || 0);
+    formWrap.append(makeElement("p", "muted-text", "Biaya aktivasi: " + fee + " koin. Pastikan saldo mencukupi."));
+    getChoice = () => ({ sell_sector: sector.value, quantity: Number(quantity.value) });
+  } else if (card.action === "acquisition") {
+    const stockOptions = SECTORS.map((s) => ({ value: s.id, label: s.name }));
+    const sectorSelect = card.sector === "mutual_fund"
+      ? makeSelect(stockOptions, "finance")
+      : null;
+    const targetSelect = makeSelect([]);
+    const targetField = makeField("Pemain yang diakuisisi", targetSelect);
+    const fillTargets = () => {
+      const chosenSector = card.sector === "mutual_fund" ? sectorSelect.value : card.sector;
+      const ownCount = Number(own && own.shares && own.shares[chosenSector] || 0);
+      const eligible = players.filter((player) =>
+        player.user_id !== sessionState.user.id &&
+        Number(player.shares && player.shares[chosenSector] || 0) > 0 &&
+        Number(player.shares && player.shares[chosenSector] || 0) <= ownCount
+      );
+      targetSelect.replaceChildren();
+      for (const player of eligible) {
+        addOption(targetSelect, player.user_id,
+          player.display_name + " (" + player.shares[chosenSector] + " saham)");
+      }
+      targetSelect.disabled = eligible.length === 0;
+      isChoiceValid = eligible.length > 0;
+      if (!isChoiceValid) {
+        targetSelect.append(makeElement("option", "", "Tidak ada target yang memenuhi syarat"));
+      }
+    };
+    if (sectorSelect) {
+      form.append(makeField("Sektor saham yang diambil", sectorSelect));
+      sectorSelect.addEventListener("change", fillTargets);
+    }
+    form.append(targetField);
+    fillTargets();
+    getChoice = () => ({
+      ...(sectorSelect ? { target_sector: sectorSelect.value } : {}),
+      target_user_id: targetSelect.value
+    });
+    if (card.sector === "mutual_fund") {
+      formWrap.append(makeElement("p", "muted-text", "Akuisisi tidak dapat mengambil unit Reksa Dana; pilih salah satu sektor saham."));
+    }
   }
 
-  const buttons=makeElement("div","choice-buttons");
-  const cancel=makeElement("button","button text-button","Batal");
-  cancel.type="button"; cancel.addEventListener("click",()=>formWrap.remove());
-  const confirm=makeElement("button","button primary","Konfirmasi aktivasi");
-  confirm.type="submit";
-  if(card.action==="trading-fee" && !SECTORS.some(s=>Number(own && own.shares && own.shares[s.id] || 0)>0)) confirm.disabled=true;
-  if(card.action==="acquisition" && !viewPlayers().some(p=>p.user_id!==sessionState.user.id &&
-    Number(p.shares && p.shares[card.sector] || 0)>0 &&
-    Number(p.shares && p.shares[card.sector] || 0)<=Number(own && own.shares && own.shares[card.sector] || 0))) confirm.disabled=true;
-  buttons.append(cancel,confirm);
+  const buttons = makeElement("div", "choice-buttons");
+  const cancel = makeElement("button", "button text-button", "Batal");
+  cancel.type = "button";
+  cancel.addEventListener("click", () => formWrap.remove());
+  const confirm = makeElement("button", "button primary", "Konfirmasi aktivasi");
+  confirm.type = "submit";
+  confirm.disabled = !isChoiceValid;
+  buttons.append(cancel, confirm);
   form.append(buttons);
-  form.addEventListener("submit",async(event)=>{
+
+  form.addEventListener("submit", async (event) => {
     event.preventDefault();
-    const choice=getChoice();
-    if(card.action==="info-bursa" && choice.sector_a===choice.sector_b){
-      showNotice("Pilih dua sektor yang berbeda.","warning");return;
+    const choice = getChoice();
+    if (card.action === "info-bursa" &&
+      new Set([choice.sector_a, choice.sector_b, choice.sector_c]).size !== 3) {
+      showNotice("Pilih tiga sektor yang berbeda.", "warning");
+      return;
     }
-    if(card.action==="rumor" && choice.mode==="double" && choice.sector_a===choice.sector_b){
-      showNotice("Pilih dua sektor yang berbeda.","warning");return;
+    if (card.action === "rumor" && choice.mode === "double" && choice.sector_a === choice.sector_b) {
+      showNotice("Pilih dua sektor yang berbeda.", "warning");
+      return;
     }
-    setBusy(confirm,true,"Memproses…");
-    await runGameAction(()=>db.rpc("perform_action_card",{
-      p_room_id:sessionState.roomId,p_card_id:card.id,p_mode:"activate",p_choice:choice
-    }),"Efek kartu dijalankan.");
-    setBusy(confirm,false);
+    if (card.action === "quickbuy" &&
+      (!Array.isArray(choice.card_ids) || choice.card_ids.length !== 2 || choice.card_ids[0] === choice.card_ids[1])) {
+      showNotice("Pilih dua kartu yang berbeda.", "warning");
+      return;
+    }
+    setBusy(confirm, true, "Memproses…");
+    await runGameAction(() => db.rpc("perform_action_card", {
+      p_room_id: sessionState.roomId,
+      p_card_id: card.id,
+      p_mode: "activate",
+      p_choice: choice
+    }), card.action === "quickbuy" ? "Quickbuy mengambil dua kartu." : "Efek kartu dijalankan.");
+    setBusy(confirm, false);
   });
+
   formWrap.append(form);
   cardElement.append(formWrap);
-  formWrap.scrollIntoView({behavior:"smooth",block:"nearest"});
+  formWrap.scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
 
 function viewPlayers() {
@@ -926,10 +1039,24 @@ ui.refreshRooms.addEventListener("click",refreshOpenRooms);
 ui.readyButton.addEventListener("click",toggleReady);
 ui.startButton.addEventListener("click",startGame);
 ui.leaveButton.addEventListener("click",leaveRoom);
-ui.debtButton.addEventListener("click",async()=>{
-  setBusy(ui.debtButton,true,"Memproses…");
-  await runGameAction(()=>db.rpc("take_debt",{p_room_id:sessionState.roomId}),"Kartu utang digunakan: +10 koin, penalti akhir 13.");
-  setBusy(ui.debtButton,false);
+ui.debtButton.addEventListener("click", () => {
+  const own = currentPlayer(sessionState.gameView || {});
+  const shares = own && own.shares || {};
+  const available = SECTORS.filter((sector) => Number(shares[sector.id] || 0) > 0);
+  ui.debtSector.replaceChildren();
+  for (const sector of available) addOption(ui.debtSector, sector.id, sector.name);
+  ui.debtForm.hidden = available.length === 0 || !ui.debtForm.hidden;
+});
+ui.debtForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  if (!sessionState.roomId || !ui.debtSector.value) return;
+  setBusy(ui.debtSubmit, true, "Memproses…");
+  await runGameAction(() => db.rpc("take_debt", {
+    p_room_id: sessionState.roomId,
+    p_sector: ui.debtSector.value
+  }), "Satu saham " + sectorName(ui.debtSector.value) + " dibalik menjadi utang: +10 koin, penalti akhir 13.");
+  ui.debtForm.hidden = true;
+  setBusy(ui.debtSubmit, false);
 });
 ui.copyCode.addEventListener("click",async()=>{
   try{
