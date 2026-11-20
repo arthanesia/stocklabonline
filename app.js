@@ -361,7 +361,9 @@ async function refreshLobby() {
   ui.readyButton.classList.toggle("is-ready", Boolean(current && current.is_ready));
   ui.startButton.hidden = !isWaiting || !isHost;
   ui.startButton.disabled = !allReady;
-  ui.leaveButton.hidden = !isWaiting;
+  const isFinished = sessionState.roomMeta.status === "finished";
+  ui.leaveButton.hidden = !(isWaiting || isFinished);
+  ui.leaveButton.textContent = isFinished ? "Kembali ke lobi" : "Keluar";
 
   for (let seat = 1; seat <= capacity; seat += 1) {
     const member = sessionState.members.find((entry) => Number(entry.seat_no) === seat);
