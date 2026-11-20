@@ -7,6 +7,7 @@ Permainan StockLab multiplayer berbasis browser. Pemain masuk dengan username ta
 - Masuk tanpa email/password melalui Supabase Anonymous Auth.
 - Membuat meja, bergabung dengan kode undangan, melihat daftar pemain, dan status siap secara realtime.
 - Host memulai permainan setelah minimal dua pemain bergabung dan semua pemain yang ada menyatakan siap.
+- Setelah pertandingan selesai, pemain dapat kembali ke lobi tanpa menghapus catatan hasil game.
 - Enam ronde dengan fase bidding, aksi/draft, jual, dan ekonomi.
 - Bidding tertutup: bid pemain lain tidak dibuka sebelum seluruh pemain mengirim; penawaran terkunci setelah dikirim.
 - Urutan bermain ditentukan oleh bid tertinggi. Jika seri, urutan sebelumnya menjadi pemecah seri.
@@ -67,6 +68,7 @@ Perubahan saat pengembangan diterapkan langsung lewat SQL; migration history Sup
 - Pengujian penyimpanan Reksa Dana, penguncian bid, prioritas jual Info Bursa, dan kartu utang.
 - Pengujian Stock Crash dan Stock Split, termasuk reset harga ke 5 dan perubahan kepemilikan.
 - Simulasi meja lima pemain: lima bid, sepuluh pick kartu aksi, lima giliran jual, ekonomi, dan transisi ke ronde kedua.
+- Pengujian keluar dari room selesai: semua pemain dapat kembali ke lobi sementara catatan pertandingan tetap tersimpan.
 - Pengujian dilakukan dalam transaksi yang di-rollback; tidak mengubah room pemain yang sedang dipakai.
 - JavaScript lolos pemeriksaan sintaks dan semua referensi elemen HTML cocok. Uji browser nyata dua perangkat dan koneksi Realtime saat bermain masih perlu dilakukan.
 
