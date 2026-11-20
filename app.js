@@ -187,6 +187,7 @@ function openCreatePanel() {
   if (!sessionState.user) {
     showNotice("Masukkan nama pemain terlebih dahulu untuk membuat ruangan.", "warning");
     ui.usernameInput.focus();
+    return;
   }
   ui.createPanel.hidden = false;
   ui.createPassword.value = "";
