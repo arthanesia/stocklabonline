@@ -36,8 +36,7 @@ jobs:
           rm -rf _site
           mkdir -p _site/assets
           cp index.html app.js style.css _site/
-          cp assets/manifest.json _site/assets/manifest.json
-          unzip -q stocklab-assets-upload.zip -d _site
+          unzip -oq stocklab-assets-upload.zip -d _site
 
           image_count="$(find _site/assets/cards -type f -name '*.webp' | wc -l | tr -d ' ')"
           echo "Extracted card images: ${image_count}"
