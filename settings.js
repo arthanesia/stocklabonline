@@ -4,13 +4,6 @@
   const NAME_KEY = "stocklab_guest_username";
   const defaults = { theme: "midnight", textSize: "normal", roomDensity: "comfortable", reduceMotion: false };
   const $ = (id) => document.getElementById(id);
-  const form = $("profile-settings-form");
-  const nameInput = $("profile-settings-name");
-  const themeInput = $("setting-theme");
-  const textSizeInput = $("setting-text-size");
-  const densityInput = $("setting-room-density");
-  const reduceMotionInput = $("setting-reduce-motion");
-  const feedback = $("settings-feedback");
 
   function readPreferences() {
     try {
@@ -20,6 +13,33 @@
       return { ...defaults };
     }
   }
+  function applyPreferences(preferences) {
+    document.body.dataset.interfaceTheme = preferences.theme === "forest" ? "forest" : "midnight";
+    document.body.classList.toggle("ui-large-text", preferences.textSize === "large");
+    document.body.classList.toggle("ui-compact-cards", preferences.roomDensity === "compact");
+    document.body.classList.toggle("ui-reduced-motion", Boolean(preferences.reduceMotion));
+  }
+  function showFeedback(message, kind) {
+    const feedback = $("settings-feedback");
+    if (!feedback) return;
+    feedback.textContent = message;
+    feedback.dataset.state = kind || "success";
+  }
+
+  const savedPreferences = readPreferences();
+  applyPreferences(savedPreferences);
+
+  // Content pages only need to apply the shared preferences; the form exists on settings.html.
+  const form = $("profile-settings-form");
+  if (!form) return;
+
+  const nameInput = $("profile-settings-name");
+  const themeInput = $("setting-theme");
+  const textSizeInput = $("setting-text-size");
+  const densityInput = $("setting-room-density");
+  const reduceMotionInput = $("setting-reduce-motion");
+  if (!nameInput || !themeInput || !textSizeInput || !densityInput || !reduceMotionInput) return;
+
   function preferencesFromForm() {
     return {
       theme: themeInput.value === "forest" ? "forest" : "midnight",
@@ -28,24 +48,12 @@
       reduceMotion: Boolean(reduceMotionInput.checked)
     };
   }
-  function applyPreferences(preferences) {
-    document.body.dataset.interfaceTheme = preferences.theme;
-    document.body.classList.toggle("ui-large-text", preferences.textSize === "large");
-    document.body.classList.toggle("ui-compact-cards", preferences.roomDensity === "compact");
-    document.body.classList.toggle("ui-reduced-motion", Boolean(preferences.reduceMotion));
-  }
-  function showFeedback(message, kind) {
-    feedback.textContent = message;
-    feedback.dataset.state = kind || "success";
-  }
 
-  const savedPreferences = readPreferences();
   themeInput.value = savedPreferences.theme;
   textSizeInput.value = savedPreferences.textSize;
   densityInput.value = savedPreferences.roomDensity;
   reduceMotionInput.checked = savedPreferences.reduceMotion;
   nameInput.value = localStorage.getItem(NAME_KEY) || "";
-  applyPreferences(savedPreferences);
 
   [themeInput, textSizeInput, densityInput, reduceMotionInput].forEach((control) => {
     control.addEventListener("change", () => applyPreferences(preferencesFromForm()));
