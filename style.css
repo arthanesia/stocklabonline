@@ -2776,3 +2776,6 @@ body { margin:0; min-width:320px; min-height:100vh; color:#edf0f6; background:ra
  .profile-chevron { margin-left:0; }
 }
 @media(prefers-reduced-motion:reduce) { .side-link,.room-item { transition:none; } .room-item:hover { transform:none; } }
+
+.side-icon svg { width:23px; height:23px; display:block; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+.why-feature-icon svg { width:25px; height:25px; display:block; fill:none; stroke:currentColor; stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round; }
