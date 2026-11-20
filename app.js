@@ -24,7 +24,8 @@ const ui = {
   startButton: byId("start-game-button"), leaveButton: byId("leave-room-button"),
   gameTable: byId("game-table"), gameSubtitle: byId("game-subtitle"), gameRound: byId("game-round"),
   gamePhase: byId("game-phase"), gamePhaseDescription: byId("game-phase-description"),
-  marketGrid: byId("market-grid"), gamePlayers: byId("game-players"), gamePlayerCount: byId("game-player-count"),
+  marketGrid: byId("market-grid"), mutualFundPrice: byId("mutual-fund-price"),
+  gamePlayers: byId("game-players"), gamePlayerCount: byId("game-player-count"),
   ownCoins: byId("own-coins"), ownShares: byId("own-shares"), ownDebt: byId("own-debt"),
   debtButton: byId("debt-button"), debtForm: byId("debt-form"),
   debtSector: byId("debt-sector"), debtSubmit: byId("debt-submit"),
@@ -437,14 +438,33 @@ async function loadActiveGame() {
   renderGame(data);
 }
 
-function renderMarket(market) {
+function renderMarket(market, state) {
   ui.marketGrid.replaceChildren();
+  const remaining = economyCardsRemaining(state);
   for (const sector of SECTORS) {
-    const cell = makeElement("div", "market-cell");
-    cell.append(makeElement("span", "", sector.name));
-    cell.append(makeElement("strong", "", Number(market[sector.id] || 5)));
+    const cell = makeElement("article", "market-cell market-board-card");
+    const heading = makeElement("div", "market-card-heading");
+    heading.append(makeElement("strong", "", sector.name));
+    heading.append(makeElement("span", "deck-count", remaining > 0 ? "×" + remaining + " kartu" : "Tumpukan habis"));
+    const artWrap = makeElement("div", "market-board-art");
+    appendCardImage(
+      artWrap,
+      sectorBoardAsset(sector.id),
+      "Papan sektor " + sector.name + " dengan tumpukan kartu ekonomi",
+      "market-board-image"
+    );
+    const price = makeElement("div", "market-price-chip");
+    price.append(makeElement("span", "", "HARGA SAHAM"));
+    price.append(makeElement("strong", "", String(Number(market[sector.id] || 5))));
+    cell.append(heading, artWrap, price);
     ui.marketGrid.append(cell);
   }
+
+  const pair = Array.isArray(state && state.mutual_fund_pair) ? state.mutual_fund_pair : ["consumer", "agriculture"];
+  const price = Math.floor((
+    Number(market[pair[0]] || 0) + Number(market[pair[1]] || 0)
+  ) / 2);
+  if (ui.mutualFundPrice) ui.mutualFundPrice.textContent = String(price);
 }
 
 function renderPortfolio(players) {
@@ -454,7 +474,8 @@ function renderPortfolio(players) {
     mining: "Tambang", mutual_fund: "Reksa Dana"
   };
   for (const player of players) {
-    const row = document.createElement("tr");
+    const isTurn = player.user_id === (sessionState.gameView && sessionState.gameView.active_user_id);
+    const row = makeElement("tr", isTurn ? "portfolio-active-player" : "");
     const name = makeElement("td", "", player.display_name + (player.user_id === sessionState.user.id ? " (kamu)" : ""));
     const order = " · Urutan " + player.order_no;
     name.textContent += order;
@@ -472,10 +493,12 @@ function renderEconomyLast(state) {
     return;
   }
   for (const item of items) {
-    const card = makeElement("article", "economy-card");
-    const title = makeElement("strong", "", item.card && item.card.name || "Kartu ekonomi");
+    const card = makeElement("article", "economy-card is-revealed");
+    const economy = item.card || {};
+    appendCardImage(card, economyCardAsset(economy), economy.name || "Kartu ekonomi StockLab", "economy-card-image");
+    const title = makeElement("strong", "", economy.name || "Kartu ekonomi");
     const subtitle = makeElement("span", "", "Tumpukan " + sectorName(item.stack_sector));
-    const body = makeElement("p", "", item.card && item.card.body || "");
+    const body = makeElement("p", "", economy.body || "");
     card.append(title, subtitle, body);
     const effects = Array.isArray(item.effects) ? item.effects : [];
     for (const effect of effects) {
@@ -503,6 +526,80 @@ function sectorName(id) {
   return item ? item.name : String(id || "—");
 }
 
+const CARD_ASSET_ROOT = "./assets/cards";
+const SECTOR_ASSET_SLUGS = {
+  finance: "keuangan",
+  consumer: "consumer",
+  agriculture: "agrikultur",
+  mining: "tambang",
+  mutual_fund: "reksa-dana"
+};
+const ACTION_ASSET_SLUGS = {
+  "info-bursa": "info-bursa",
+  rumor: "rumor",
+  quickbuy: "quickbuy",
+  "trading-fee": "trading-fee",
+  acquisition: "akuisisi"
+};
+const ECONOMY_ASSET_SLUGS = {
+  issue: "penerbitan-saham-baru",
+  tax_amnesty: "tax-amnesty",
+  buyback: "buyback",
+  extra_fee: "extra-fee",
+  merger: "merger",
+  recession: "resesi",
+  restructure: "restrukturisasi-ekonomi",
+  stimulus: "stimulus-ekonomi",
+  road_tax: "pajak-jalan",
+  world_oil: "world-oil-regulation",
+  dividend: "dividen",
+  sideways: "sideways"
+};
+const MOVEMENT_ASSETS = { 1: "naik", 2: "melaju", 3: "boom", "-1": "anjlok", "-2": "terjun", "-3": "crash" };
+const ECONOMY_BOARD_ASSETS = {
+  finance: "back-ekonomi-keuangan",
+  consumer: "back-ekonomi-consumer",
+  agriculture: "back-ekonomi-agrikultur",
+  mining: "back-ekonomi-tambang"
+};
+
+function sectorBoardAsset(sectorId) {
+  const slug = ECONOMY_BOARD_ASSETS[sectorId];
+  return slug ? CARD_ASSET_ROOT + "/boards/" + slug + ".webp" : CARD_ASSET_ROOT + "/components/stocklab-back-dark.webp";
+}
+
+function actionCardAsset(card) {
+  const sector = SECTOR_ASSET_SLUGS[card && card.sector];
+  const action = ACTION_ASSET_SLUGS[card && card.action];
+  return sector && action ? CARD_ASSET_ROOT + "/action/" + sector + "-" + action + ".webp" : CARD_ASSET_ROOT + "/components/stocklab-back-dark.webp";
+}
+
+function economyCardAsset(card) {
+  if (!card) return CARD_ASSET_ROOT + "/components/stocklab-back-dark.webp";
+  const slug = card.effect === "movement"
+    ? MOVEMENT_ASSETS[String(Number(card.delta))]
+    : ECONOMY_ASSET_SLUGS[card.effect];
+  return slug ? CARD_ASSET_ROOT + "/economy/" + slug + ".webp" : CARD_ASSET_ROOT + "/components/stocklab-back-dark.webp";
+}
+
+function appendCardImage(parent, src, alt, className) {
+  const image = makeElement("img", className || "stocklab-card-image");
+  image.src = src;
+  image.alt = alt || "Kartu StockLab";
+  image.loading = "lazy";
+  image.decoding = "async";
+  image.addEventListener("error", () => {
+    image.replaceWith(makeElement("div", "card-image-fallback", alt || "Visual kartu belum tersedia"));
+  }, { once: true });
+  parent.append(image);
+  return image;
+}
+
+function economyCardsRemaining(state) {
+  if (!state || state.phase === "finished") return 0;
+  return Math.max(0, 7 - Number(state.round || 1));
+}
+
 function currentPlayer(view) {
   const players = view.state && Array.isArray(view.state.players) ? view.state.players : [];
   return players.find((player) => player.user_id === sessionState.user.id) || null;
@@ -528,7 +625,7 @@ function renderGame(view) {
   ui.ownShares.textContent = String(totalShares);
   ui.ownDebt.textContent = debt > 0 ? debt + " kartu utang · penalti akhir " + (debt * 13) : "Tanpa utang";
   ui.gamePlayerCount.textContent = players.length + " pemain";
-  renderMarket(market);
+  renderMarket(market, { ...state, phase: view.phase, round: view.current_round });
   renderPortfolio(players);
   renderEconomyLast(state);
 
@@ -731,25 +828,32 @@ function renderActionMarket(view, own) {
   ui.actionMarket.replaceChildren();
   ui.actionMarketCount.textContent = cards.length + " kartu tersisa";
 
+  if (!cards.length) {
+    ui.actionMarket.append(makeElement("div", "empty-state", "Pasar kartu aksi sedang kosong."));
+    return;
+  }
+
   for (const card of cards) {
-    const panel = makeElement("article", "action-card");
+    const panel = makeElement("article", "action-card" + (isActive ? " is-selectable" : " is-waiting"));
     const header = makeElement("div", "action-card-header");
     header.append(makeElement("span", "action-sector", sectorName(card.sector)));
     header.append(makeElement("strong", "action-title", card.title));
-    panel.append(header, makeElement("p", "action-body", card.body || ""));
+    panel.append(header);
+    appendCardImage(panel, actionCardAsset(card), card.title + " — " + sectorName(card.sector), "action-card-image");
 
     if (card.action === "info-bursa") {
-      panel.append(makeElement("small", "action-hint", "Pemain yang memakai Info Bursa mendapat giliran jual setelah pemain lain."));
-    }
-    if (card.action === "trading-fee") {
+      panel.append(makeElement("small", "action-hint", "Efek: intip kartu ekonomi dan dapatkan 2 koin."));
+    } else if (card.action === "quickbuy") {
+      panel.append(makeElement("small", "action-hint", "Efek: ambil dua kartu lain."));
+    } else if (card.action === "trading-fee") {
       const fee = Number(own && own.shares && own.shares[card.sector] || 0);
       panel.append(makeElement("small", "action-hint", "Biaya aktivasi saat ini: " + fee + " koin."));
+    } else {
+      panel.append(makeElement("small", "action-hint", "Pilih untuk menyimpan atau mengaktifkan."));
     }
 
     const actions = makeElement("div", "action-card-buttons");
-    const keepLabel = card.sector === "mutual_fund"
-      ? "Simpan Reksa Dana"
-      : "Simpan saham";
+    const keepLabel = card.sector === "mutual_fund" ? "Simpan" : "Simpan saham";
     const keepButton = makeElement("button", "button secondary", keepLabel);
     keepButton.type = "button";
     keepButton.disabled = !isActive;
