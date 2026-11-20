@@ -1192,3 +1192,1000 @@ main{max-width:1240px}
 @media (max-width: 680px) {
   .stock-unit-card + .stock-unit-card { margin-left: -7px; }
 }
+
+
+/* ─────────────────────────────────────────────────────────────
+   StockLab tabletop edition — printed board, real card artwork,
+   restrained colors, hard edges, readable game state.
+   ───────────────────────────────────────────────────────────── */
+:root {
+  --sl-ink: #202c23;
+  --sl-green: #183d2c;
+  --sl-felt: #1f5139;
+  --sl-felt-deep: #143826;
+  --sl-paper: #f1ead8;
+  --sl-paper-hi: #faf6ea;
+  --sl-paper-edge: #c7b995;
+  --sl-wood: #64452b;
+  --sl-wood-light: #9b7448;
+  --sl-gold: #d0b16b;
+  --sl-muted: #6e7568;
+  --sl-red: #a54336;
+  --sl-line: #c9bea1;
+}
+body {
+  background: #e4dfd1;
+  color: var(--sl-ink);
+  font-family: "Trebuchet MS", Arial, sans-serif;
+}
+.topbar {
+  background: #172c21;
+  border-bottom: 3px solid #80603c;
+  color: #f5efdd;
+}
+.brand-name { color: #f5efdd; }
+.brand-name span { color: #d1b16e; }
+main { max-width: 1460px; }
+.game-board {
+  padding: 16px;
+  border: 9px solid var(--sl-wood);
+  border-radius: 8px;
+  outline: 1px solid #c5a66b;
+  background: #6a4b2f;
+  box-shadow: 0 14px 35px #15271d33, inset 0 0 0 1px #c29b61;
+}
+.game-heading {
+  padding: 3px 3px 13px;
+  border-bottom: 1px solid #b28d5a;
+}
+.game-heading h3 {
+  color: #fff5dc;
+  font: 600 29px/1 Georgia,serif;
+  letter-spacing: .02em;
+}
+.game-heading .eyebrow { color: #d4b875; }
+.game-heading .section-subtitle { color: #e0d5bd; }
+.game-heading .tutorial-link { color: #ead39b; }
+.round-label {
+  border: 1px solid #c3a56c;
+  border-radius: 3px;
+  background: #172e21;
+}
+.round-label span { color: #cdb579; }
+.round-label strong { color: #fff1d0; }
+.leave-game-button { border-radius: 2px; }
+.phase-banner {
+  grid-template-columns: minmax(115px,.75fr) minmax(0,1.45fr) minmax(125px,.9fr) auto;
+  gap: 12px;
+  margin: 12px 0;
+  padding: 11px 14px;
+  border: 1px solid #9c8156;
+  border-radius: 3px;
+  background: #183529;
+  box-shadow: inset 0 1px #ffffff10;
+}
+.phase-banner strong {
+  color: #f5e7c4;
+  font: 600 19px/1.2 Georgia,serif;
+}
+.phase-banner p { color: #d0d9c8; font-size: 10px; }
+.phase-banner span { color: #c5b17d; }
+.phase-active-player {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  padding: 5px 9px;
+  border-left: 2px solid #b99b5f;
+  background: #203c2b;
+}
+.phase-active-player span {
+  color: #b4c49f;
+  font-size: 7px;
+  letter-spacing: .12em;
+}
+.phase-active-player strong {
+  overflow: hidden;
+  color: #f2d99b;
+  font: 600 12px/1.3 Arial,sans-serif;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.phase-clock {
+  border: 1px solid #73805e;
+  border-radius: 2px;
+  background: #10261a;
+}
+.phase-clock strong { color: #f4d88c; }
+.game-tabletop {
+  grid-template-rows: auto minmax(360px,auto) auto auto;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid #bda16c;
+  border-radius: 6px;
+  background: #1e5038;
+  box-shadow: inset 0 0 0 2px #143a29, 0 3px 10px #0a2017;
+}
+.table-felt-core {
+  padding: 13px;
+  border: 1px solid #c7bb9d;
+  border-radius: 3px;
+  background: #ede6d5;
+  color: #28382c;
+  box-shadow: 0 3px 8px #081e1440;
+}
+.table-felt-core .board-section-heading h4,
+.table-assets-board .board-section-heading h4 {
+  color: #293b2d;
+  font: 600 16px/1.1 Georgia,serif;
+}
+.table-felt-core .board-section-heading span,
+.table-assets-board .board-section-heading span {
+  color: #79745f;
+  font-size: 8px;
+}
+.market-unified-board {
+  padding: 5px;
+  border: 1px solid #bdb18e;
+  border-radius: 2px;
+  background: #d9d1bc;
+}
+.table-felt-core .market-unified-grid {
+  min-width: 700px;
+  grid-template-columns: minmax(0,1fr) minmax(0,1fr) minmax(130px,1.1fr) minmax(0,1fr) minmax(0,1fr);
+  gap: 5px;
+  padding: 2px;
+}
+.market-unit-card {
+  padding: 7px 6px 6px;
+  border: 1px solid #a99e80;
+  border-radius: 2px;
+  background: #f7f2e3;
+  box-shadow: 1px 2px 0 #b9ad8f;
+}
+.market-unit-heading {
+  min-height: 22px;
+  border-bottom: 1px solid #d6ccb3;
+}
+.market-unit-heading strong {
+  color: #27382a;
+  font-size: 9px;
+  letter-spacing: .02em;
+}
+.market-unit-heading small { color: #897d60; }
+.market-unit-art {
+  height: 94px;
+  margin: 4px 0;
+  border: 0;
+  background: #eae3d1;
+}
+.market-unit-art .market-board-image {
+  width: 100%;
+  height: 90px;
+  object-fit: contain;
+}
+.market-unit-price {
+  min-height: 35px;
+  border: 1px solid #c3b693;
+  border-radius: 1px;
+  background: #e6e0ce;
+}
+.market-unit-price strong {
+  color: #225d3e;
+  font: 700 23px/1 Georgia,serif;
+}
+.market-unit-caption {
+  color: #7b7157;
+  font-size: 7px;
+}
+.mutual-fund-unit-card {
+  border: 2px solid #8b7b58;
+  background: #e6e0c9;
+}
+.mutual-fund-unit-card .market-unit-heading strong {
+  color: #2c6550;
+  font-size: 9px;
+}
+.mf-center-art {
+  height: 136px;
+  border-top: 1px solid #c2b48b;
+  border-bottom: 1px solid #c2b48b;
+  background: #e3dabc;
+}
+.mutual-fund-center-image {
+  width: 136px;
+  height: 92px;
+}
+.mf-unit-value {
+  color: #236d58;
+  font: 700 26px/1 Georgia,serif;
+}
+.mf-unit-caption {
+  color: #6f6346;
+  font-size: 6px;
+}
+.game-player-seat {
+  padding: 8px;
+  border: 1px solid #aa9971;
+  border-radius: 3px;
+  background: #f1ead8;
+  box-shadow: 0 3px 7px #071c1266;
+}
+.game-player-seat.is-you { background: #fbf2d8; }
+.game-player-seat.is-active-turn {
+  border: 2px solid #dfbd72;
+  box-shadow: 0 0 0 2px #f0d79844, 0 3px 7px #071c1266;
+}
+.seat-avatar {
+  border: 1px solid #9b8a5c;
+  border-radius: 2px;
+  background: #234d36;
+  color: #f0d99b;
+  font: 700 14px Georgia,serif;
+}
+.seat-identity strong { color: #26392a; }
+.seat-tags { color: #8b672e; }
+
+/* Visible ownership cards use the original sector and Mutual Fund artwork. */
+.table-assets-board {
+  grid-column: 1/-1;
+  grid-row: 4;
+  margin: 0;
+  padding: 12px;
+  border: 1px solid #a88e5c;
+  border-radius: 3px;
+  background: #eee6d3;
+  color: #273b2d;
+}
+.table-assets-board .board-section-heading { margin-bottom: 10px; }
+.table-asset-players { gap: 7px; }
+.table-player-assets {
+  grid-template-columns: minmax(135px,.65fr) minmax(0,3fr);
+  gap: 13px;
+  padding: 9px 10px;
+  border: 1px solid #c8bea4;
+  border-left: 4px solid #718965;
+  border-radius: 2px;
+  background: #f8f3e6;
+}
+.table-player-assets.is-active-player {
+  border-left-color: #a87c35;
+  background: #f6edd4;
+}
+.table-player-assets-heading { gap: 7px; }
+.table-player-assets-heading strong {
+  color: #2b3c2e;
+  font: 700 11px Arial,sans-serif;
+}
+.table-player-order {
+  flex-basis: 22px;
+  height: 22px;
+  border: 1px solid #b5a77f;
+  border-radius: 2px;
+  background: #e9dfc5;
+  color: #715a31;
+  font: 700 10px Georgia,serif;
+}
+.table-player-turn {
+  padding: 3px 5px;
+  border: 1px solid #b49a5d;
+  border-radius: 1px;
+  background: #e4d4a8;
+  color: #60491f;
+  font-size: 7px;
+}
+.table-player-stacks {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 15px;
+}
+.ownership-stack {
+  min-width: 72px;
+  padding-right: 8px;
+  border-right: 1px solid #d9cfb7;
+}
+.ownership-stack-title {
+  margin-bottom: 5px;
+  color: #625b46;
+  font: 700 8px Arial,sans-serif;
+  letter-spacing: .04em;
+}
+.stock-unit-stack {
+  display: flex;
+  align-items: center;
+  min-height: 76px;
+  padding: 2px 2px 4px 4px;
+  overflow: visible;
+}
+.stock-unit-card {
+  position: relative;
+  display: block;
+  flex: 0 0 66px;
+  width: 66px;
+  height: 76px;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid #a6966b;
+  border-radius: 2px;
+  background: #e7e0cc;
+  box-shadow: 1px 2px 0 #b9ad8c;
+  transform: translateY(calc(var(--stack-index,0) * -1px));
+}
+.stock-unit-card + .stock-unit-card { margin-left: -22px; }
+.stock-unit-card-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  opacity: .94;
+}
+.stock-unit-card-label {
+  position: absolute;
+  left: 2px;
+  top: 2px;
+  z-index: 3;
+  min-width: 24px;
+  padding: 3px 2px;
+  border: 1px solid #bda66c;
+  background: #fff9e8;
+  color: #25382b;
+  font: 800 7px Arial,sans-serif;
+  text-align: center;
+}
+.ownership-mutual_fund .stock-unit-card {
+  border-color: #648c7d;
+  background: #dce8dc;
+}
+.ownership-mutual_fund .stock-unit-card-label {
+  border-color: #6b9b87;
+  color: #1f604e;
+}
+.stock-stack-extra {
+  z-index: 12;
+  display: grid;
+  place-items: center;
+  min-width: 27px;
+  height: 25px;
+  margin-left: 3px;
+  border: 1px solid #907c4f;
+  border-radius: 2px;
+  background: #e4d5b0;
+  color: #594724;
+  font: 800 9px Arial,sans-serif;
+}
+.no-table-assets {
+  margin: 8px 0;
+  color: #857a60;
+  font-size: 9px;
+}
+
+/* Live shared activity — the last move is treated like a physical card reveal. */
+.table-event-spotlight {
+  display: grid;
+  grid-template-columns: 74px minmax(0,1fr);
+  gap: 12px;
+  align-items: center;
+  margin: 0 0 12px;
+  padding: 9px 11px;
+  border: 1px solid #b49c69;
+  border-left: 4px solid #9a7947;
+  border-radius: 2px;
+  background: #f7f1e1;
+}
+.table-event-spotlight[hidden] { display: none !important; }
+.spotlight-visual {
+  width: 64px;
+  height: 80px;
+  padding: 3px;
+  border: 1px solid #b6a67c;
+  background: #e8dfc6;
+  box-shadow: 2px 3px 0 #d3c5a5;
+}
+.spotlight-card-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.spotlight-copy { min-width: 0; }
+.spotlight-eyebrow {
+  display: block;
+  margin-bottom: 3px;
+  color: #8a7447;
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: .14em;
+}
+.spotlight-heading {
+  display: block;
+  color: #27392a;
+  font: 600 15px/1.1 Georgia,serif;
+}
+.spotlight-message {
+  margin: 4px 0 2px;
+  color: #475344;
+  font-size: 10px;
+  line-height: 1.45;
+}
+.spotlight-time {
+  color: #86795f;
+  font: 700 8px ui-monospace,monospace;
+}
+.table-event-spotlight.is-new {
+  animation: event-card-deal .42s ease-out;
+}
+@keyframes event-card-deal {
+  from { opacity: .35; transform: translateY(7px) rotate(-.6deg); }
+  to { opacity: 1; transform: translateY(0) rotate(0); }
+}
+
+/* Action market: cards are the primary controls, not menu cards. */
+.table-felt-core .action-market {
+  display: flex;
+  gap: 13px;
+  align-items: flex-start;
+  padding: 8px 4px 14px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+}
+.table-felt-core .action-card {
+  position: relative;
+  flex: 0 0 164px;
+  min-width: 164px;
+  max-width: 164px;
+  padding: 7px;
+  border: 1px solid #a99c7d;
+  border-radius: 2px;
+  background: #faf6e9;
+  color: #26382b;
+  box-shadow: 2px 3px 0 #b8ac8c, 0 5px 9px #2b382728;
+  cursor: pointer;
+  scroll-snap-align: start;
+  transition: transform .14s ease, box-shadow .14s ease, border-color .14s ease;
+}
+.table-felt-core .action-card.is-selectable:hover,
+.table-felt-core .action-card.is-picked {
+  border-color: #a77f3d;
+  box-shadow: 0 0 0 2px #d8bd7a, 3px 7px 14px #23362935;
+  transform: translateY(-3px);
+}
+.table-felt-core .action-card.is-waiting { cursor: default; opacity: .82; }
+.table-felt-core .action-card-header {
+  display: grid;
+  gap: 3px;
+  min-height: 34px;
+  margin-bottom: 6px;
+}
+.table-felt-core .action-sector {
+  color: #8a7143;
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: .11em;
+}
+.table-felt-core .action-title {
+  color: #27382a;
+  font: 600 14px/1 Georgia,serif;
+}
+.table-felt-core .action-card-image {
+  display: block;
+  width: 100%;
+  height: 196px;
+  object-fit: contain;
+  border: 1px solid #d0c5a8;
+  background: #e9e2d0;
+}
+.table-felt-core .action-hint {
+  display: block;
+  min-height: 26px;
+  margin-top: 6px;
+  color: #71664d;
+  font-size: 8px;
+  line-height: 1.35;
+}
+.table-felt-core .action-card-buttons {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 5px;
+  margin-top: 7px;
+}
+.table-felt-core .action-card-buttons[hidden] { display: none !important; }
+.table-felt-core .action-card-buttons .button {
+  min-height: 32px;
+  border-radius: 2px;
+  font-size: 9px;
+}
+.table-felt-core .action-card-buttons .button.secondary {
+  border: 1px solid #b09a67;
+  background: #e9dfc7;
+  color: #34412f;
+}
+.table-felt-core .action-card-buttons .button.primary {
+  border: 1px solid #234d35;
+  background: #27583d;
+  color: #f8efd9;
+}
+.card-interaction {
+  margin-top: 8px;
+  padding: 10px;
+  border: 1px solid #b9aa86;
+  border-top: 3px solid #9a7b48;
+  border-radius: 2px;
+  background: #f7f1e3;
+  color: #28382b;
+  box-shadow: inset 0 1px #fff;
+}
+.card-interaction-heading {
+  display: grid;
+  gap: 3px;
+  margin-bottom: 9px;
+  padding-bottom: 7px;
+  border-bottom: 1px solid #d6c9a9;
+}
+.interaction-kicker {
+  color: #957b4b;
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: .13em;
+}
+.card-interaction-heading strong {
+  color: #273a2a;
+  font: 600 15px Georgia,serif;
+}
+.interaction-instruction {
+  margin: 0 0 9px;
+  color: #606d5c;
+  font-size: 9px;
+  line-height: 1.45;
+}
+.interaction-label {
+  display: block;
+  margin: 8px 0 5px;
+  color: #7d6945;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+}
+.sector-choice-grid,
+.asset-choice-grid {
+  display: grid;
+  grid-template-columns: repeat(4,minmax(0,1fr));
+  gap: 7px;
+}
+.sector-choice-tile,
+.asset-choice-card,
+.quickbuy-choice-card {
+  min-width: 0;
+  padding: 5px;
+  border: 1px solid #c4b795;
+  border-radius: 2px;
+  background: #fffaf0;
+  color: #2d4030;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color .12s ease, background .12s ease, transform .12s ease;
+}
+.sector-choice-tile:hover,
+.asset-choice-card:hover,
+.quickbuy-choice-card:hover {
+  border-color: #99743d;
+  background: #f5ecd5;
+  transform: translateY(-1px);
+}
+.sector-choice-tile.is-selected,
+.asset-choice-card.is-selected,
+.quickbuy-choice-card.is-selected {
+  border: 2px solid #8d6b34;
+  padding: 4px;
+  background: #f4e8c9;
+  box-shadow: 0 0 0 2px #d9c18c55;
+}
+.sector-choice-image,
+.asset-choice-image,
+.quickbuy-choice-image {
+  display: block;
+  width: 100%;
+  height: 76px;
+  object-fit: contain;
+  border: 1px solid #d7ccb0;
+  background: #e8e0cc;
+}
+.sector-choice-meta {
+  display: grid;
+  gap: 2px;
+  padding-top: 5px;
+}
+.sector-choice-meta strong,
+.asset-choice-card strong,
+.quickbuy-choice-card strong {
+  display: block;
+  overflow: hidden;
+  color: #2c3f30;
+  font-size: 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sector-choice-meta small,
+.asset-choice-card small,
+.quickbuy-choice-card small {
+  display: block;
+  color: #837351;
+  font-size: 7px;
+}
+.interaction-selection-count {
+  margin: 7px 0;
+  color: #786746;
+  font-size: 8px;
+  font-weight: 700;
+}
+.card-interaction-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 7px;
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid #d5c9ad;
+}
+.card-interaction-footer .button {
+  min-height: 34px;
+  border-radius: 2px;
+  font-size: 9px;
+}
+.rumor-mode-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.rumor-mode-tab {
+  padding: 7px 10px;
+  border: 1px solid #c1b28e;
+  border-radius: 2px;
+  background: #ebe3cf;
+  color: #4a5744;
+  font-size: 8px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.rumor-mode-tab.is-selected {
+  border-color: #345c40;
+  background: #315c40;
+  color: #fff4d8;
+}
+.interaction-current-price {
+  margin: 8px 0 5px;
+  color: #364a37;
+  font: 600 12px Georgia,serif;
+}
+.rumor-direction-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.rumor-direction {
+  min-width: 92px;
+  padding: 7px 10px;
+  border: 1px solid #678564;
+  border-radius: 2px;
+  background: #e1ebdc;
+  color: #28583a;
+  font-size: 9px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.rumor-direction.is-unavailable {
+  border: 1px dashed #b7a88a;
+  background: #e8e0d0;
+  color: #968d7d;
+  text-decoration: line-through;
+  cursor: not-allowed;
+}
+.rumor-result-preview,
+.rumor-selection-list {
+  margin: 8px 0;
+  padding: 7px 9px;
+  border-left: 3px solid #8c784d;
+  background: #eee6d2;
+  color: #46523f;
+  font-size: 9px;
+  font-weight: 700;
+}
+.rumor-selection-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.rumor-selection-list span {
+  padding: 3px 6px;
+  border: 1px solid #cabea2;
+  background: #faf5e9;
+}
+.quickbuy-choice-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill,minmax(84px,1fr));
+  gap: 6px;
+  max-height: 260px;
+  overflow: auto;
+  padding: 2px;
+}
+.quickbuy-choice-image { height: 94px; }
+.trading-fee-equation {
+  margin-bottom: 9px;
+  padding: 7px 9px;
+  border: 1px solid #c4b48e;
+  background: #eee4ca;
+  color: #394835;
+  font: 700 10px Georgia,serif;
+}
+.selected-asset-detail {
+  display: grid;
+  gap: 7px;
+  margin-top: 9px;
+  padding: 9px;
+  border: 1px solid #c9bea3;
+  background: #f1ead9;
+}
+.selected-asset-detail>strong {
+  color: #2d4030;
+  font: 600 14px Georgia,serif;
+}
+.quantity-stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.stepper-button {
+  width: 29px;
+  height: 29px;
+  border: 1px solid #9b895d;
+  border-radius: 2px;
+  background: #e6dcc3;
+  color: #344531;
+  font: 700 16px Arial,sans-serif;
+  cursor: pointer;
+}
+.stepper-button:disabled { opacity: .4; cursor: not-allowed; }
+.quantity-value {
+  min-width: 22px;
+  color: #263c2d;
+  font: 700 17px Georgia,serif;
+  text-align: center;
+}
+.sale-preview {
+  margin: 0;
+  color: #436047;
+  font-size: 9px;
+  font-weight: 700;
+}
+.interaction-warning {
+  display: block;
+  color: #a34b3c;
+  font-size: 8px;
+  font-weight: 700;
+}
+.acquisition-target-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill,minmax(100px,1fr));
+  gap: 6px;
+}
+.acquisition-target-card {
+  display: grid;
+  grid-template-columns: 29px minmax(0,1fr);
+  align-items: center;
+  gap: 5px;
+  padding: 7px;
+  border: 1px solid #c4b795;
+  border-radius: 2px;
+  background: #fff9ec;
+  color: #2d4030;
+  cursor: pointer;
+  text-align: left;
+}
+.acquisition-target-card.is-selected {
+  border: 2px solid #8d6b34;
+  padding: 6px;
+  background: #f4e8c9;
+}
+.target-avatar {
+  display: grid;
+  place-items: center;
+  grid-row: span 2;
+  width: 27px;
+  height: 27px;
+  border: 1px solid #9c895c;
+  background: #254d36;
+  color: #f1ddb0;
+  font: 700 12px Georgia,serif;
+}
+.acquisition-target-card strong {
+  overflow: hidden;
+  color: #2d4030;
+  font-size: 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.acquisition-target-card small { color: #877451; font-size: 7px; }
+
+/* Selling and the economy phase use the same physical-card grammar. */
+.sell-card-panel,
+.economy-card-panel { width: 100%; }
+.sell-card-panel .asset-choice-grid { grid-template-columns: repeat(5,minmax(0,1fr)); }
+.sell-card-panel .asset-choice-image { height: 84px; }
+.sell-card-panel .selected-asset-detail {
+  grid-template-columns: minmax(100px,1fr) auto minmax(120px,1.2fr) auto;
+  align-items: center;
+}
+.sell-card-panel .selected-asset-detail .sale-preview { margin: 0; }
+.sell-card-panel>.button,
+.sell-card-panel>.button.secondary { margin-top: 8px; border-radius: 2px; }
+.economy-back-stacks {
+  display: grid;
+  grid-template-columns: repeat(4,minmax(0,1fr));
+  gap: 7px;
+  margin: 10px 0;
+}
+.economy-back-stack {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  padding: 6px;
+  border: 1px solid #c7b997;
+  background: #f8f3e6;
+}
+.economy-back-image {
+  width: 100%;
+  height: 70px;
+  object-fit: contain;
+}
+.economy-back-stack strong { color: #354733; font-size: 8px; }
+.economy-back-stack small { color: #857655; font-size: 7px; }
+.economy-open-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: min(300px,100%);
+  min-height: 76px;
+  padding: 8px;
+  border: 1px solid #a58a58;
+  border-radius: 2px;
+  background: #e6dcc2;
+  box-shadow: 2px 3px 0 #bdad86;
+  cursor: pointer;
+}
+.economy-open-card-image {
+  width: 46px;
+  height: 62px;
+  object-fit: contain;
+}
+.economy-open-caption {
+  color: #2d4b34;
+  font: 700 10px Georgia,serif;
+  letter-spacing: .07em;
+}
+.economy-open-card:hover { transform: translateY(-2px); box-shadow: 3px 5px 0 #bdad86; }
+
+/* Activity ledger: like a small printed match log, not a notification dashboard. */
+.activity-log-section {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid #c6b998;
+}
+.activity-feed {
+  max-height: 240px;
+  border: 1px solid #c9bea3;
+  border-radius: 2px;
+  background: #f7f2e5;
+}
+.activity-item {
+  grid-template-columns: 44px minmax(0,1fr);
+  padding: 7px 9px;
+  border-bottom: 1px solid #dfd5bf;
+}
+.activity-time { color: #8c7a53; font-size: 8px; }
+.activity-message { color: #394936; font-size: 9px; line-height: 1.45; }
+.activity-empty { color: #85795e; }
+
+/* Smaller controls, square corners and print-like hierarchy. */
+.game-board .button,
+.game-tabletop .button {
+  border-radius: 2px;
+}
+.game-tabletop .button.primary {
+  background: #285a3e;
+  border: 1px solid #1e4731;
+  color: #fff3d7;
+}
+.game-tabletop .button.secondary {
+  background: #e9dfc7;
+  border: 1px solid #b5a477;
+  color: #344531;
+}
+.game-tabletop .game-input {
+  border-radius: 2px;
+  border-color: #b9ae90;
+  background: #fffaf0;
+}
+.table-felt-core .phase-panel {
+  border: 1px solid #c7bb9c;
+  border-left: 3px solid #51734f;
+  border-radius: 2px;
+  background: #f8f3e6;
+  color: #293b2e;
+}
+.table-felt-core .phase-panel h4 {
+  color: #283b2d;
+  font: 600 16px Georgia,serif;
+}
+.table-felt-core .phase-panel p { color: #63705f; }
+.table-felt-core .phase-panel .turn-status { color: #3d6546; }
+.portfolio-details,
+.game-bottom-strip .wallet-section {
+  border: 1px solid #a88f5f;
+  border-radius: 2px;
+  background: #eee6d3;
+}
+.portfolio-details summary { color: #304433; }
+.game-board>.game-note { color: #e5d9bd; }
+
+@media (max-width: 900px) {
+  .phase-banner {
+    grid-template-columns: minmax(95px,.8fr) minmax(0,1.4fr) minmax(115px,1fr) auto;
+    gap: 7px;
+  }
+  .table-player-assets { grid-template-columns: minmax(110px,.7fr) minmax(0,3fr); }
+  .table-player-stacks { gap: 9px; }
+  .stock-unit-card { flex-basis: 59px; width:59px; height:70px; }
+  .stock-unit-card + .stock-unit-card { margin-left: -19px; }
+}
+@media (max-width: 680px) {
+  body { background: #e4dfd1; }
+  .game-board { padding: 8px; border-width: 6px; }
+  .phase-banner { grid-template-columns: minmax(0,1fr) auto; }
+  .phase-active-player { grid-column: 1/-1; grid-row: 3; }
+  .phase-banner>p { grid-column: 1/-1; grid-row: 2; }
+  .phase-clock { grid-column: 2; grid-row: 1; }
+  .game-tabletop {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto auto;
+    padding: 7px;
+    gap: 7px;
+  }
+  .game-player-seats {
+    display: flex;
+    grid-column: 1/-1;
+    grid-row: 1;
+    gap: 7px;
+    overflow-x: auto;
+    padding: 2px 1px 8px;
+  }
+  .game-player-seat { flex: 0 0 145px; }
+  .table-felt-core { grid-column: 1/-1; grid-row: 2; padding: 8px; }
+  .table-assets-board { grid-column: 1/-1; grid-row: 3; padding: 8px 6px; }
+  .table-player-assets { grid-template-columns: 1fr; gap: 7px; padding: 8px; }
+  .table-player-stacks {
+    display: grid;
+    grid-template-columns: repeat(2,minmax(0,1fr));
+    gap: 10px 5px;
+  }
+  .ownership-stack { border-right: 0; border-bottom: 1px solid #ddd2ba; padding-bottom: 6px; }
+  .stock-unit-card { flex-basis: 59px; width:59px; height:70px; }
+  .stock-unit-card + .stock-unit-card { margin-left: -20px; }
+  .sector-choice-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .asset-choice-grid { grid-template-columns: repeat(3,minmax(0,1fr)); }
+  .sell-card-panel .asset-choice-grid { grid-template-columns: repeat(3,minmax(0,1fr)); }
+  .sell-card-panel .selected-asset-detail { grid-template-columns: 1fr 1fr; }
+  .economy-back-stacks { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .table-event-spotlight { grid-template-columns: 56px minmax(0,1fr); gap: 8px; padding: 7px; }
+  .spotlight-visual { width: 52px; height: 68px; }
+  .spotlight-heading { font-size: 13px; }
+  .spotlight-message { font-size: 8px; }
+  .quickbuy-choice-grid { grid-template-columns: repeat(3,minmax(0,1fr)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .table-event-spotlight.is-new { animation: none; }
+  .table-felt-core .action-card,
+  .economy-open-card,
+  .sector-choice-tile,
+  .asset-choice-card { transition: none; }
+}
