@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#101831">
   <meta name="description" content="StockLab Online — buat meja dan main bersama teman.">
   <title>StockLab Online</title>
-  <link rel="stylesheet" href="style.css?v=20261121-dashboard-ui-v9">
+  <link rel="stylesheet" href="style.css?v=20261121-beta-guide-settings-v10">
 </head>
 <body>
   <div class="dashboard-shell">
@@ -187,6 +187,10 @@
             <span id="lobby-count">0 / 5</span>
           </div>
           <div id="player-roster" class="player-roster" aria-live="polite"></div>
+          <section class="room-status-panel" id="lobby-room-status-panel">
+            <div class="room-status-heading"><strong>Aktivitas status room</strong><span>Pemain yang keluar akan tercatat di sini.</span></div>
+            <div id="lobby-room-status-feed" class="room-status-feed" aria-live="polite"><p>Belum ada pemain yang keluar.</p></div>
+          </section>
           <div class="lobby-footer">
             <p id="lobby-hint">Menunggu pemain bergabung.</p>
             <div class="lobby-actions">
@@ -210,6 +214,11 @@
               <button class="button text-button leave-game-button" id="leave-game-button" type="button">Keluar room</button>
             </div>
           </div>
+
+          <section class="room-status-panel game-room-status-panel" id="game-room-status-panel">
+            <div class="room-status-heading"><strong>Status pemain</strong><span>Riwayat keluar dari room.</span></div>
+            <div id="game-room-status-feed" class="room-status-feed" aria-live="polite"><p>Belum ada pemain yang keluar.</p></div>
+          </section>
 
           <div class="phase-banner">
             <div>
@@ -283,19 +292,43 @@
       </div>
     </section>
     <section class="dashboard-info-grid" aria-label="Informasi StockLab">
-      <article class="dashboard-info-card" id="rules-info"><p class="eyebrow">HOW TO PLAY</p><h2>Aturan singkat</h2>
-        <p>StockLab dimainkan dalam enam ronde dengan empat fase utama: Bidding, Aksi, Jual, dan Ekonomi. Kumpulkan aset, kelola saldo, dan atur urutan bermain melalui penawaran.</p>
-        <a href="https://www.youtube.com/watch?v=0bd47voPuUs" target="_blank" rel="noopener noreferrer">Lihat tutorial permainan <span>↗</span></a>
+      <article class="dashboard-info-card" id="rules-info">
+        <p class="eyebrow">HOW TO PLAY</p><h2>Aturan & Panduan</h2>
+        <p>Pelajari persiapan meja, empat fase permainan, efek kartu aksi, Quickbuy, Trading Fee, Akuisisi, dan perhitungan nilai akhir.</p>
+        <div class="info-card-actions">
+          <a href="./guide.html">Buka StockLab Guide <span>↗</span></a>
+          <a href="https://id.scribd.com/document/894413434/Booklet-National-Stocklab-Competition-2025-1" target="_blank" rel="noopener noreferrer">Booklet sumber 2025 <span>↗</span></a>
+        </div>
       </article>
-      <article class="dashboard-info-card" id="about-info"><p class="eyebrow">ABOUT THE GAME</p><h2>Tentang StockLab</h2>
-        <p>Permainan simulasi pasar modal yang mengajak pemain memahami pergerakan harga, strategi kepemilikan aset, dan keputusan investasi melalui permainan bersama.</p>
-        <span class="info-card-foot">STOCKLAB ONLINE · DIGITAL COMMUNITY EDITION</span>
+      <article class="dashboard-info-card" id="about-info">
+        <p class="eyebrow">ABOUT THIS PROJECT</p><h2>Tentang StockLab Online</h2>
+        <p>Dikembangkan oleh <strong>Dzaky Luqman Abdullah</strong> dari <strong>Kelompok Studi Pasar Modal Syariah (KSPMS)</strong>.</p>
+        <p class="beta-note"><strong>MASIH DALAM MASA BETA.</strong> Bug, error, atau mekanik/peraturan yang belum sepenuhnya sesuai masih mungkin terjadi. Masukan pemain sangat membantu penyempurnaan platform.</p>
+        <span class="info-card-foot">INDEPENDENT DIGITAL IMPLEMENTATION · BETA</span>
       </article>
-      <article class="dashboard-info-card profile-settings-card" id="profile-settings"><p class="eyebrow">YOUR PROFILE</p><h2>Pengaturan pemain</h2>
+      <article class="dashboard-info-card profile-settings-card" id="profile-settings">
+        <p class="eyebrow">PREFERENCES</p><h2>Pengaturan Website</h2>
         <form id="profile-settings-form" class="profile-settings-form">
-          <label for="profile-settings-name">Nama yang tampil di ruangan</label>
-          <input id="profile-settings-name" type="text" minlength="2" maxlength="24" placeholder="Nama pemain" required>
-          <button class="button secondary" type="submit">Simpan nama</button>
+          <label for="profile-settings-name">Nama pemain (untuk room berikutnya)</label>
+          <input id="profile-settings-name" type="text" minlength="2" maxlength="24" placeholder="Nama pemain">
+          <label for="setting-theme">Tema dashboard</label>
+          <select id="setting-theme">
+            <option value="midnight">Midnight Navy & Gold</option>
+            <option value="forest">Emerald Market</option>
+          </select>
+          <label for="setting-text-size">Ukuran teks</label>
+          <select id="setting-text-size">
+            <option value="normal">Normal</option>
+            <option value="large">Lebih besar</option>
+          </select>
+          <label for="setting-room-density">Kerapatan kartu room</label>
+          <select id="setting-room-density">
+            <option value="comfortable">Nyaman</option>
+            <option value="compact">Ringkas</option>
+          </select>
+          <label class="setting-check-row"><input id="setting-reduce-motion" type="checkbox"> Kurangi animasi dan gerakan</label>
+          <p class="settings-note">Preferensi hanya disimpan di browser/perangkat ini, tidak dikirim ke Supabase.</p>
+          <button class="button secondary" type="submit">Simpan pengaturan</button>
         </form>
       </article>
     </section>
@@ -306,6 +339,6 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.2/dist/umd/supabase.js"></script>
-  <script src="app.js?v=20261121-dashboard-ui-v9"></script>
+  <script src="app.js?v=20261121-beta-guide-settings-v10"></script>
 </body>
 </html>
