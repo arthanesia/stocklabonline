@@ -2779,3 +2779,72 @@ body { margin:0; min-width:320px; min-height:100vh; color:#edf0f6; background:ra
 
 .side-icon svg { width:23px; height:23px; display:block; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
 .why-feature-icon svg { width:25px; height:25px; display:block; fill:none; stroke:currentColor; stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round; }
+
+
+/* Room departure activity is visible to all remaining players in lobby and game. */
+.room-status-panel {
+  margin:14px 0 0; padding:13px 15px; border:1px solid #3a4968; border-radius:13px;
+  background:linear-gradient(135deg,rgba(25,37,65,.8),rgba(17,27,49,.88));
+}
+.room-status-heading { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:8px; }
+.room-status-heading strong { color:#e9edf8; font-size:11px; }
+.room-status-heading span { color:#8998b7; font-size:9px; }
+.room-status-feed { display:flex; flex-wrap:wrap; gap:8px; }
+.room-status-empty { margin:0; color:#8996b0; font-size:9px; }
+.room-status-event {
+  display:flex; align-items:center; gap:8px; min-width:170px; max-width:100%;
+  padding:7px 10px; border:1px solid #344362; border-radius:9px; background:#111b34;
+}
+.room-status-icon { color:#e4bd70; font-size:15px; font-weight:800; }
+.room-status-copy { display:grid; gap:2px; min-width:0; }
+.room-status-copy strong { color:#e5eaf5; font-size:9px; font-weight:650; }
+.room-status-copy small { color:#8794b1; font-size:8px; }
+.game-room-status-panel { margin:0 0 13px; }
+.settings-note { margin:0; color:#8f9bb5; font-size:9px; line-height:1.5; }
+.profile-settings-form select {
+  width:100%; min-height:39px; padding:0 12px; border:1px solid #3c4969;
+  border-radius:9px; background:#101a33; color:#f2f4f9; font-size:11px;
+}
+.profile-settings-form label { margin-top:5px; }
+.profile-settings-form .setting-check-row {
+  display:flex; align-items:center; gap:9px; margin-top:8px; color:#c6d0e2;
+}
+.setting-check-row input { width:16px; height:16px; min-height:16px; accent-color:#d8b363; }
+.profile-settings-form button { margin-top:5px; }
+.info-card-actions { display:flex; flex-wrap:wrap; gap:14px; }
+.beta-note { padding:10px 11px; border:1px solid #715d3b; border-radius:9px; background:#2a2630; color:#ead8ae !important; }
+.beta-note strong { color:#f0c86e; }
+body.ui-large-text .dashboard-info-card p:not(.eyebrow),
+body.ui-large-text .room-item-details span,
+body.ui-large-text .room-status-copy strong { font-size:12px; }
+body.ui-large-text .side-link { font-size:17px; }
+body.ui-compact-cards .room-card-grid { gap:7px; }
+body.ui-compact-cards .room-item { padding:6px; gap:6px; }
+body.ui-compact-cards .room-card-cover { height:76px; }
+body.ui-reduced-motion *,body.ui-reduced-motion *:before,body.ui-reduced-motion *:after {
+  animation:none !important; transition:none !important; scroll-behavior:auto !important;
+}
+body[data-interface-theme="forest"] {
+  background:radial-gradient(ellipse at 70% 8%,rgba(34,82,65,.28),transparent 38%),#0e1d1b;
+}
+body[data-interface-theme="forest"] .dashboard-sidebar {
+  background:linear-gradient(180deg,#10231f,#132a25 60%,#0f201d);
+  border-color:#315146;
+}
+body[data-interface-theme="forest"] .side-link.is-active {
+  background:linear-gradient(115deg,#c4a566,#e0bd73); border-color:#e0bd73;
+}
+body[data-interface-theme="forest"] .hero-main {
+  background:radial-gradient(ellipse at 70% 52%,rgba(54,124,94,.34),transparent 45%),linear-gradient(118deg,#112a26,#1c4037 60%,#172f2b);
+  border-color:#3a6657;
+}
+body[data-interface-theme="forest"] .quick-join-card,
+body[data-interface-theme="forest"] .why-stocklab-card { background:linear-gradient(145deg,#19362e,#122a25); border-color:#355c4d; }
+body[data-interface-theme="forest"] .room-catalog,
+body[data-interface-theme="forest"] .dashboard-info-card { background:rgba(17,42,35,.9); border-color:#315648; }
+body[data-interface-theme="forest"] .room-item { background:linear-gradient(145deg,#1b3a30,#142d27); border-color:#365d4b; }
+body[data-interface-theme="forest"] #create-room-panel { background:linear-gradient(145deg,#1b392f,#142b25); border-color:#3e6552; }
+@media(max-width:700px) {
+  .room-status-heading { align-items:flex-start; flex-direction:column; gap:3px; }
+  .room-status-event { flex:1 1 100%; }
+}
