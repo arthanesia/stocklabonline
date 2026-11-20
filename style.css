@@ -2189,3 +2189,54 @@ main { max-width: 1460px; }
   .sector-choice-tile,
   .asset-choice-card { transition: none; }
 }
+
+/* Debt card selection is printed as a set of share cards, not a select menu. */
+.debt-form {
+  display: grid;
+  gap: 8px;
+  margin-top: 9px;
+  padding: 9px;
+  border: 1px solid #c4b795;
+  background: #f7f0de;
+}
+.debt-card-instruction {
+  margin: 0;
+  color: #665b43;
+  font-size: 9px;
+}
+.debt-sector-options {
+  display: grid;
+  grid-template-columns: repeat(4,minmax(0,1fr));
+  gap: 7px;
+}
+.debt-share-card {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  padding: 5px;
+  border: 1px solid #c4b795;
+  border-radius: 2px;
+  background: #fff9e9;
+  color: #2d4030;
+  cursor: pointer;
+  text-align: left;
+}
+.debt-share-image {
+  display: block;
+  width: 100%;
+  height: 74px;
+  object-fit: contain;
+  border: 1px solid #d7ccb0;
+  background: #e8e0cc;
+}
+.debt-share-card strong { font-size: 8px; }
+.debt-share-card small { color: #847451; font-size: 7px; }
+.debt-share-card.is-selected {
+  border: 2px solid #8d6b34;
+  padding: 4px;
+  background: #f4e8c9;
+}
+.debt-form .button { width: fit-content; border-radius: 2px; }
+@media(max-width:680px) {
+  .debt-sector-options { grid-template-columns: repeat(2,minmax(0,1fr)); }
+}
