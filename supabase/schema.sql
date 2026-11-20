@@ -63,8 +63,35 @@ alter table public.room_members enable row level security;
 alter table public.games enable row level security;
 alter table public.game_events enable row level security;
 
-create policy "profiles_select_own" on public.profiles
-for select to authenticated using ((select auth.uid()) = id);
+create schema if not exists private;
+revoke all on schema private from public, anon;
+grant usage on schema private to authenticated;
+
+create or replace function private.is_room_member(p_room_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = pg_catalog, public, auth
+as $
+  select auth.uid() is not null
+    and exists (
+      select 1 from public.room_members rm
+      where rm.room_id = p_room_id and rm.user_id = auth.uid()
+    );
+$;
+revoke all on function private.is_room_member(uuid) from public, anon;
+grant execute on function private.is_room_member(uuid) to authenticated;
+
+create policy "profiles_select_own_or_room_member" on public.profiles
+for select to authenticated
+using (
+  id = (select auth.uid())
+  or exists (
+    select 1 from public.room_members rm
+    where rm.user_id = profiles.id and private.is_room_member(rm.room_id)
+  )
+);
 create policy "profiles_insert_own" on public.profiles
 for insert to authenticated with check ((select auth.uid()) = id);
 create policy "profiles_update_own" on public.profiles
@@ -90,8 +117,8 @@ create policy "rooms_delete_by_host_while_waiting" on public.rooms
 for delete to authenticated
 using (host_id = (select auth.uid()) and status = 'waiting');
 
-create policy "room_members_select_self" on public.room_members
-for select to authenticated using (user_id = (select auth.uid()));
+create policy "room_members_select_room_members" on public.room_members
+for select to authenticated using (private.is_room_member(room_id));
 create policy "room_members_insert_host_self" on public.room_members
 for insert to authenticated
 with check (
@@ -108,19 +135,13 @@ with check (user_id = (select auth.uid()));
 
 create policy "games_select_room_members" on public.games
 for select to authenticated
-using (
-  exists (
-    select 1 from public.room_members rm
-    where rm.room_id = games.room_id and rm.user_id = (select auth.uid())
-  )
-);
+using (private.is_room_member(room_id));
 create policy "game_events_select_room_members" on public.game_events
 for select to authenticated
 using (
   exists (
     select 1 from public.games g
-    join public.room_members rm on rm.room_id = g.room_id
-    where g.id = game_events.game_id and rm.user_id = (select auth.uid())
+    where g.id = game_events.game_id and private.is_room_member(g.room_id)
   )
 );
 
@@ -204,7 +225,7 @@ $$;
 create or replace function public.get_room_lobby(p_room_id uuid)
 returns jsonb
 language plpgsql
-security definer
+security invoker
 set search_path = pg_catalog, public, auth
 as $$
 declare
@@ -248,5 +269,6 @@ grant execute on function public.join_room_by_code(text) to authenticated;
 grant execute on function public.get_room_lobby(uuid) to authenticated;
 
 alter publication supabase_realtime add table public.rooms;
+alter publication supabase_realtime add table public.room_members;
 alter publication supabase_realtime add table public.games;
 alter publication supabase_realtime add table public.game_events;
