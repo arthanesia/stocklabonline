@@ -4704,3 +4704,478 @@ body.game-in-progress .private-peek-dialog-footer .button {
   body.game-in-progress .private-peek-result-copy p { font-size:7px; }
   body.game-in-progress .private-peek-dialog-footer .button { min-height:31px; }
 }
+
+
+/* STOCKLAB COMFORT PACK v24 — full-size horizontal Mutual Fund, staged economy reveal, clearer mobile assets. */
+
+/* Reksa Dana uses the same five-row card rhythm and the original landscape board artwork. */
+body.game-in-progress .mutual-fund-unit-card {
+  grid-template-rows:auto minmax(45px,1fr) 23px auto 44px;
+  min-height:0;
+}
+body.game-in-progress .mf-center-art {
+  position:relative;
+  display:grid;
+  place-items:center;
+  width:100%;
+  height:100%;
+  min-width:0;
+  min-height:0;
+  padding:1px;
+  overflow:hidden;
+  background:transparent;
+}
+body.game-in-progress .mutual-fund-center-image {
+  position:static;
+  display:block;
+  width:100%;
+  height:100%;
+  max-width:100%;
+  max-height:100%;
+  transform:none;
+  object-fit:contain;
+  object-position:center;
+}
+body.game-in-progress .mutual-fund-unit-card .mf-market-price {
+  min-height:23px;
+}
+body.game-in-progress .mutual-fund-unit-card .mf-unit-value {
+  color:#246e5b;
+  font:700 14px/1 Georgia,serif;
+  font-variant-numeric:tabular-nums;
+}
+body.game-in-progress .mutual-fund-unit-card .mf-formula-strip {
+  display:grid;
+  align-content:center;
+  justify-items:center;
+  gap:2px;
+  min-width:0;
+  min-height:44px;
+  padding:3px 4px;
+  border:1px solid #c4b590;
+  border-radius:3px;
+  background:#e4dbc2;
+  color:#655a41;
+  text-align:center;
+  line-height:1.15;
+  overflow:hidden;
+}
+body.game-in-progress .mutual-fund-unit-card .mf-formula-strip strong {
+  color:#8a7040;
+  font-size:5px;
+  font-weight:900;
+  letter-spacing:.12em;
+}
+body.game-in-progress .mutual-fund-unit-card .mf-formula-strip span {
+  color:#4b5d48;
+  font-size:6px;
+  font-weight:750;
+  overflow-wrap:anywhere;
+}
+body.game-in-progress .mutual-fund-unit-card .mf-formula-tag {
+  padding:2px 4px;
+  font-size:6px !important;
+}
+
+/* Economy reveal is a real board step, not a fleeting toast. */
+body.game-in-progress .economy-section:not([hidden]) {
+  display:flex !important;
+  order:2;
+  flex:0 0 118px;
+  flex-direction:column;
+  min-width:0;
+  min-height:0;
+  margin:0;
+  padding:5px 6px;
+  gap:4px;
+  overflow:hidden;
+  border:1px solid #9e8958;
+  border-radius:4px;
+  background:#11183c;
+  color:#f0e2bd;
+}
+body.game-in-progress .economy-section .board-section-heading {
+  flex:0 0 auto;
+  margin:0;
+}
+body.game-in-progress .economy-section .board-section-heading h4 {
+  color:#f0dfad;
+  font-size:9px;
+}
+body.game-in-progress .economy-section .board-section-heading span {
+  color:#c7b98e;
+  font-size:6px;
+}
+body.game-in-progress .economy-reveal {
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  flex:1 1 auto;
+  gap:5px;
+  min-width:0;
+  min-height:0;
+}
+body.game-in-progress .economy-card {
+  display:grid;
+  grid-template-columns:42px minmax(0,1fr);
+  grid-template-rows:auto auto minmax(0,1fr) auto;
+  align-content:start;
+  align-items:start;
+  gap:2px 6px;
+  min-width:0;
+  min-height:0;
+  padding:4px;
+  overflow:hidden;
+  border:1px solid #b49a5e;
+  border-radius:3px;
+  background:#f2ead8;
+  color:#273a2d;
+}
+body.game-in-progress .economy-card-image {
+  grid-column:1;
+  grid-row:1 / 5;
+  width:42px;
+  height:58px;
+  max-width:100%;
+  margin:0;
+  object-fit:contain;
+  background:#e9dfc9;
+  border:1px solid #cabc98;
+  border-radius:2px;
+}
+body.game-in-progress .economy-card>strong {
+  grid-column:2;
+  grid-row:1;
+  min-width:0;
+  color:#2b3e2e;
+  font:700 9px/1.15 Georgia,serif;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+body.game-in-progress .economy-card>span {
+  grid-column:2;
+  grid-row:2;
+  min-width:0;
+  margin:0;
+  color:#886c39;
+  font-size:6px;
+  font-weight:850;
+  text-transform:uppercase;
+}
+body.game-in-progress .economy-card>p {
+  grid-column:2;
+  grid-row:3;
+  min-width:0;
+  margin:1px 0 0;
+  color:#566354;
+  font-size:7px;
+  line-height:1.25;
+  display:-webkit-box;
+  -webkit-box-orient:vertical;
+  -webkit-line-clamp:3;
+  overflow:hidden;
+}
+body.game-in-progress .economy-card .economy-effect {
+  grid-column:2;
+  grid-row:4;
+  min-width:0;
+  margin:0;
+  color:#715b32;
+  font-size:6px;
+  line-height:1.2;
+  display:-webkit-box;
+  -webkit-box-orient:vertical;
+  -webkit-line-clamp:2;
+  overflow:hidden;
+}
+body.game-in-progress .economy-effect-summary {
+  flex:0 0 auto;
+  display:flex;
+  gap:8px;
+  margin:0;
+  padding:2px 5px;
+  border-left:2px solid #c4a05c;
+  background:#20284a;
+  overflow:hidden;
+}
+body.game-in-progress .economy-effect-summary p {
+  margin:0;
+  color:#e6d7ad;
+  font-size:6px;
+  line-height:1.2;
+}
+body.game-in-progress .activity-log-section { order:5; }
+body.game-in-progress .phase-controls { order:3; }
+body.game-in-progress .action-market-section { order:4; }
+
+/* First show the four revealed cards and one clear continue action. */
+body.game-in-progress.economy-reviewing .economy-section:not([hidden]) {
+  flex-basis:150px;
+}
+body.game-in-progress.economy-reviewing .phase-controls {
+  order:3;
+  flex:0 0 58px;
+  max-height:58px !important;
+  min-height:0;
+  padding:0;
+  overflow:hidden;
+}
+body.game-in-progress.economy-reviewing .action-market-section {
+  display:none !important;
+}
+body.game-in-progress .economy-review-step-panel {
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  align-items:center;
+  gap:2px 12px;
+  min-height:0;
+  margin:0;
+  padding:5px 8px;
+  border:1px solid #b9a16a;
+  border-left:3px solid #d2b36f;
+  border-radius:3px;
+  background:linear-gradient(110deg,#f7f0df,#e9dfc8);
+  color:#26392d;
+}
+body.game-in-progress .economy-review-kicker {
+  grid-column:1;
+  color:#94733d;
+  font-size:6px;
+  font-weight:900;
+  letter-spacing:.13em;
+}
+body.game-in-progress .economy-review-step-panel h4 {
+  grid-column:1;
+  margin:0;
+  color:#2d4835;
+  font:700 11px/1.1 Georgia,serif;
+}
+body.game-in-progress .economy-review-step-panel p {
+  grid-column:1;
+  margin:0;
+  color:#64705f;
+  font-size:7px;
+  line-height:1.2;
+}
+body.game-in-progress .economy-review-step-panel .economy-review-continue {
+  grid-column:2;
+  grid-row:1 / 4;
+  min-width:150px;
+  min-height:35px;
+  padding:0 12px;
+  border:1px solid #294d35;
+  border-radius:3px;
+  background:#285a3e;
+  color:#fff2d5;
+  font-size:8px;
+  font-weight:850;
+  white-space:nowrap;
+  box-shadow:0 2px 0 #173c29;
+}
+body.game-in-progress .economy-review-step-panel .economy-review-continue:active {
+  transform:translateY(1px);
+  box-shadow:0 1px 0 #173c29;
+}
+
+/* The debt stage keeps the reveal strip on the table until every available response is recorded. */
+body.game-in-progress.economy-debt-stage .economy-section:not([hidden]) {
+  flex-basis:104px;
+}
+body.game-in-progress.economy-debt-stage .phase-controls {
+  order:3;
+}
+body.game-in-progress.economy-debt-stage .debt-offer-panel {
+  width:100%;
+  gap:4px;
+  padding:6px 8px;
+  border-radius:3px;
+}
+body.game-in-progress.economy-debt-stage .debt-offer-panel>h4 {
+  margin:0;
+  font-size:11px;
+}
+body.game-in-progress.economy-debt-stage .debt-offer-panel>p {
+  margin:0;
+  font-size:7px;
+  line-height:1.2;
+}
+body.game-in-progress.economy-debt-stage .debt-offer-card {
+  max-width:100%;
+  gap:7px;
+  padding:4px 7px;
+}
+body.game-in-progress.economy-debt-stage .debt-offer-image {
+  width:32px;
+  max-height:44px;
+}
+body.game-in-progress.economy-debt-stage .debt-offer-terms strong { font-size:13px; }
+body.game-in-progress.economy-debt-stage .debt-offer-terms span { font-size:7px; }
+body.game-in-progress.economy-debt-stage .debt-offer-terms small { font-size:6px; }
+body.game-in-progress.economy-debt-stage .debt-offer-question { font-size:8px; }
+body.game-in-progress.economy-debt-stage .debt-offer-actions .button {
+  min-height:29px;
+  padding:0 10px;
+  font-size:7px;
+}
+body.game-in-progress.economy-debt-stage .debt-offer-responses {
+  grid-template-columns:repeat(auto-fit,minmax(110px,1fr));
+  gap:3px 7px;
+  max-width:100%;
+  padding-top:3px;
+}
+body.game-in-progress.economy-debt-stage .debt-offer-responses>strong { font-size:8px; }
+body.game-in-progress.economy-debt-stage .debt-offer-response { font-size:7px; }
+body.game-in-progress.economy-debt-stage .debt-offer-response small { font-size:6px; }
+
+/* Make each player's holdings readable at a glance on phones; the count stays inside the label. */
+@media (max-width:700px) {
+  body.game-in-progress .game-player-seats {
+    flex-basis:76px;
+  }
+  body.game-in-progress .game-player-seat {
+    flex-basis:154px;
+    width:154px;
+    height:68px;
+    min-height:68px;
+    padding:4px 5px;
+    grid-template-columns:21px minmax(0,1fr);
+    gap:4px;
+  }
+  body.game-in-progress .seat-identity { gap:2px; }
+  body.game-in-progress .seat-name-order { gap:4px; }
+  body.game-in-progress .seat-player-name { font-size:7.5px; }
+  body.game-in-progress .seat-order-card { width:19px; min-height:24px; }
+  body.game-in-progress .seat-tags { font-size:5.5px; line-height:1.1; }
+  body.game-in-progress .seat-holdings {
+    display:flex;
+    flex-flow:row wrap;
+    align-items:center;
+    gap:3px;
+    margin-top:2px;
+    min-width:0;
+  }
+  body.game-in-progress .seat-holding {
+    display:inline-flex;
+    flex:0 0 auto;
+    align-items:center;
+    min-width:0;
+  }
+  body.game-in-progress .seat-holding-art { display:none !important; }
+  body.game-in-progress .seat-holding-label {
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    min-height:14px;
+    padding:2px 4px;
+    border:1px solid #a99a78;
+    border-radius:3px;
+    background:#eee7d4;
+    color:#354331;
+    font-size:6.5px;
+    font-weight:900;
+    line-height:1;
+    letter-spacing:.01em;
+  }
+  body.game-in-progress .seat-holding-finance .seat-holding-label {
+    border-color:#8597b3;background:#e4eaf4;color:#29476f;
+  }
+  body.game-in-progress .seat-holding-consumer .seat-holding-label {
+    border-color:#c49b6a;background:#f4e6d4;color:#82532a;
+  }
+  body.game-in-progress .seat-holding-agriculture .seat-holding-label {
+    border-color:#8ca67b;background:#e4eddc;color:#3f633c;
+  }
+  body.game-in-progress .seat-holding-mining .seat-holding-label {
+    border-color:#9a8bb2;background:#e9e2f1;color:#594477;
+  }
+  body.game-in-progress .seat-holding-mutual_fund .seat-holding-label {
+    border-color:#6ea59a;background:#dff0e9;color:#276356;
+  }
+  body.game-in-progress .seat-holdings-empty { font-size:6.5px; }
+  body.game-in-progress .seat-info-bursa { font-size:5.5px; }
+
+  body.game-in-progress .economy-section:not([hidden]) {
+    flex-basis:91px;
+    padding:4px;
+    gap:3px;
+  }
+  body.game-in-progress .economy-section .board-section-heading h4 { font-size:7px; }
+  body.game-in-progress .economy-section .board-section-heading span { font-size:5px; }
+  body.game-in-progress .economy-reveal { gap:3px; }
+  body.game-in-progress .economy-card {
+    grid-template-columns:27px minmax(0,1fr);
+    gap:2px 4px;
+    padding:3px;
+  }
+  body.game-in-progress .economy-card-image {
+    width:27px;
+    height:37px;
+  }
+  body.game-in-progress .economy-card>strong { font-size:7px; }
+  body.game-in-progress .economy-card>span { font-size:5px; }
+  body.game-in-progress .economy-card>p {
+    font-size:5.5px;
+    line-height:1.12;
+    -webkit-line-clamp:2;
+  }
+  body.game-in-progress .economy-card .economy-effect {
+    font-size:5px;
+    line-height:1.1;
+    -webkit-line-clamp:1;
+  }
+  body.game-in-progress.economy-reviewing .economy-section:not([hidden]) {
+    flex-basis:105px;
+  }
+  body.game-in-progress.economy-reviewing .phase-controls {
+    flex-basis:58px;
+    max-height:58px !important;
+  }
+  body.game-in-progress .economy-review-step-panel {
+    gap:2px 6px;
+    padding:4px 6px;
+  }
+  body.game-in-progress .economy-review-kicker { font-size:5px; }
+  body.game-in-progress .economy-review-step-panel h4 { font-size:8px; }
+  body.game-in-progress .economy-review-step-panel p { font-size:5.5px; }
+  body.game-in-progress .economy-review-step-panel .economy-review-continue {
+    min-width:112px;
+    min-height:29px;
+    padding:0 6px;
+    font-size:6px;
+  }
+  body.game-in-progress.economy-debt-stage .economy-section:not([hidden]) {
+    flex-basis:82px;
+  }
+  body.game-in-progress.economy-debt-stage .debt-offer-panel { gap:3px; padding:4px 5px; }
+  body.game-in-progress.economy-debt-stage .debt-offer-panel>h4 { font-size:8px; }
+  body.game-in-progress.economy-debt-stage .debt-offer-panel>p { font-size:5.5px; }
+  body.game-in-progress.economy-debt-stage .debt-offer-image { width:25px; max-height:34px; }
+  body.game-in-progress.economy-debt-stage .debt-offer-terms strong { font-size:10px; }
+  body.game-in-progress.economy-debt-stage .debt-offer-terms span { font-size:5.5px; }
+  body.game-in-progress.economy-debt-stage .debt-offer-terms small { font-size:5px; }
+  body.game-in-progress.economy-debt-stage .debt-offer-actions .button {
+    min-height:25px;
+    padding:0 7px;
+    font-size:6px;
+  }
+  body.game-in-progress.economy-debt-stage .debt-offer-responses>strong { font-size:6px; }
+  body.game-in-progress.economy-debt-stage .debt-offer-response { font-size:5.5px; }
+  body.game-in-progress.economy-debt-stage .debt-offer-response small { font-size:5px; }
+  body.game-in-progress .mutual-fund-unit-card .mf-formula-strip {
+    min-height:25px;
+    padding:2px;
+  }
+  body.game-in-progress .mutual-fund-unit-card .mf-formula-strip strong { font-size:4px; }
+  body.game-in-progress .mutual-fund-unit-card .mf-formula-strip span { font-size:5px; }
+}
+
+@media (max-height:620px) and (min-width:701px) {
+  body.game-in-progress.economy-reviewing .economy-section:not([hidden]) { flex-basis:126px; }
+  body.game-in-progress.economy-debt-stage .economy-section:not([hidden]) { flex-basis:92px; }
+  body.game-in-progress .economy-card-image { width:36px; height:49px; }
+  body.game-in-progress .economy-review-step-panel .economy-review-continue { min-height:31px; }
+}
+
+@media (prefers-reduced-motion:reduce) {
+  body.game-in-progress .economy-card.is-revealed { animation:none !important; }
+}
