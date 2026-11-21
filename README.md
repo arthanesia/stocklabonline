@@ -59,16 +59,19 @@ Panduan tata cara permainan yang dijadikan referensi: [Tutorial Bermain StockLab
 ## Cara bermain
 
 1. Masuk dengan username. Pilih **Buat Room** atau **Join Room**.
-2. Untuk membuat room, tentukan kapasitas dan isi password bila ingin mengunci room. Kosongkan kolom password untuk membuat room terbuka; tidak ada batas jumlah karakter password.
-3. Untuk join, masukkan kode room atau pilih room pada daftar. Password hanya wajib untuk room yang dikunci.
-4. Semua pemain yang hadir menekan **Saya siap**. Host dapat memulai setelah sedikitnya tiga pemain siap.
-5. Setiap ronde dimulai dengan bidding tertutup. Masukkan tawaran minimal 1 koin dan tidak melebihi saldo. Bid yang sudah dikirim tidak dapat diubah.
-6. Setelah semua bid masuk, biaya bid dibayar dan urutan pemain ditentukan dari bid tertinggi. Jika seri, urutan sebelumnya menjadi pemecah seri. Bila waktu bidding habis, pemain yang belum mengirim bid dianggap mengirim 0 koin.
-7. Pemain bergiliran memilih kartu dari pasar aksi. Pilih **Simpan** untuk menambah saham/Reksa Dana, atau **Aktifkan** untuk menjalankan efek kartu. Setiap giliran memiliki timer; saat habis, kartu teratas otomatis disimpan.
-10. Setelah semua kartu aksi habis, tiap pemain mendapat satu giliran menjual satu jenis saham atau melewati giliran. Jika timer habis, sistem otomatis melewati giliran jual tersebut. Pemakai Info Bursa ditempatkan paling akhir di fase jual; sektor yang diintip dapat dilihat semua pemain, tetapi isi kartu tetap rahasia.
-11. Host membuka satu kartu ekonomi dari masing-masing tumpukan sektor. Kartu ekonomi terbaru diletakkan di bawah sektor terkait dan jumlah kartu tersisa ditampilkan. Efek kartu diterapkan. Untuk ronde yang masih berlanjut, pemain yang memenuhi syarat mendapat penawaran Kartu Utang sebelum bidding berikutnya.
-12. Penawaran utang dapat diterima (+10 koin, penalti akhir 13 koin) atau ditolak tanpa perubahan koin/aset. Jika pemain tidak menjawab sampai timer habis, penawaran dianggap ditolak. Tidak ada kewajiban membalik saham.
-13. Setelah ekonomi ronde keenam, sistem menghitung koin, nilai saham, Reksa Dana, penalti utang, dan pemenang. Jika skor seri, urutan bermain yang lebih tinggi menjadi pemecah seri.
+2. Untuk membuat room, tentukan kapasitas dan isi password bila ingin mengunci room. Kosongkan kolom password untuk membuat room terbuka.
+3. Semua pemain menekan **Saya siap**. Host dapat memulai setelah sedikitnya tiga pemain siap.
+4. Di awal permainan, setiap pemain memilih satu kartu urutan tertutup. Nomornya terbuka setelah dipilih dan tetap terlihat di dekat nama pemain.
+5. Setelah semua kartu urutan dipilih, pasar kartu aksi dibuka untuk semua pemain. Pemain bisa melihat pilihan kartu dan menyusun strategi, tetapi belum bisa mengambil kartu.
+6. Bidding dilakukan secara tertutup. Masukkan tawaran minimal 1 koin dan tidak melebihi saldo. Selama belum semua pemain mengirim, pemain lain hanya melihat jumlah bid yang sudah masuk, bukan nilainya.
+7. Setelah semua bid masuk, nilai setiap pemain diumumkan dan biaya bidding dibayar ke Bank. Bid tertinggi mendapat urutan pertama. Jika bid sama, kartu urutan yang sedang dipegang menjadi tie-break. Setelah hasil ditentukan, kartu urutan ditukar agar nomornya mencerminkan urutan bermain yang baru. Jika timer bidding habis, pemain yang belum mengirim bid otomatis diberi tawaran 1 koin.
+8. Pemain bergiliran memilih kartu aksi yang sudah dibuka. Pilih **Simpan** untuk menambah saham/Reksa Dana, atau **Aktifkan** untuk menjalankan efek kartu. Saat timer giliran habis, kartu teratas otomatis disimpan.
+9. Setelah semua kartu aksi habis, tiap pemain mendapat satu giliran menjual satu jenis saham atau melewati giliran. Jika timer habis, sistem otomatis melewati kesempatan jual. Pemakai Info Bursa ditempatkan paling akhir di fase jual.
+10. Host membuka satu kartu ekonomi dari masing-masing tumpukan sektor. Kartu ekonomi terakhir ditampilkan di bawah sektor terkait, dan jumlah kartu yang masih tersisa ditampilkan untuk setiap sektor. Saat Info Bursa digunakan, sektor yang diintip terlihat oleh pemain lain, tetapi isi kartu ekonomi tetap privat.
+11. Untuk ronde yang masih berlanjut, pemain yang memenuhi syarat mendapat penawaran Kartu Utang setelah pembukaan ekonomi. Terima untuk mendapat 10 koin dengan penalti 13 koin pada skor akhir, atau tolak tanpa perubahan saldo/aset. Jika tidak menjawab sampai timer habis, penawaran dianggap ditolak.
+12. Setelah ekonomi ronde keenam, sistem menghitung koin, nilai saham, Reksa Dana, penalti utang, dan pemenang.
+
+Permainan digital ini menggunakan perubahan alur yang diminta untuk menampilkan pasar kartu aksi sebelum bidding. Pada layar ponsel, meja permainan mengarahkan pemain ke mode landscape agar ruang bermain lebih lebar.
 
 ## Aksi dan mekanik khusus
 
