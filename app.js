@@ -58,7 +58,7 @@ const sessionState = {
   user: null, username: "", roomId: null, roomCode: "", roomMeta: null,
   members: [], gameView: null, channel: null, gameLoadSeq: 0,
   phaseTimerHandle: null, autoTimeoutPending: false,
-  selectedActionCardId: null, lastSpotlightEventId: null
+  selectedActionCardId: null, lastSpotlightEventId: null, lastPeekSignature: null
 };
 
 const SECTORS = [
@@ -95,9 +95,16 @@ function clearNotice() {
 }
 
 function errorMessage(error) {
-  return error && (error.message || error.error_description || error.details)
+  const message = error && (error.message || error.error_description || error.details)
     ? String(error.message || error.error_description || error.details)
     : "Terjadi kesalahan. Coba lagi.";
+  if (/It is not your turn/i.test(message)) {
+    return "Giliran sudah berpindah atau meja belum tersinkron. Tunggu sampai namamu disorot sebelum memilih kartu.";
+  }
+  if (/Akuisisi gagal/i.test(message)) {
+    return message.replace("Akuisisi gagal.", "Akuisisi belum bisa dilakukan.");
+  }
+  return message;
 }
 
 function setBusy(button, busy, busyText) {
@@ -795,7 +802,8 @@ function describeActivityEvent(event, players) {
           " dan membayar pajak " + Number(p.fee_paid || 0) + " koin atas " +
           Number(p.fee_units || 0) + " unit sektor tersebut.";
       }
-      return actor + " menyimpan 1 kartu saham " + sectorName(p.sector) + ".";
+      return actor + " menyimpan " + (p.card_title || "kartu aksi") +
+        (p.sector === "mutual_fund" ? " sebagai Reksa Dana." : " sebagai saham " + sectorName(p.sector) + ".");
     }
     if (p.action === "quickbuy") {
       const taken = (Array.isArray(p.quickbuy_cards) ? p.quickbuy_cards : [])
@@ -813,7 +821,7 @@ function describeActivityEvent(event, players) {
         Number(p.sale_proceeds || 0) + " koin.";
     }
     if (p.action === "acquisition") {
-      return actor + " memakai Akuisisi: mengambil 1 saham " +
+      return actor + " menggunakan Akuisisi dan mengambil 1 saham " +
         sectorName(p.target_sector || p.sector) + " dari " +
         (p.target_display_name || playerName(p.target_user_id)) + ".";
     }
@@ -824,10 +832,10 @@ function describeActivityEvent(event, players) {
     }
     if (p.action === "info-bursa") {
       const choice = p.choice || {};
-      const sectors = [choice.sector_a,choice.sector_b,choice.sector_c].filter(Boolean).map(sectorName);
-      return actor + " memakai Info Bursa untuk melihat sektor " +
-        (sectors.length ? sectors.join(", ") : "pilihan") +
-        ". Isi kartu ekonomi yang diintip tetap privat; 2 koin diterima.";
+      const sectors = [choice.sector_a,choice.sector_b].filter(Boolean).map(sectorName);
+      return actor + " menggunakan Info Bursa untuk mengintip dua sektor" +
+        (sectors.length ? ": " + sectors.join(" dan ") : "") +
+        ". Isi kartu hanya terlihat oleh pemain tersebut; bonus 2 koin diterima.";
     }
     return actor + " mengaktifkan " + (p.card_title || "kartu aksi") + ".";
   }
@@ -851,11 +859,19 @@ function describeActivityEvent(event, players) {
   }
   if (event.event_type === "economy_revealed") {
     const cards = (Array.isArray(p.cards) ? p.cards : [])
-      .map((item) => item.card && item.card.name ? item.card.name : item.name)
-      .filter(Boolean).join(", ");
+      .map((item) => {
+        const cardName = item.card && item.card.name ? item.card.name : item.name;
+        const sector = item.stack_sector || (item.card && item.card.stack_sector);
+        return cardName ? sectorName(sector) + ": " + cardName : "";
+      })
+      .filter(Boolean).join(" · ");
     const moves = priceSummary(p.effects);
-    return "Bank membuka kartu ekonomi" + (cards ? ": " + cards : "") +
-      (moves ? " · " + moves : "") + ".";
+    const messages = (Array.isArray(p.effects) ? p.effects : [])
+      .map((effect) => effect && effect.message).filter(Boolean).join(" ");
+    return "Ronde " + Number(p.round || 0) + " · kartu ekonomi — " +
+      (cards || "empat tumpukan diperbarui") +
+      (moves ? " · Harga: " + moves : "") +
+      (messages ? " · " + messages : "");
   }
   if (event.event_type === "action_timeout") {
     if (p.auto_kept_card) return actor + " kehabisan waktu; sistem otomatis menyimpan " + p.auto_kept_card + ".";
@@ -877,7 +893,7 @@ function describeActivityEvent(event, players) {
 function renderActivityFeed(events, players) {
   if (!ui.activityFeed) return;
   ui.activityFeed.replaceChildren();
-  const list = Array.isArray(events) ? events.slice(0, 18) : [];
+  const list = Array.isArray(events) ? events.slice(0, 4) : [];
   if (!list.length) {
     ui.activityFeed.append(makeElement("p", "activity-empty", "Belum ada aktivitas. Transaksi akan muncul di sini."));
     return;
@@ -931,6 +947,69 @@ function renderGameEventSpotlight(events, players) {
   root.append(visual, copy);
   root.classList.toggle("is-new", sessionState.lastSpotlightEventId !== event.id);
   sessionState.lastSpotlightEventId = event.id;
+}
+
+
+
+function renderPrivatePeekDialog(peek, round, triggerId) {
+  const existing = document.querySelector(".private-peek-modal-layer");
+  if (!Array.isArray(peek) || peek.length === 0) {
+    if (existing) existing.remove();
+    sessionState.lastPeekSignature = null;
+    return;
+  }
+  const signature = String(round || "") + "|" + String(triggerId || "") + "|" +
+    peek.map((item) => String(item.sector || "") + ":" +
+      String(item.card && (item.card.id || item.card.name) || "")).join("|");
+  if (signature === sessionState.lastPeekSignature && existing) return;
+  if (existing) existing.remove();
+  if (signature === sessionState.lastPeekSignature) return;
+  sessionState.lastPeekSignature = signature;
+
+  const layer = makeElement("div", "private-peek-modal-layer");
+  const dialog = makeElement("section", "private-peek-dialog");
+  dialog.setAttribute("role", "dialog");
+  dialog.setAttribute("aria-modal", "true");
+  dialog.setAttribute("aria-label", "Hasil intipan Info Bursa");
+  const header = makeElement("div", "private-peek-dialog-header");
+  const copy = makeElement("div", "private-peek-dialog-copy");
+  copy.append(makeElement("small", "", "INFO BURSA · RONDE " + Number(round || 1)));
+  copy.append(makeElement("strong", "", "Hasil intipanmu"));
+  copy.append(makeElement("p", "", "Dua kartu teratas dari sektor pilihanmu. Informasi ini hanya terlihat olehmu."));
+  const close = makeElement("button", "private-peek-close", "×");
+  close.type = "button";
+  close.setAttribute("aria-label", "Tutup hasil intipan");
+  close.addEventListener("click", () => layer.remove());
+  header.append(copy, close);
+  dialog.append(header);
+  const grid = makeElement("div", "private-peek-result-grid");
+  for (const item of peek.slice(0, 2)) {
+    const card = item.card || {};
+    const tile = makeElement("article", "private-peek-result-card");
+    appendCardImage(tile, economyCardAsset(card), "Kartu ekonomi " + (card.name || "teratas"), "private-peek-result-image");
+    const details = makeElement("div", "private-peek-result-copy");
+    details.append(makeElement("small", "", sectorName(item.sector)));
+    details.append(makeElement("strong", "", card.name || "Kartu ekonomi"));
+    details.append(makeElement("p", "", card.body || "Deskripsi kartu tidak tersedia."));
+    tile.append(details);
+    grid.append(tile);
+  }
+  dialog.append(grid);
+  const footer = makeElement("div", "private-peek-dialog-footer");
+  footer.append(makeElement("small", "", "Hasil ini bersifat pribadi dan tidak dibagikan ke pemain lain."));
+  const done = makeElement("button", "button primary", "Mengerti");
+  done.type = "button";
+  done.addEventListener("click", () => layer.remove());
+  footer.append(done);
+  dialog.append(footer);
+  layer.append(dialog);
+  layer.addEventListener("click", (event) => {
+    if (event.target === layer) layer.remove();
+  });
+  layer.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") layer.remove();
+  });
+  document.body.append(layer);
 }
 
 
@@ -1133,17 +1212,14 @@ function renderGame(view) {
   ui.actionMarketCount.textContent = Array.isArray(state.action_market) ? state.action_market.length + " kartu tersisa" : "";
 
   ui.privatePeek.replaceChildren();
+  ui.privatePeek.hidden = true;
   const peek = Array.isArray(privateState.peek) ? privateState.peek : [];
-  if (peek.length) {
-    ui.privatePeek.hidden = false;
-    ui.privatePeek.append(makeElement("strong", "", "Intip kartu ekonomi (hanya kamu)"));
-    for (const item of peek) {
-      const card = item.card || {};
-      ui.privatePeek.append(makeElement("p", "", sectorName(item.sector) + " · " + (card.name || "Kartu") + ": " + (card.body || "")));
-    }
-  } else {
-    ui.privatePeek.hidden = true;
-  }
+  const lastPeekEvent = (view.events || []).find((event) =>
+    event.event_type === "action_card_used" &&
+    event.actor_id === sessionState.user.id &&
+    event.payload && event.payload.action === "info-bursa"
+  );
+  renderPrivatePeekDialog(peek,view.current_round,lastPeekEvent && lastPeekEvent.id);
 
   if (view.phase === "finished") {
     renderFinalScores(state);
@@ -1701,7 +1777,7 @@ function openActivationForm(card, cardElement, own) {
     setBusy(button,true,"Memproses…");
     await runGameAction(() => db.rpc("perform_action_card", {
       p_room_id:sessionState.roomId,p_card_id:card.id,p_mode:"activate",p_choice:choice
-    }),successText);
+    }),successText,() => modalLayer.remove());
     setBusy(button,false);
   };
   const sectorTile = (sector, selected, click, disabled=false) => {
@@ -1737,18 +1813,18 @@ function openActivationForm(card, cardElement, own) {
   if(card.action==="info-bursa") {
     const selected=new Set();
     const draw=()=>{
-      stage.replaceChildren(makeElement("p","interaction-instruction","Klik tiga sektor berbeda untuk melihat kartu ekonomi teratasnya."));
+      stage.replaceChildren(makeElement("p","interaction-instruction","Pilih tepat dua sektor berbeda. Kartu teratas dari kedua sektor akan ditampilkan hanya kepadamu."));
       const grid=makeElement("div","sector-choice-grid");
       for(const sector of SECTORS) grid.append(sectorTile(sector,selected.has(sector.id),()=>{
         if(selected.has(sector.id)) selected.delete(sector.id);
-        else if(selected.size<3) selected.add(sector.id);
+        else if(selected.size<2) selected.add(sector.id);
         draw();
       }));
-      stage.append(grid,makeElement("p","interaction-selection-count",selected.size+"/3 sektor dipilih"));
+      stage.append(grid,makeElement("p","interaction-selection-count",selected.size+"/2 sektor dipilih"));
       const footer=footerWithCancel();
-      footer.append(confirmButton("Intip tiga sektor + ambil 2 koin",{
-        sector_a:[...selected][0],sector_b:[...selected][1],sector_c:[...selected][2]
-      },"Info Bursa dijalankan dan 2 koin diterima.",selected.size===3));
+      footer.append(confirmButton("Intip dua sektor + ambil 2 koin",{
+        sector_a:[...selected][0],sector_b:[...selected][1]
+      },"Info Bursa berhasil. Hasil intipan hanya terlihat olehmu.",selected.size===2));
       stage.append(footer);
     };
     draw();return;
@@ -1963,11 +2039,25 @@ function openActivationForm(card, cardElement, own) {
           target.append(makeElement("strong","",player.display_name));
           target.append(makeElement("small","",Number(player.shares[selectedSector])+
             " saham · kamu "+Number(own.shares&&own.shares[selectedSector]||0)+
-            " · jumlah sama boleh"));
+            " saham · setara boleh"));
           target.addEventListener("click",()=>{selectedTarget=player.user_id;draw();});
           targetGrid.append(target);
         }
-        if(!targets.length)targetGrid.append(makeElement("p","interaction-warning","Belum ada pemain yang memenuhi syarat untuk sektor ini."));
+        if(!targets.length) {
+          const ownCount = Math.max(0,Number(own&&own.shares&&own.shares[selectedSector]||0));
+          const opponentsWithShares = players.filter(player =>
+            player.user_id!==sessionState.user.id &&
+            Number(player.shares&&player.shares[selectedSector]||0)>0
+          );
+          const reason = ownCount===0
+            ? "Kamu belum memiliki saham " + sectorName(selectedSector) + "."
+            : opponentsWithShares.length===0
+              ? "Belum ada pemain lain yang memiliki saham " + sectorName(selectedSector) + "."
+              : "Saham pemain lain pada sektor ini lebih banyak daripada milikmu.";
+          targetGrid.append(makeElement("p","interaction-warning",
+            "Belum ada target Akuisisi yang memenuhi syarat. " + reason +
+            " Syarat: saham milikmu harus sama atau lebih banyak dari target."));
+        }
         stage.append(targetGrid);
         if(selectedTarget) {
           const footer=footerWithCancel();
@@ -1990,17 +2080,20 @@ function viewPlayers() {
     ? sessionState.gameView.state.players : [];
 }
 
-async function runGameAction(request, successMessage) {
+async function runGameAction(request, successMessage, afterSuccess) {
   clearNotice();
   try {
     const { error } = await request();
     if (error) throw error;
+    if (typeof afterSuccess === "function") afterSuccess();
     await loadActiveGame();
     if (successMessage) showNotice(successMessage,"success");
+    return true;
   } catch(error) {
     console.error("Game action failed:",error);
     showNotice(errorMessage(error),"error");
     await loadActiveGame();
+    return false;
   }
 }
 
