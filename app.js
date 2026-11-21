@@ -1528,7 +1528,8 @@ function renderPhaseControls(view, own, coins) {
       const stack=makeElement("div","economy-back-stack");
       appendCardImage(stack,"./assets/cards/components/stocklab-back-dark.webp","Tumpukan ekonomi "+sector.name,"economy-back-image");
       stack.append(makeElement("strong","",sector.name));
-      stack.append(makeElement("small","","Tumpukan kartu"));
+      const remaining = economyCardsRemaining(view.state, sector.id);
+      stack.append(makeElement("small","economy-stack-count",remaining + " KARTU TERSISA"));
       backs.append(stack);
     }
     panel.append(backs);
