@@ -682,8 +682,11 @@ function makeSeatHoldings(player) {
     const art = makeElement("div", "seat-holding-art");
     appendCardImage(art, shareCardAsset(key), sectorName(key), "seat-holding-image");
     art.append(makeElement("span", "seat-holding-count", count));
-    item.append(art, makeElement("small", "seat-holding-label",
-      key === "mutual_fund" ? "REKSA DANA" : sectorName(key).toUpperCase()));
+    const shortLabel = ({
+      finance: "KEU", consumer: "KONS", agriculture: "AGRI",
+      mining: "TAMB", mutual_fund: "RD"
+    })[key] || sectorName(key).toUpperCase();
+    item.append(art, makeElement("small", "seat-holding-label", shortLabel + " " + count));
     root.append(item);
   }
   if (!total) root.append(makeElement("small", "seat-holdings-empty", "Belum memiliki aset"));
@@ -1400,31 +1403,25 @@ function renderPhaseControls(view, own, coins) {
   if (view.phase === "action") {
     const results = Array.isArray(state.bidding_results) ? state.bidding_results : [];
     if (results.length) {
-      const reveal = makeElement("section", "phase-panel bidding-results-panel");
-      reveal.append(makeElement("h4", "", "Hasil bidding · urutan ronde ini"));
-      reveal.append(makeElement("p", "muted-text", "Semua penawaran sudah dibuka. Kartu urutan berpindah mengikuti hasil bidding; jika tawaran sama, kartu urutan sebelumnya menjadi penentu."));
+      const reveal = makeElement("section", "bidding-results-compact");
+      reveal.append(makeElement("strong", "bidding-results-title", "URUTAN RONDE"));
       const list = makeElement("div", "bidding-results-list");
-      for (const result of results) {
-        const row = makeElement("div", "bidding-result-row");
-        const rank = makeElement("strong", "bidding-result-rank", "#" + Number(result.new_order || result.order_no || 0));
-        const player = makeElement("span", "bidding-result-player", result.display_name || "Pemain");
-        const bid = makeElement("strong", "bidding-result-bid", Number(result.bid_amount || 0) + " koin" +
-          (result.automatic ? " · OTOMATIS" : ""));
-        const movement = makeElement("small", "bidding-result-order",
+      for (const result of [...results].sort((a,b) =>
+        Number(a.new_order || a.order_no || 0) - Number(b.new_order || b.order_no || 0))) {
+        const chip = makeElement("div", "bidding-result-chip");
+        chip.append(makeElement("strong", "bidding-result-rank",
+          "#" + Number(result.new_order || result.order_no || 0)));
+        chip.append(makeElement("span", "bidding-result-player", result.display_name || "Pemain"));
+        chip.append(makeElement("b", "bidding-result-bid",
+          Number(result.bid_amount || 0) + " koin" + (result.automatic ? " · otomatis" : "")));
+        chip.append(makeElement("small", "bidding-result-order",
           "Kartu #" + Number(result.previous_order_card_number || 0) + " → #" +
-          Number(result.new_order || result.order_no || 0));
-        row.append(rank,player,bid,movement);
-        list.append(row);
+          Number(result.new_order || result.order_no || 0)));
+        list.append(chip);
       }
       reveal.append(list);
       ui.phaseControls.append(reveal);
     }
-    const panel = makeElement("div", "phase-panel action-turn-panel");
-    panel.append(makeElement("h4", "", isActive ? "Giliranmu memilih kartu" : "Menunggu pemain"));
-    panel.append(makeElement("p", "muted-text", isActive
-      ? "Pilih satu kartu di area kartu aksi. Kamu bisa menyimpannya sebagai saham atau mengaktifkan efeknya."
-      : "Sedang menunggu " + displayNameFor(state.players,view.active_user_id) + " memilih kartu."));
-    ui.phaseControls.append(panel);
     return;
   }
 
@@ -1593,8 +1590,8 @@ function renderActionMarket(view, own) {
     const isPicked = sessionState.selectedActionCardId === card.id;
     const panel = makeElement("article", "action-card" +
       (isActive ? " is-selectable" : " is-waiting") + (isPicked ? " is-picked" : ""));
-    panel.tabIndex = isActive ? 0 : -1;
-    panel.setAttribute("role", isActive ? "button" : "group");
+    panel.tabIndex = -1;
+    panel.setAttribute("role", "group");
     panel.setAttribute("aria-label", card.title + " " + sectorName(card.sector));
     const header = makeElement("div", "action-card-header");
     header.append(makeElement("span", "action-sector", sectorName(card.sector)));
@@ -1612,7 +1609,7 @@ function renderActionMarket(view, own) {
       : "Klik kartu untuk memilih aksi";
     panel.append(makeElement("small", "action-hint", hint));
     const actions = makeElement("div", "action-card-buttons");
-    actions.hidden = !isActive || !isPicked;
+    actions.hidden = !isActive;
     const keepButton = makeElement("button", "button secondary",
       card.action === "trading-fee"
         ? "Simpan · bayar " + keepFee + " koin"
@@ -1635,7 +1632,7 @@ function renderActionMarket(view, own) {
         : "Kartu disimpan sebagai saham " + sectorName(card.sector) + ".");
       setBusy(keepButton,false);
     });
-    const activate = makeElement("button", "button primary", "Aktifkan kartu");
+    const activate = makeElement("button", "button primary", "Gunakan efek");
     activate.type = "button";
     activate.addEventListener("click", (event) => {
       event.stopPropagation();
@@ -1649,41 +1646,48 @@ function renderActionMarket(view, own) {
       ui.actionMarket.querySelectorAll(".action-card").forEach((node) => {
         node.classList.toggle("is-picked", node === panel);
         const buttons = node.querySelector(".action-card-buttons");
-        if (buttons) buttons.hidden = node !== panel;
-        if (node !== panel) {
-          const old = node.querySelector(".activation-form");
-          if (old) old.remove();
-        }
+        if (buttons) buttons.hidden = false;
       });
     };
     panel.addEventListener("click", (event) => {
-      if (event.target.closest("button") || event.target.closest(".activation-form")) return;
+      if (event.target.closest("button")) return;
       selectThis();
-    });
-    panel.addEventListener("keydown", (event) => {
-      if ((event.key === "Enter" || event.key === " ") && !event.target.closest("button")) {
-        event.preventDefault(); selectThis();
-      }
     });
     ui.actionMarket.append(panel);
   }
 }
 
 function openActivationForm(card, cardElement, own) {
-  ui.actionMarket.querySelectorAll(".activation-form").forEach((node) => node.remove());
+  document.querySelectorAll(".action-modal-layer").forEach((node) => node.remove());
   const state = sessionState.gameView && sessionState.gameView.state || {};
   const marketCards = Array.isArray(state.action_market) ? state.action_market : [];
   const players = viewPlayers();
   const market = state.market || {};
+  const modalLayer = makeElement("div", "action-modal-layer");
+  modalLayer.setAttribute("role", "presentation");
   const formWrap = makeElement("div", "activation-form card-interaction");
+  formWrap.setAttribute("role", "dialog");
+  formWrap.setAttribute("aria-modal", "true");
+  formWrap.setAttribute("aria-label", "Gunakan efek " + card.title);
   const head = makeElement("div", "card-interaction-heading");
-  head.append(makeElement("small", "interaction-kicker", "KARTU DIPILIH"));
+  head.append(makeElement("small", "interaction-kicker", "GUNAKAN EFEK KARTU"));
   head.append(makeElement("strong", "", card.title + " · " + sectorName(card.sector)));
+  const closeButton = makeElement("button", "action-modal-close", "×");
+  closeButton.type = "button";
+  closeButton.setAttribute("aria-label", "Tutup pilihan aksi");
+  closeButton.addEventListener("click", () => modalLayer.remove());
+  head.append(closeButton);
   formWrap.append(head);
   const stage = makeElement("div", "card-choice-stage");
   formWrap.append(stage);
-  cardElement.append(formWrap);
-  formWrap.scrollIntoView({behavior:"smooth",block:"nearest"});
+  modalLayer.append(formWrap);
+  modalLayer.addEventListener("click", (event) => {
+    if (event.target === modalLayer) modalLayer.remove();
+  });
+  modalLayer.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") modalLayer.remove();
+  });
+  document.body.append(modalLayer);
 
   const submit = async (choice, successText, button) => {
     if (!button || button.disabled) return;
@@ -1719,7 +1723,7 @@ function openActivationForm(card, cardElement, own) {
   const footerWithCancel = () => {
     const footer=makeElement("div","card-interaction-footer");
     const cancel=makeElement("button","button secondary","Batal");
-    cancel.type="button";cancel.addEventListener("click",()=>formWrap.remove());
+    cancel.type="button";cancel.addEventListener("click",()=>modalLayer.remove());
     footer.append(cancel);return footer;
   };
 
