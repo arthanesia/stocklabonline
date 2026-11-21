@@ -1526,7 +1526,7 @@ function renderPhaseControls(view, own, coins) {
     const backs=makeElement("div","economy-back-stacks");
     for(const sector of SECTORS) {
       const stack=makeElement("div","economy-back-stack");
-      appendCardImage(stack,sectorBoardAsset(sector.id),"Tumpukan ekonomi "+sector.name,"economy-back-image");
+      appendCardImage(stack,"./assets/cards/components/stocklab-back-dark.webp","Tumpukan ekonomi "+sector.name,"economy-back-image");
       stack.append(makeElement("strong","",sector.name));
       stack.append(makeElement("small","","Tumpukan kartu"));
       backs.append(stack);
