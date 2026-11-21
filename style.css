@@ -3228,8 +3228,9 @@ body.game-in-progress .game-tabletop {
 body.game-in-progress .game-player-seats {
   display:grid !important;
   grid-template-columns:minmax(0,1fr);
-  grid-template-rows:repeat(5,minmax(0,1fr));
-  align-content:stretch;
+  grid-template-rows:none;
+  grid-auto-rows:minmax(75px,auto);
+  align-content:start;
   gap:6px;
   min-width:0;
   min-height:0;
@@ -3281,7 +3282,7 @@ body.game-in-progress .seat-info-bursa { padding:3px 4px; font-size:6px; line-he
 body.game-in-progress .table-felt-core {
   display:grid;
   grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);
-  grid-template-rows:auto minmax(0,1fr) 32px;
+  grid-template-rows:auto auto minmax(0,1fr) 32px;
   grid-auto-flow:row;
   align-content:stretch;
   gap:7px;
@@ -3295,6 +3296,7 @@ body.game-in-progress .table-felt-core {
 }
 body.game-in-progress .table-event-spotlight {
   grid-column:1/-1;
+  grid-row:1;
   max-height:44px;
   margin:0;
   padding:4px 8px;
@@ -3309,6 +3311,7 @@ body.game-in-progress .table-event-spotlight .spotlight-time { display:none; }
 
 body.game-in-progress .market-section {
   grid-column:1/-1;
+  grid-row:2;
   min-width:0;
   margin:0;
 }
@@ -3397,7 +3400,7 @@ body.game-in-progress .mf-unit-caption { display:block; font-size:6px; }
 
 body.game-in-progress .phase-controls {
   grid-column:1;
-  grid-row:2;
+  grid-row:3;
   min-width:0;
   min-height:0;
   max-height:100%;
@@ -3461,7 +3464,7 @@ body.game-in-progress .economy-stack-count { color:#8b6d30; font-size:6px; font-
 
 body.game-in-progress .action-market-section {
   grid-column:2;
-  grid-row:2;
+  grid-row:3;
   display:flex;
   flex-direction:column;
   min-width:0;
@@ -3534,7 +3537,7 @@ body.game-in-progress .action-card-buttons .button {
 }
 body.game-in-progress .activity-log-section {
   grid-column:1/-1;
-  grid-row:3;
+  grid-row:4;
   min-width:0;
   min-height:0;
   margin:0;
