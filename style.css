@@ -4259,3 +4259,448 @@ body.game-in-progress .action-modal-layer .card-interaction-footer { gap:8px; }
 @media (prefers-reduced-motion:reduce) {
   body.game-in-progress .game-player-seat.is-active-turn .seat-order-card { animation:none; }
 }
+
+
+/* STOCKLAB FIX PACK v22 — compact debt, visible action history, private Info Bursa result, balanced table. */
+body.game-in-progress .dashboard-main>main {
+  justify-content:center;
+  align-items:stretch;
+}
+body.game-in-progress .dashboard-multiplayer,
+body.game-in-progress .room-workspace {
+  justify-content:center;
+  align-items:stretch;
+}
+body.game-in-progress .game-board {
+  width:100%;
+  max-width:1660px;
+  margin-inline:auto;
+  align-self:center;
+}
+body.game-in-progress .game-tabletop {
+  width:100%;
+  max-width:100%;
+}
+body.game-in-progress .table-felt-core {
+  min-width:0;
+  max-width:100%;
+}
+body.game-in-progress .market-section {
+  flex-basis:clamp(150px,25%,190px);
+}
+body.game-in-progress .market-unit-card {
+  min-width:0;
+  max-width:100%;
+}
+body.game-in-progress .action-market {
+  grid-template-columns:repeat(auto-fit,minmax(165px,1fr));
+}
+body.game-in-progress .action-card {
+  min-width:0;
+  max-width:none;
+}
+body.game-in-progress .action-card-image {
+  width:100%;
+  height:clamp(62px,8vh,88px);
+  object-fit:contain;
+}
+
+/* Debt offer: keep the choice and its two buttons visible without a giant card. */
+body.game-in-progress .debt-offer-panel {
+  display:grid;
+  gap:6px;
+  max-width:900px;
+}
+body.game-in-progress .debt-offer-panel>h4 {
+  font-size:13px;
+}
+body.game-in-progress .debt-offer-panel>p {
+  font-size:8px;
+  line-height:1.25;
+}
+body.game-in-progress .debt-offer-card {
+  display:flex;
+  align-items:center;
+  gap:9px;
+  max-width:680px;
+  padding:6px 9px;
+  border-radius:4px;
+}
+body.game-in-progress .debt-offer-image {
+  width:43px;
+  max-height:59px;
+  object-fit:contain;
+}
+body.game-in-progress .debt-offer-terms {
+  gap:2px;
+}
+body.game-in-progress .debt-offer-terms strong {
+  font-size:15px;
+}
+body.game-in-progress .debt-offer-terms span {
+  font-size:9px;
+  line-height:1.25;
+}
+body.game-in-progress .debt-offer-terms small {
+  font-size:7px;
+  line-height:1.2;
+}
+body.game-in-progress .debt-offer-question {
+  margin:0;
+  font-size:9px;
+}
+body.game-in-progress .debt-offer-actions { gap:6px; }
+body.game-in-progress .debt-offer-actions .button {
+  min-height:30px;
+  padding:0 10px;
+  font-size:8px;
+}
+body.game-in-progress .debt-offer-responses {
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(130px,1fr));
+  gap:4px 8px;
+  max-width:900px;
+  padding-top:5px;
+}
+body.game-in-progress .debt-offer-responses>strong {
+  grid-column:1/-1;
+  font-size:9px;
+}
+body.game-in-progress .debt-offer-response {
+  gap:5px;
+  font-size:8px;
+}
+body.game-in-progress .debt-offer-response small {
+  font-size:7px;
+}
+
+/* The mutual-fund board asset is portrait in the file set; rotate it inside a landscape frame. */
+body.game-in-progress .mf-center-art {
+  position:relative;
+  display:block;
+  width:100%;
+  height:100%;
+  min-height:0;
+  overflow:hidden;
+  padding:0;
+}
+body.game-in-progress .mutual-fund-center-image {
+  position:absolute;
+  left:50%;
+  top:50%;
+  width:27%;
+  height:370%;
+  max-width:none;
+  max-height:none;
+  transform:translate(-50%,-50%) rotate(90deg);
+  transform-origin:center;
+  object-fit:contain;
+  object-position:center;
+}
+
+/* Compact event ledger: show the last economy reveal and the last players' actions on the table. */
+body.game-in-progress .activity-log-section {
+  display:block !important;
+  order:2;
+  flex:0 0 43px;
+  min-width:0;
+  min-height:43px;
+  width:100%;
+  margin:0;
+  padding:0;
+  overflow:hidden;
+  border:0;
+}
+body.game-in-progress .activity-log-section .board-section-heading {
+  display:none !important;
+}
+body.game-in-progress .activity-feed {
+  display:flex;
+  align-items:stretch;
+  gap:5px;
+  width:100%;
+  height:42px;
+  max-height:42px;
+  margin:0;
+  padding:2px 0 4px;
+  overflow-x:auto;
+  overflow-y:hidden;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  scrollbar-width:thin;
+  -webkit-overflow-scrolling:touch;
+}
+body.game-in-progress .activity-item {
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr);
+  align-items:center;
+  gap:5px;
+  flex:0 0 clamp(210px,24vw,330px);
+  min-width:0;
+  min-height:34px;
+  padding:4px 7px;
+  overflow:hidden;
+  border:1px solid #c0ad7c;
+  border-left:3px solid #9d824b;
+  border-radius:3px;
+  background:#f7f0df;
+  color:#28392e;
+}
+body.game-in-progress .activity-time {
+  align-self:start;
+  padding-top:2px;
+  color:#897344;
+  font-size:6px;
+  white-space:nowrap;
+}
+body.game-in-progress .activity-message {
+  display:-webkit-box;
+  -webkit-box-orient:vertical;
+  -webkit-line-clamp:2;
+  min-width:0;
+  margin:0;
+  overflow:hidden;
+  color:#354534;
+  font-size:7px;
+  line-height:1.25;
+}
+body.game-in-progress .activity-empty {
+  display:flex;
+  align-items:center;
+  width:100%;
+  height:100%;
+  margin:0;
+  padding:0 8px;
+  border:1px dashed #9c895c;
+  color:#f0e1bb;
+  font-size:7px;
+}
+
+/* Main content order: market, recent actions, current decision, action cards. */
+body.game-in-progress .phase-controls {
+  order:3;
+  flex:1 1 0;
+  min-height:0;
+}
+body.game-in-progress .action-market-section {
+  order:4;
+  flex:1 1 0;
+  min-height:0;
+}
+body.game-in-progress .table-event-spotlight { display:none !important; }
+body.game-in-progress .economy-section { display:none !important; }
+
+/* Private peek must not appear in the shared player panel. Its result is rendered in a private dialog. */
+body.game-in-progress .private-peek { display:none !important; }
+body.game-in-progress .private-peek-modal-layer {
+  position:fixed;
+  z-index:1800;
+  inset:40px 0 0;
+  display:grid;
+  place-items:center;
+  padding:14px;
+  overflow:auto;
+  background:rgba(5,10,20,.82);
+  backdrop-filter:blur(4px);
+}
+body.game-in-progress .private-peek-dialog {
+  width:min(620px,calc(100vw - 28px));
+  max-height:calc(100dvh - 68px);
+  padding:15px;
+  overflow:auto;
+  border:1px solid #c1a367;
+  border-top:4px solid #9e8147;
+  border-radius:7px;
+  background:#f7f1e3;
+  color:#2b3d30;
+  box-shadow:0 22px 65px #000b;
+}
+body.game-in-progress .private-peek-dialog-header {
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  padding-bottom:9px;
+  border-bottom:1px solid #d7cbaa;
+}
+body.game-in-progress .private-peek-dialog-copy {
+  display:grid;
+  gap:4px;
+}
+body.game-in-progress .private-peek-dialog-copy small {
+  color:#947544;
+  font-size:7px;
+  font-weight:900;
+  letter-spacing:.12em;
+}
+body.game-in-progress .private-peek-dialog-copy strong {
+  color:#283b2d;
+  font:700 19px Georgia,serif;
+}
+body.game-in-progress .private-peek-dialog-copy p {
+  margin:0;
+  color:#65705e;
+  font-size:9px;
+  line-height:1.4;
+}
+body.game-in-progress .private-peek-close {
+  flex:0 0 auto;
+  width:32px;
+  height:32px;
+  border:1px solid #b7a477;
+  border-radius:50%;
+  background:#eee5cf;
+  color:#334330;
+  font-size:20px;
+  cursor:pointer;
+}
+body.game-in-progress .private-peek-result-grid {
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;
+  margin:12px 0;
+}
+body.game-in-progress .private-peek-result-card {
+  display:grid;
+  grid-template-columns:72px minmax(0,1fr);
+  align-items:center;
+  gap:9px;
+  min-width:0;
+  padding:8px;
+  border:1px solid #c6b68f;
+  border-radius:4px;
+  background:#fffaf0;
+}
+body.game-in-progress .private-peek-result-image {
+  display:block;
+  width:72px;
+  height:100px;
+  object-fit:contain;
+  background:#eee5d2;
+}
+body.game-in-progress .private-peek-result-copy {
+  display:grid;
+  gap:4px;
+  min-width:0;
+}
+body.game-in-progress .private-peek-result-copy small {
+  color:#987b46;
+  font-size:7px;
+  font-weight:900;
+  text-transform:uppercase;
+}
+body.game-in-progress .private-peek-result-copy strong {
+  color:#293c2d;
+  font:700 13px Georgia,serif;
+}
+body.game-in-progress .private-peek-result-copy p {
+  margin:0;
+  color:#5b695a;
+  font-size:8px;
+  line-height:1.4;
+}
+body.game-in-progress .private-peek-dialog-footer {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  flex-wrap:wrap;
+  gap:8px;
+  padding-top:8px;
+  border-top:1px solid #d7cbaa;
+}
+body.game-in-progress .private-peek-dialog-footer small {
+  color:#6b715e;
+  font-size:7px;
+}
+body.game-in-progress .private-peek-dialog-footer .button {
+  min-height:34px;
+  padding:0 15px;
+  font-size:9px;
+}
+
+/* Make the playing table less stretched on wide monitors while retaining a one-page layout. */
+@media (min-width:1400px) {
+  body.game-in-progress .game-board { max-width:1660px; }
+}
+@media (min-width:1000px) {
+  body.game-in-progress .market-section .board-section-heading span {
+    font-size:8px;
+  }
+  body.game-in-progress .activity-item {
+    flex-basis:clamp(250px,23vw,350px);
+  }
+}
+@media (max-width:700px) {
+  body.game-in-progress .game-board { max-width:100%; }
+  body.game-in-progress .activity-log-section {
+    display:block !important;
+    flex-basis:32px;
+    min-height:32px;
+  }
+  body.game-in-progress .activity-feed {
+    display:flex;
+    height:31px;
+    max-height:31px;
+    gap:3px;
+    padding:1px 0 2px;
+  }
+  body.game-in-progress .activity-item {
+    flex:0 0 220px;
+    min-height:27px;
+    padding:3px 5px;
+    gap:4px;
+  }
+  body.game-in-progress .activity-time { font-size:5px; }
+  body.game-in-progress .activity-message {
+    font-size:6px;
+    line-height:1.15;
+  }
+  body.game-in-progress .mutual-fund-center-image {
+    width:27%;
+    height:370%;
+    transform:translate(-50%,-50%) rotate(90deg);
+  }
+  body.game-in-progress .debt-offer-panel { gap:4px; }
+  body.game-in-progress .debt-offer-card {
+    max-width:100%;
+    gap:6px;
+    padding:4px 6px;
+  }
+  body.game-in-progress .debt-offer-image { width:30px; max-height:43px; }
+  body.game-in-progress .debt-offer-terms strong { font-size:12px; }
+  body.game-in-progress .debt-offer-terms span { font-size:7px; }
+  body.game-in-progress .debt-offer-terms small { font-size:6px; }
+  body.game-in-progress .debt-offer-actions .button { min-height:27px; font-size:7px; }
+  body.game-in-progress .debt-offer-responses { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  body.game-in-progress .debt-offer-response { font-size:6px; }
+  body.game-in-progress .debt-offer-response small { font-size:5px; }
+  body.game-in-progress .private-peek-modal-layer {
+    inset:36px 0 0;
+    padding:6px;
+  }
+  body.game-in-progress .private-peek-dialog {
+    width:calc(100vw - 12px);
+    max-height:calc(100dvh - 48px);
+    padding:9px;
+  }
+  body.game-in-progress .private-peek-dialog-copy strong { font-size:15px; }
+  body.game-in-progress .private-peek-dialog-copy p { font-size:7px; }
+  body.game-in-progress .private-peek-result-grid {
+    grid-template-columns:1fr;
+    gap:6px;
+    margin:8px 0;
+  }
+  body.game-in-progress .private-peek-result-card {
+    grid-template-columns:50px minmax(0,1fr);
+    gap:7px;
+    padding:5px;
+  }
+  body.game-in-progress .private-peek-result-image {
+    width:50px;
+    height:70px;
+  }
+  body.game-in-progress .private-peek-result-copy strong { font-size:11px; }
+  body.game-in-progress .private-peek-result-copy p { font-size:7px; }
+  body.game-in-progress .private-peek-dialog-footer .button { min-height:31px; }
+}
