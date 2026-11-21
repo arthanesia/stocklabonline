@@ -58,7 +58,10 @@ const sessionState = {
   user: null, username: "", roomId: null, roomCode: "", roomMeta: null,
   members: [], gameView: null, channel: null, gameLoadSeq: 0,
   phaseTimerHandle: null, autoTimeoutPending: false,
-  selectedActionCardId: null, lastSpotlightEventId: null, lastPeekSignature: null
+  selectedActionCardId: null,
+  lastSpotlightEventId: null,
+  lastPeekSignature: null,
+  economyReviewAcknowledgedEventId: null
 };
 
 const SECTORS = [
@@ -652,15 +655,20 @@ function renderMarket(market, state) {
   const mutualFund = makeElement("article", "market-unit-card mutual-fund-unit-card");
   const mfHeading = makeElement("div", "market-unit-heading");
   mfHeading.append(makeElement("strong", "", "REKSA DANA"));
-  mfHeading.append(makeElement("small", "mf-formula-tag", "2 saham"));
+  mfHeading.append(makeElement("small", "deck-count mf-formula-tag", "2 SAHAM"));
   const mfArt = makeElement("div", "mf-center-art");
   appendCardImage(mfArt, "./assets/cards/boards/papan-reksa-dana.webp",
     "Papan Reksa Dana StockLab", "mutual-fund-center-image");
-  const mfValue = makeElement("strong", "mf-unit-value", String(mutualFundPrice));
-  const mfFormula = makeElement("small", "mf-unit-caption",
+  const mfValue = makeElement("div", "market-unit-price mf-market-price");
+  mfValue.append(makeElement("span", "market-trend trend-flat", "•"));
+  mfValue.append(makeElement("strong", "mf-unit-value", String(mutualFundPrice)));
+  const mfCaption = makeElement("small", "market-unit-caption", "Harga per unit Reksa Dana");
+  const mfFormula = makeElement("div", "mf-unit-caption mf-formula-strip");
+  mfFormula.append(makeElement("strong", "", "SUMBER HARGA"));
+  mfFormula.append(makeElement("span", "",
     sectorName(pair[0]) + " " + Number(market[pair[0]] || 0) + " + " +
-    sectorName(pair[1]) + " " + Number(market[pair[1]] || 0) + " dibagi 2");
-  mutualFund.append(mfHeading, mfArt, mfValue, mfFormula);
+    sectorName(pair[1]) + " " + Number(market[pair[1]] || 0) + " ÷ 2"));
+  mutualFund.append(mfHeading, mfArt, mfValue, mfCaption, mfFormula);
 
   // The two stocks linked to Mutual Fund sit immediately beside it;
   // the remaining two sectors form the outside edges of the same market block.
@@ -1043,8 +1051,12 @@ function renderEconomyLast(state) {
     ui.economyReveal.append(makeElement("p", "muted-text", "Belum ada kartu ekonomi yang dibuka."));
     return;
   }
+  let revealIndex = 0;
   for (const item of items) {
     const card = makeElement("article", "economy-card is-revealed");
+    card.dataset.sector = item.stack_sector || "";
+    card.style.animationDelay = (revealIndex * 100) + "ms";
+    revealIndex += 1;
     const economy = item.card || {};
     appendCardImage(card, economyCardAsset(economy), economy.name || "Kartu ekonomi StockLab", "economy-card-image");
     const title = makeElement("strong", "", economy.name || "Kartu ekonomi");
@@ -1177,13 +1189,36 @@ function renderGame(view) {
   ui.gameRound.textContent = String(view.current_round || 1).padStart(2, "0");
   const drawingOrderCards = view.phase === "bidding" && state.phase_status === "awaiting_order_picks";
   const offeringDebt = view.phase === "bidding" && state.phase_status === "awaiting_debt_decisions";
-  ui.gamePhase.textContent = drawingOrderCards ? "Kartu Urutan" :
+  const economyItems = Array.isArray(state.last_economy) ? state.last_economy : [];
+  const economyRevealEvent = (view.events || []).find(event => event.event_type === "economy_revealed");
+  const latestEvent = Array.isArray(view.events) ? view.events[0] : null;
+  const economyReviewEventId = economyRevealEvent && economyRevealEvent.id != null
+    ? String(economyRevealEvent.id)
+    : String(sessionState.roomId || "room") + "-" + String(view.current_round || 1) + "-" +
+      economyItems.map(item => item.card && item.card.id || item.stack_sector).join("-");
+  const noDebtEconomyReview = view.phase === "bidding" &&
+    state.phase_status === "awaiting_bids" &&
+    economyItems.length > 0 &&
+    economyRevealEvent && latestEvent && String(latestEvent.id) === String(economyRevealEvent.id);
+  const economyReviewPending = economyItems.length > 0 &&
+    (offeringDebt || noDebtEconomyReview) &&
+    sessionState.economyReviewAcknowledgedEventId !== economyReviewEventId;
+  const keepEconomyVisible = economyItems.length > 0 && (offeringDebt || economyReviewPending);
+  ui.gamePhase.textContent = economyReviewPending ? "Hasil Ekonomi" :
+    drawingOrderCards ? "Kartu Urutan" :
     offeringDebt ? "Penawaran Utang" : phaseName(view.phase);
   renderPhaseTimer(view);
   renderGameSeats(players, view, privateState);
   renderPhaseActor(view, players);
   ui.gameSubtitle.textContent = "Meja " + sessionState.roomCode + " · " + players.length + " pemain";
-  ui.gamePhaseDescription.textContent = phaseDescription(view, state);
+  ui.gamePhaseDescription.textContent = economyReviewPending
+    ? "Kartu ekonomi ditampilkan terlebih dahulu. Setelah kamu lanjut, penawaran utang akan muncul."
+    : phaseDescription(view, state);
+  if (economyReviewPending && ui.phaseActivePlayer) {
+    ui.phaseActivePlayer.textContent = "Semua pemain melihat hasil ekonomi";
+  }
+  document.body.classList.toggle("economy-reviewing", economyReviewPending);
+  document.body.classList.toggle("economy-debt-stage", offeringDebt && !economyReviewPending);
   ui.ownCoins.textContent = String(coins);
   ui.ownShares.textContent = String(totalShares);
   ui.ownDebt.textContent = debt > 0 ? debt + " kartu utang · penalti akhir " + (debt * 13) : "Tanpa utang";
@@ -1203,11 +1238,13 @@ function renderGame(view) {
     ui.economyEffectSummary.hidden = messages.length === 0;
   }
   const actionMarketReady = Array.isArray(state.action_market) && state.action_market.length > 0;
-  const showActionMarket = view.phase === "action" || (view.phase === "bidding" && actionMarketReady);
+  const showActionMarket = view.phase === "action" ||
+    (view.phase === "bidding" && actionMarketReady && !economyReviewPending);
   ui.actionMarketSection.hidden = !showActionMarket;
   if (view.phase !== "action" || view.active_user_id !== sessionState.user.id) sessionState.selectedActionCardId = null;
-  // Economy cards now live under their own sector boards; avoid duplicating them in a separate strip.
-  ui.economySection.hidden = true;
+  // Keep the public four-card reveal visible through the debt-decision step.
+  // It is removed after all decisions are complete (or after the preview when no offer exists).
+  ui.economySection.hidden = !keepEconomyVisible;
   ui.finalSection.hidden = view.phase !== "finished";
   ui.actionMarketCount.textContent = Array.isArray(state.action_market) ? state.action_market.length + " kartu tersisa" : "";
 
@@ -1226,7 +1263,11 @@ function renderGame(view) {
   } else {
     ui.finalSection.hidden = true;
   }
-  renderPhaseControls(view, own, coins);
+  renderPhaseControls(view, own, coins, {
+    required:economyReviewPending,
+    eventId:economyReviewEventId,
+    hasDebtOffers:offeringDebt
+  });
   if (showActionMarket) renderActionMarket(view, own);
   else ui.actionMarket.replaceChildren();
 
@@ -1290,10 +1331,30 @@ function phaseDescription(view, state) {
   return "Permainan telah selesai. Periksa skor akhir dan pemenang.";
 }
 
-function renderPhaseControls(view, own, coins) {
+function renderPhaseControls(view, own, coins, economyReview = {}) {
   ui.phaseControls.replaceChildren();
   const state = view.state || {};
   const isActive = view.active_user_id === sessionState.user.id;
+
+  if (economyReview.required) {
+    const panel = makeElement("div", "phase-panel economy-review-step-panel");
+    panel.append(makeElement("small", "economy-review-kicker",
+      "RONDE " + Number(view.current_round || 1) + " · HASIL PEMBUKAAN PASAR"));
+    panel.append(makeElement("h4", "", "Periksa empat kartu ekonomi"));
+    panel.append(makeElement("p", "muted-text",
+      "Kartu dan dampaknya sudah diterapkan. Lihat semua kartu di atas; setelah lanjut, penawaran utang akan dibuka terlebih dahulu."));
+    const next = makeElement("button", "button primary economy-review-continue",
+      economyReview.hasDebtOffers ? "Lanjut ke penawaran utang" : "Lanjut ke bidding");
+    next.type = "button";
+    next.addEventListener("click", () => {
+      sessionState.economyReviewAcknowledgedEventId = economyReview.eventId;
+      document.body.classList.remove("economy-reviewing");
+      renderGame(sessionState.gameView || view);
+    });
+    panel.append(next);
+    ui.phaseControls.append(panel);
+    return;
+  }
 
   if (view.phase === "bidding" && state.phase_status === "awaiting_debt_decisions") {
     const panel = makeElement("div", "phase-panel debt-offer-panel");
