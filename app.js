@@ -178,6 +178,7 @@ async function savePlayerProfile(username) {
 }
 
 function showRoomHub() {
+  document.body.classList.remove("game-in-progress");
   ui.welcome.hidden = false;
   ui.multiplayer.hidden = false;
   ui.workspace.hidden = false;
@@ -581,8 +582,8 @@ function renderMarket(market, state) {
     ? state.mutual_fund_pair : ["consumer", "agriculture"];
   const linked = pair.map((id) => SECTORS.find((sector) => sector.id === id)).filter(Boolean);
   const unlinked = SECTORS.filter((sector) => !pair.includes(sector.id));
-  const remaining = economyCardsRemaining(state);
   const events = Array.isArray(state && state.events) ? state.events : [];
+  const latestEconomy = Array.isArray(state && state.last_economy) ? state.last_economy : [];
 
   const trendFor = (sectorId) => {
     for (const event of events) {
@@ -606,8 +607,9 @@ function renderMarket(market, state) {
       (isLinked ? " is-mutual-fund-source" : ""));
     const heading = makeElement("div", "market-unit-heading");
     heading.append(makeElement("strong", "", sector.name));
+    const remaining = economyCardsRemaining(state, sector.id);
     heading.append(makeElement("small", "deck-count",
-      remaining > 0 ? "Sisa " + remaining : "Habis"));
+      remaining > 0 ? "SISA " + remaining : "HABIS"));
     const art = makeElement("div", "market-unit-art");
     appendCardImage(art, sectorBoardAsset(sector.id),
       "Papan sektor " + sector.name, "market-board-image");
@@ -620,7 +622,19 @@ function renderMarket(market, state) {
     price.append(arrow, makeElement("strong", "", String(Number(market[sector.id] || 5))));
     const footer = makeElement("small", "market-unit-caption",
       isLinked ? "Penentu harga Reksa Dana" : "Harga per saham");
-    cell.append(heading, art, price, footer);
+    const economySlot = makeElement("div", "sector-economy-slot");
+    const lastCard = latestEconomy.find(item => item.stack_sector === sector.id);
+    if (lastCard && lastCard.card) {
+      appendCardImage(economySlot, economyCardAsset(lastCard.card),
+        "Kartu ekonomi terakhir sektor " + sector.name, "sector-economy-image");
+      economySlot.append(makeElement("small", "sector-economy-caption",
+        "TERAKHIR · " + (lastCard.card.name || "Kartu ekonomi")));
+    } else {
+      appendCardImage(economySlot, "./assets/cards/components/stocklab-back-red.webp",
+        "Kartu ekonomi tertutup sektor " + sector.name, "sector-economy-image is-back");
+      economySlot.append(makeElement("small", "sector-economy-caption", "KARTU EKONOMI"));
+    }
+    cell.append(heading, art, price, footer, economySlot);
     return cell;
   };
 
@@ -698,12 +712,28 @@ function renderGameSeats(players, view, privateState) {
       (isOwn ? " is-you" : "") + (isTurn ? " is-active-turn" : ""));
     const avatar = makeElement("span", "seat-avatar", String(player.display_name || "P").slice(0, 1).toUpperCase());
     const identity = makeElement("div", "seat-identity");
-    identity.append(makeElement("strong", "", player.display_name || "Pemain"));
+    const nameRow = makeElement("div", "seat-name-order");
+    const orderMarker = makeElement("span", "seat-order-card" + (isTurn ? " is-active" : ""));
+    orderMarker.append(
+      makeElement("small", "", "URUTAN"),
+      makeElement("strong", "", Number(player.order_card_number || player.order_no || 0) > 0
+        ? String(player.order_card_number || player.order_no) : "—")
+    );
+    nameRow.append(orderMarker, makeElement("strong", "seat-player-name", player.display_name || "Pemain"));
+    identity.append(nameRow);
     const tags = [];
     if (player.is_host || player.user_id === sessionState.roomMeta?.host_id) tags.push("HOST");
     if (isOwn) tags.push("KAMU");
     if (isTurn) tags.push("GILIRAN");
     if (tags.length) identity.append(makeElement("small", "seat-tags", tags.join(" · ")));
+    const publicPeeks = Array.isArray(view.state && view.state.info_bursa_public)
+      ? view.state.info_bursa_public : [];
+    const infoPeek = publicPeeks.find(item => item.user_id === player.user_id &&
+      Number(item.round) === Number(view.current_round));
+    if (infoPeek && Array.isArray(infoPeek.sectors)) {
+      const sectorLabels = infoPeek.sectors.map(sectorName).join(" · ");
+      identity.append(makeElement("small", "seat-info-bursa", "INFO BURSA · " + sectorLabels));
+    }
     identity.append(makeSeatHoldings(player));
     if (isOwn) identity.append(makeElement("small", "seat-own-coins",
       Number(privateState.coins || 0) + " koin"));
@@ -789,7 +819,13 @@ function describeActivityEvent(event, players) {
       return actor + " mengaktifkan Rumor" +
         (changes ? ": " + changes : ". Harga tidak berubah.");
     }
-    if (p.action === "info-bursa") return actor + " memakai Info Bursa, mengintip tiga sektor, dan menerima 2 koin.";
+    if (p.action === "info-bursa") {
+      const choice = p.choice || {};
+      const sectors = [choice.sector_a,choice.sector_b,choice.sector_c].filter(Boolean).map(sectorName);
+      return actor + " memakai Info Bursa untuk melihat sektor " +
+        (sectors.length ? sectors.join(", ") : "pilihan") +
+        ". Isi kartu ekonomi yang diintip tetap privat; 2 koin diterima.";
+    }
     return actor + " mengaktifkan " + (p.card_title || "kartu aksi") + ".";
   }
   if (event.event_type === "sell_turn") {
@@ -911,7 +947,10 @@ function renderPhaseActor(view, players) {
   } else if (view.phase === "finished") {
     ui.phaseActivePlayer.textContent = "Permainan selesai";
   } else {
-    ui.phaseActivePlayer.textContent = active ? active.display_name : "Menunggu giliran";
+    ui.phaseActivePlayer.textContent = active
+      ? active.display_name + " · URUTAN #" + Number(active.order_no || 0) +
+        " · KARTU " + Number(active.order_card_number || active.order_no || 0)
+      : "Menunggu giliran";
   }
 }
 
@@ -1025,8 +1064,10 @@ function appendCardImage(parent, src, alt, className) {
   return image;
 }
 
-function economyCardsRemaining(state) {
+function economyCardsRemaining(state, sectorId) {
   if (!state || state.phase === "finished") return 0;
+  const stored = state.economy_remaining && sectorId ? state.economy_remaining[sectorId] : null;
+  if (Number.isFinite(Number(stored))) return Math.max(0, Number(stored));
   return Math.max(0, 7 - Number(state.round || 1));
 }
 
@@ -1047,6 +1088,7 @@ function renderGame(view) {
   const debt = Number(privateState.debt || 0);
 
   ui.gameTable.hidden = false;
+  document.body.classList.add("game-in-progress");
   ui.gameRound.textContent = String(view.current_round || 1).padStart(2, "0");
   const drawingOrderCards = view.phase === "bidding" && state.phase_status === "awaiting_order_picks";
   const offeringDebt = view.phase === "bidding" && state.phase_status === "awaiting_debt_decisions";
@@ -1075,9 +1117,12 @@ function renderGame(view) {
     }
     ui.economyEffectSummary.hidden = messages.length === 0;
   }
-  ui.actionMarketSection.hidden = view.phase !== "action";
+  const actionMarketReady = Array.isArray(state.action_market) && state.action_market.length > 0;
+  const showActionMarket = view.phase === "action" || (view.phase === "bidding" && actionMarketReady);
+  ui.actionMarketSection.hidden = !showActionMarket;
   if (view.phase !== "action" || view.active_user_id !== sessionState.user.id) sessionState.selectedActionCardId = null;
-  ui.economySection.hidden = !(Array.isArray(state.last_economy) && state.last_economy.length);
+  // Economy cards now live under their own sector boards; avoid duplicating them in a separate strip.
+  ui.economySection.hidden = true;
   ui.finalSection.hidden = view.phase !== "finished";
   ui.actionMarketCount.textContent = Array.isArray(state.action_market) ? state.action_market.length + " kartu tersisa" : "";
 
@@ -1100,7 +1145,7 @@ function renderGame(view) {
     ui.finalSection.hidden = true;
   }
   renderPhaseControls(view, own, coins);
-  if (view.phase === "action") renderActionMarket(view, own);
+  if (showActionMarket) renderActionMarket(view, own);
   else ui.actionMarket.replaceChildren();
 
   ui.gameNote.textContent = "Saldo pribadi hanya terlihat oleh pemiliknya. Deck kartu ekonomi dan aksi di versi ini merupakan adaptasi digital komunitas, bukan komposisi resmi yang telah diverifikasi.";
@@ -1151,7 +1196,9 @@ function renderPhaseTimer(view) {
 
 function phaseDescription(view, state) {
   if (view.phase === "bidding" && state.phase_status === "awaiting_debt_decisions")
-    return "Pemain dapat menerima atau menolak pinjaman 10 koin sebelum penawaran urutan jalan.";
+    return "Kartu aksi sudah terbuka. Pemain dapat menerima atau menolak pinjaman sebelum bidding.";
+  if (view.phase === "bidding" && ["awaiting_bids","collecting_bids"].includes(state.phase_status))
+    return "Kartu aksi dibuka lebih dahulu agar semua pemain bisa menyusun strategi sebelum bidding.";
   if (view.phase === "bidding" && state.phase_status === "awaiting_order_picks")
     return "Setiap pemain memilih satu kartu tertutup. Nomor urutan terbuka setelah kartu dipilih.";
   if (view.phase === "bidding") return "Ajukan penawaran koin secara tertutup untuk menentukan urutan pemain.";
@@ -1309,9 +1356,9 @@ function renderPhaseControls(view, own, coins) {
   }
 
   if (view.phase === "bidding") {
-    const panel = makeElement("div", "phase-panel");
-    panel.append(makeElement("h4", "", "Penawaran tertutup"));
-    panel.append(makeElement("p", "muted-text", "Masukkan jumlah koin (minimal 1). Penawaran pemain lain tidak akan terlihat sebelum semua pemain mengirim penawaran."));
+    const panel = makeElement("div", "phase-panel bidding-panel");
+    panel.append(makeElement("h4", "", "Bidding · susun strategi"));
+    panel.append(makeElement("p", "muted-text", "Kartu aksi sudah dibuka. Pelajari pasar kartu sebelum menentukan tawaran; nilai bid seluruh pemain akan diumumkan setelah semua penawaran masuk."));
     const status = view.bidding || {};
     panel.append(makeElement("p", "turn-status", status.submitted
       ? "Penawaranmu sudah terkirim. Menunggu pemain lain (" + status.submitted_count + "/" + status.player_count + ")."
@@ -1348,7 +1395,28 @@ function renderPhaseControls(view, own, coins) {
   }
 
   if (view.phase === "action") {
-    const panel = makeElement("div", "phase-panel");
+    const results = Array.isArray(state.bidding_results) ? state.bidding_results : [];
+    if (results.length) {
+      const reveal = makeElement("section", "phase-panel bidding-results-panel");
+      reveal.append(makeElement("h4", "", "Hasil bidding · urutan ronde ini"));
+      reveal.append(makeElement("p", "muted-text", "Semua penawaran sudah dibuka. Kartu urutan berpindah mengikuti hasil bidding; jika tawaran sama, kartu urutan sebelumnya menjadi penentu."));
+      const list = makeElement("div", "bidding-results-list");
+      for (const result of results) {
+        const row = makeElement("div", "bidding-result-row");
+        const rank = makeElement("strong", "bidding-result-rank", "#" + Number(result.new_order || result.order_no || 0));
+        const player = makeElement("span", "bidding-result-player", result.display_name || "Pemain");
+        const bid = makeElement("strong", "bidding-result-bid", Number(result.bid_amount || 0) + " koin" +
+          (result.automatic ? " · OTOMATIS" : ""));
+        const movement = makeElement("small", "bidding-result-order",
+          "Kartu #" + Number(result.previous_order_card_number || 0) + " → #" +
+          Number(result.new_order || result.order_no || 0));
+        row.append(rank,player,bid,movement);
+        list.append(row);
+      }
+      reveal.append(list);
+      ui.phaseControls.append(reveal);
+    }
+    const panel = makeElement("div", "phase-panel action-turn-panel");
     panel.append(makeElement("h4", "", isActive ? "Giliranmu memilih kartu" : "Menunggu pemain"));
     panel.append(makeElement("p", "muted-text", isActive
       ? "Pilih satu kartu di area kartu aksi. Kamu bisa menyimpannya sebagai saham atau mengaktifkan efeknya."
@@ -1507,7 +1575,7 @@ function displayNameFor(players,userId) {
 function renderActionMarket(view, own) {
   const state = view.state || {};
   const cards = Array.isArray(state.action_market) ? state.action_market : [];
-  const isActive = view.active_user_id === sessionState.user.id;
+  const isActive = view.phase === "action" && view.active_user_id === sessionState.user.id;
   if (!cards.some((card) => card.id === sessionState.selectedActionCardId) || !isActive) {
     sessionState.selectedActionCardId = null;
   }
