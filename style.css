@@ -3023,3 +3023,228 @@ body[data-interface-theme="forest"] #create-room-panel { background:linear-gradi
   .subpage-return-button { min-height:34px; padding:0 10px; font-size:9px; }
   .subpage-topbar { padding:0 12px !important; }
 }
+/* StockLab gameplay: stable order-card markers, sector-linked economy cards, and one-screen table. */
+.seat-name-order { display:flex; align-items:center; gap:8px; min-width:0; }
+.seat-player-name { min-width:0; overflow-wrap:anywhere; }
+.seat-order-card {
+  flex:0 0 auto; display:grid; justify-items:center; align-content:center; gap:2px;
+  width:31px; min-height:41px; padding:3px 2px; border:1px solid #d5bd78;
+  background:linear-gradient(145deg,#f2e7ca,#d9c89d); color:#20294d;
+  box-shadow:2px 2px 0 #75613b; text-align:center;
+}
+.seat-order-card small { font-size:5px; font-weight:900; letter-spacing:.07em; color:#79663f; }
+.seat-order-card strong { font:700 19px/1 Georgia,serif; color:#1e2a64; }
+.seat-order-card.is-active { border:2px solid #fff0a6; background:linear-gradient(145deg,#fff4c8,#e9c56f); box-shadow:0 0 0 2px #e0b94f,0 0 18px #ffe58a; }
+.seat-info-bursa { display:block; padding:4px 6px; border-left:2px solid #72b7aa; background:#172b3b; color:#b9e4d9; font-size:7px; line-height:1.35; }
+.seat-economy-slot { min-width:0; }
+.sector-economy-slot {
+  display:grid; justify-items:center; gap:3px; min-height:74px; margin-top:5px;
+  padding:5px 4px 3px; border-top:1px solid #a99a72; background:#d9d1bb;
+}
+.sector-economy-image {
+  display:block; width:43px; height:61px; object-fit:contain; border:1px solid #9d895a; background:#f3ead5;
+}
+.sector-economy-image.is-back { opacity:.86; }
+.sector-economy-caption {
+  max-width:100%; color:#645a42; font-size:6px; font-weight:800; line-height:1.25;
+  text-align:center; text-transform:uppercase; letter-spacing:.04em;
+}
+.bidding-results-panel { border-color:#e0bd70 !important; background:linear-gradient(135deg,#282944,#17213b) !important; }
+.bidding-results-panel h4 { margin-bottom:6px; }
+.bidding-results-list { display:grid; gap:4px; max-height:110px; overflow:auto; }
+.bidding-result-row {
+  display:grid; grid-template-columns:31px minmax(0,1fr) auto auto; align-items:center; gap:8px;
+  padding:5px 7px; border:1px solid #4d5270; background:#101936; color:#f0e6c9;
+}
+.bidding-result-rank { color:#f3d17a; font:700 14px Georgia,serif; }
+.bidding-result-player { min-width:0; color:#f0ebd9; font-size:9px; font-weight:750; overflow-wrap:anywhere; }
+.bidding-result-bid { color:#ead08c; font-size:9px; white-space:nowrap; }
+.bidding-result-order { color:#aebbd5; font-size:8px; white-space:nowrap; }
+.bidding-panel { border-color:#d9b66b !important; }
+.action-turn-panel { padding:8px 12px !important; }
+.game-player-seat.is-active-turn {
+  z-index:4; border:2px solid #ffdf83 !important; background:linear-gradient(145deg,#354274,#202b56) !important;
+  box-shadow:0 0 0 3px #e5bd5c55,0 0 24px #edcc6d9c !important; transform:translateY(-2px);
+}
+.game-player-seat.is-active-turn .seat-tags {
+  display:inline-flex; align-items:center; width:max-content; padding:3px 7px;
+  border:1px solid #ffe59a; background:#f2ca6c; color:#20284a !important;
+  font-size:8px; font-weight:950; letter-spacing:.08em;
+}
+.game-player-seat.is-active-turn .seat-order-card { animation:stocklab-order-pulse 1.8s ease-in-out infinite; }
+@keyframes stocklab-order-pulse { 0%,100%{box-shadow:0 0 0 2px #e0b94f,0 0 12px #ffe58a77} 50%{box-shadow:0 0 0 3px #fff0a6,0 0 22px #ffe58a} }
+.landscape-required-overlay { display:none; }
+.landscape-required-card { display:grid; justify-items:center; width:min(330px,calc(100% - 46px)); padding:28px 22px; border:1px solid #d6b86e; background:#131d39; color:#f5e7c0; text-align:center; box-shadow:0 20px 60px #000b; }
+.landscape-required-card strong { margin-top:12px; color:#f3d17c; font:700 20px Georgia,serif; }
+.landscape-required-card p { margin:9px 0 0; color:#c4cde0; font-size:12px; line-height:1.6; }
+.landscape-phone-icon { display:grid; place-items:center; width:60px; height:42px; border:2px solid #e1c476; border-radius:8px; color:#e6c879; font-size:34px; line-height:1; transform:rotate(90deg); }
+
+/* On desktop the active game is a viewport-fitted tabletop, not a scrolling page. */
+body.game-in-progress { height:100dvh; overflow:hidden; }
+body.game-in-progress .dashboard-shell { display:block; height:100dvh; min-height:0; overflow:hidden; }
+body.game-in-progress .dashboard-sidebar { display:none; }
+body.game-in-progress .dashboard-main {
+  display:flex; flex-direction:column; width:100%; height:100dvh; min-width:0; min-height:0; overflow:hidden;
+}
+body.game-in-progress .dashboard-topbar { flex:0 0 38px; height:38px; min-height:38px; padding:0 15px; }
+body.game-in-progress .dashboard-main>main {
+  display:flex; flex:1 1 auto; min-height:0; height:calc(100dvh - 38px); overflow:hidden; padding:0 9px 8px;
+}
+body.game-in-progress .dashboard-multiplayer { display:flex; flex:1 1 auto; min-height:0; width:100%; overflow:hidden; }
+body.game-in-progress .room-workspace { display:flex; flex:1 1 auto; min-height:0; width:100%; overflow:hidden; }
+body.game-in-progress .room-hub { display:none !important; }
+body.game-in-progress .game-board {
+  display:flex; flex:1 1 auto; flex-direction:column; gap:7px; min-height:0; height:100%; max-height:100%;
+  overflow:hidden; padding:7px 9px; border:1px solid #9e864e;
+}
+body.game-in-progress .game-heading { flex:0 0 auto; min-height:27px; margin:0; padding:0; }
+body.game-in-progress .game-heading h3 { font-size:17px; }
+body.game-in-progress .game-heading .section-subtitle,
+body.game-in-progress .game-heading .tutorial-link { display:none; }
+body.game-in-progress .game-room-status-panel,
+body.game-in-progress .activity-log-section,
+body.game-in-progress .economy-section,
+body.game-in-progress .game-note { display:none !important; }
+body.game-in-progress .phase-banner { flex:0 0 auto; min-height:40px; margin:0; padding:5px 9px; gap:8px; }
+body.game-in-progress .phase-banner span { font-size:7px; }
+body.game-in-progress .phase-banner strong { font-size:12px; }
+body.game-in-progress .game-tabletop {
+  display:grid; grid-template-columns:minmax(150px,19%) minmax(0,1fr); gap:8px;
+  flex:1 1 auto; min-height:0; overflow:hidden; padding:7px;
+}
+body.game-in-progress .game-player-seats {
+  display:grid; grid-template-columns:1fr; grid-template-rows:repeat(auto-fit,minmax(0,1fr));
+  align-content:stretch; gap:5px; min-width:0; overflow:hidden;
+}
+body.game-in-progress .game-player-seat {
+  position:static; width:100%; max-width:none; min-height:0; padding:5px 6px; gap:6px;
+  overflow:hidden; border-radius:2px;
+}
+body.game-in-progress .seat-avatar { width:25px; height:25px; flex:0 0 25px; font-size:11px; }
+body.game-in-progress .seat-identity { gap:3px; }
+body.game-in-progress .seat-name-order { gap:5px; }
+body.game-in-progress .seat-order-card { width:26px; min-height:31px; padding:2px; }
+body.game-in-progress .seat-order-card strong { font-size:15px; }
+body.game-in-progress .seat-order-card small { font-size:4px; }
+body.game-in-progress .seat-player-name { font-size:9px; }
+body.game-in-progress .seat-tags { font-size:6px; }
+body.game-in-progress .seat-holdings { gap:4px; margin-top:2px; padding-top:3px; }
+body.game-in-progress .seat-holding { min-width:25px; }
+body.game-in-progress .seat-holding-art,.game-in-progress .seat-holding-image { width:23px; height:31px; }
+body.game-in-progress .seat-holding-label { font-size:5px; }
+body.game-in-progress .seat-holding-count { min-width:12px; height:12px; font-size:7px; }
+body.game-in-progress .seat-own-coins,.game-in-progress .seat-info-bursa { font-size:6px; }
+body.game-in-progress .table-felt-core {
+  display:flex; flex-direction:column; gap:5px; width:100%; min-width:0; min-height:0; height:100%; overflow:hidden;
+}
+body.game-in-progress .table-event-spotlight { flex:0 0 auto; max-height:47px; overflow:hidden; padding:4px 7px; }
+body.game-in-progress .table-event-spotlight .spotlight-visual { display:none; }
+body.game-in-progress .table-event-spotlight .spotlight-copy { display:grid; grid-template-columns:auto 1fr; gap:2px 6px; }
+body.game-in-progress .table-event-spotlight .spotlight-eyebrow { grid-column:1; font-size:6px; }
+body.game-in-progress .table-event-spotlight .spotlight-heading { grid-column:2; font-size:8px; }
+body.game-in-progress .table-event-spotlight .spotlight-message { grid-column:1/-1; font-size:7px; line-height:1.2; }
+body.game-in-progress .table-event-spotlight .spotlight-time { display:none; }
+body.game-in-progress .market-section { flex:0 0 auto; min-height:0; margin:0; }
+body.game-in-progress .market-section .board-section-heading { margin:0 0 4px; }
+body.game-in-progress .market-section .board-section-heading h4 { font-size:9px; }
+body.game-in-progress .market-section .board-section-heading span { font-size:6px; }
+body.game-in-progress .market-unified-board { min-width:0; padding:3px; overflow:hidden; }
+body.game-in-progress .table-felt-core .market-unified-grid { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:4px; min-width:0; padding:0; }
+body.game-in-progress .market-unit-card { min-width:0; padding:3px; }
+body.game-in-progress .market-unit-heading { gap:2px; }
+body.game-in-progress .market-unit-heading strong { font-size:7px; }
+body.game-in-progress .market-unit-heading small { font-size:5px; }
+body.game-in-progress .market-unit-art { height:48px; min-height:0; padding:1px; }
+body.game-in-progress .market-unit-art .market-board-image { max-height:45px; object-fit:contain; }
+body.game-in-progress .market-unit-price { min-height:19px; margin-top:2px; padding:1px 3px; }
+body.game-in-progress .market-unit-price strong { font-size:13px; }
+body.game-in-progress .market-unit-caption { font-size:5px; }
+body.game-in-progress .sector-economy-slot { min-height:0; min-width:0; margin-top:2px; padding:2px; }
+body.game-in-progress .sector-economy-image { width:24px; height:34px; }
+body.game-in-progress .sector-economy-caption { font-size:4px; }
+body.game-in-progress .mf-center-art { height:48px; min-height:0; padding:1px; }
+body.game-in-progress .mutual-fund-center-image { max-height:45px; }
+body.game-in-progress .mf-unit-value { font-size:13px; }
+body.game-in-progress .mf-unit-caption { display:none; }
+body.game-in-progress .phase-controls { flex:0 0 auto; min-height:0; max-height:116px; overflow:auto; padding:7px 9px; }
+body.game-in-progress .phase-panel { gap:4px; padding:0; }
+body.game-in-progress .phase-panel h4 { margin:0; font-size:12px; }
+body.game-in-progress .phase-panel p { margin:0; font-size:8px; line-height:1.3; }
+body.game-in-progress .inline-game-form { display:flex; align-items:end; gap:7px; }
+body.game-in-progress .inline-game-form .field { flex:1 1 150px; }
+body.game-in-progress .inline-game-form input { min-height:28px; }
+body.game-in-progress .inline-game-form .button { min-height:28px; padding:0 10px; font-size:8px; }
+body.game-in-progress .bidding-results-list { grid-template-columns:repeat(5,minmax(0,1fr)); max-height:none; }
+body.game-in-progress .bidding-result-row { grid-template-columns:18px minmax(0,1fr); gap:2px 4px; padding:3px; }
+body.game-in-progress .bidding-result-rank { grid-row:span 2; font-size:10px; }
+body.game-in-progress .bidding-result-player,.game-in-progress .bidding-result-bid,.game-in-progress .bidding-result-order { font-size:6px; }
+body.game-in-progress .action-market-section { flex:1 1 auto; min-height:0; overflow:hidden; margin:0; padding:4px 6px; }
+body.game-in-progress .action-market-section .board-section-heading { margin:0 0 3px; }
+body.game-in-progress .action-market-section .board-section-heading h4 { font-size:8px; }
+body.game-in-progress .card-table-hint { margin:0 0 3px; font-size:6px; }
+body.game-in-progress .action-market { display:flex; flex-flow:row nowrap; gap:5px; min-height:0; height:calc(100% - 27px); overflow-x:auto; overflow-y:hidden; }
+body.game-in-progress .action-card { flex:0 0 74px; width:74px; min-width:74px; padding:3px; gap:2px; }
+body.game-in-progress .action-card-header { gap:2px; }
+body.game-in-progress .action-sector { font-size:5px; }
+body.game-in-progress .action-card-header .action-title { font-size:7px; }
+body.game-in-progress .action-card-image { width:100%; height:68px; object-fit:contain; }
+body.game-in-progress .action-hint { font-size:5px; }
+body.game-in-progress .action-card-buttons { gap:2px; padding-top:2px; }
+body.game-in-progress .action-card-buttons .button { min-height:22px; padding:0 2px; font-size:6px; }
+body.game-in-progress .game-bottom-strip { display:grid; grid-template-columns:minmax(190px,1fr); flex:0 0 auto; gap:4px; min-height:0; margin:0; }
+body.game-in-progress .game-bottom-strip .wallet-section { padding:4px 8px; }
+body.game-in-progress .game-bottom-strip .board-section-heading { margin:0 0 3px; }
+body.game-in-progress .game-bottom-strip .board-section-heading h4 { font-size:8px; }
+body.game-in-progress .game-bottom-strip .board-section-heading span { font-size:6px; }
+body.game-in-progress .game-bottom-strip .player-assets { display:flex; gap:18px; padding:2px 0; }
+body.game-in-progress .game-bottom-strip .player-assets>div { display:flex; align-items:baseline; gap:5px; }
+body.game-in-progress .game-bottom-strip .player-assets span { font-size:7px; }
+body.game-in-progress .game-bottom-strip .player-assets strong { font-size:12px; }
+body.game-in-progress .game-bottom-strip .player-assets small { font-size:6px; }
+body.game-in-progress .portfolio-details { display:none; }
+body.game-in-progress .final-section { flex:0 0 auto; max-height:100px; overflow:auto; margin:0; padding:5px; }
+body.game-in-progress .final-section .score-card { padding:4px 8px; }
+body.game-in-progress .final-section .score-card strong { font-size:8px; }
+body.game-in-progress .final-section .score-total { font-size:9px; }
+body.game-in-progress .private-peek { display:flex; flex-wrap:wrap; gap:4px; padding:2px 0; }
+body.game-in-progress .private-peek strong { font-size:7px; }
+body.game-in-progress .private-peek p { font-size:6px; margin:0; }
+body.game-in-progress .dashboard-footer { display:none; }
+
+@media(max-width:760px) and (orientation:portrait) {
+  body.game-in-progress .landscape-required-overlay {
+    display:flex; align-items:center; justify-content:center; position:fixed; z-index:99999;
+    inset:0; padding:20px; background:rgba(7,12,29,.97);
+  }
+}
+@media(max-width:900px) and (orientation:landscape) {
+  body.game-in-progress .dashboard-topbar { flex-basis:30px; height:30px; min-height:30px; }
+  body.game-in-progress .dashboard-main>main { height:calc(100dvh - 30px); padding:0 5px 5px; }
+  body.game-in-progress .game-board { gap:4px; padding:4px; }
+  body.game-in-progress .game-heading { min-height:21px; }
+  body.game-in-progress .game-heading h3 { font-size:13px; }
+  body.game-in-progress .phase-banner { min-height:31px; padding:3px 6px; }
+  body.game-in-progress .game-tabletop { grid-template-columns:minmax(118px,18%) minmax(0,1fr); gap:4px; padding:4px; }
+  body.game-in-progress .game-player-seat { padding:3px; gap:3px; }
+  body.game-in-progress .seat-holding-art,body.game-in-progress .seat-holding-image { width:18px; height:24px; }
+  body.game-in-progress .seat-holding-label { font-size:4px; }
+  body.game-in-progress .seat-order-card { width:21px; min-height:25px; }
+  body.game-in-progress .seat-order-card strong { font-size:12px; }
+  body.game-in-progress .seat-player-name { font-size:7px; }
+  body.game-in-progress .market-unit-art,body.game-in-progress .mf-center-art { height:37px; }
+  body.game-in-progress .market-unit-art .market-board-image,body.game-in-progress .mutual-fund-center-image { max-height:35px; }
+  body.game-in-progress .sector-economy-image { width:20px; height:28px; }
+  body.game-in-progress .phase-controls { max-height:76px; padding:4px 6px; }
+  body.game-in-progress .action-market { height:calc(100% - 15px); }
+  body.game-in-progress .action-card { flex-basis:60px; width:60px; min-width:60px; }
+  body.game-in-progress .action-card-image { height:49px; }
+  body.game-in-progress .game-bottom-strip .wallet-section { padding:2px 6px; }
+}
+@media(max-height:440px) and (orientation:landscape) {
+  body.game-in-progress .game-heading { display:none; }
+  body.game-in-progress .phase-banner { min-height:27px; }
+  body.game-in-progress .market-section .board-section-heading { display:none; }
+  body.game-in-progress .market-unit-art,body.game-in-progress .mf-center-art { height:30px; }
+  body.game-in-progress .market-unit-art .market-board-image,body.game-in-progress .mutual-fund-center-image { max-height:28px; }
+  body.game-in-progress .sector-economy-image { width:17px; height:23px; }
+}
