@@ -1581,7 +1581,10 @@ function renderActionMarket(view, own) {
     sessionState.selectedActionCardId = null;
   }
   ui.actionMarket.replaceChildren();
-  ui.actionMarketCount.textContent = cards.length + " kartu tersisa";
+  const activePlayer = (Array.isArray(state.players) ? state.players : [])
+    .find((player) => player.user_id === view.active_user_id);
+  ui.actionMarketCount.textContent = cards.length + " kartu · " +
+    (isActive ? "giliranmu" : "giliran " + (activePlayer ? activePlayer.display_name : "pemain lain"));
   if (!cards.length) {
     ui.actionMarket.append(makeElement("div", "empty-state", "Pasar kartu aksi sedang kosong."));
     return;
@@ -1600,21 +1603,25 @@ function renderActionMarket(view, own) {
     appendCardImage(panel, actionCardAsset(card), card.title + " — " + sectorName(card.sector), "action-card-image");
     const playerCoins = Number(view.my_private_state && view.my_private_state.coins || 0);
     const keepFee = card.action === "trading-fee" ? tradingFeeOnKeep(card, own) : 0;
-    const hint = card.action === "info-bursa" ? "Klik untuk memilih 3 sektor"
-      : card.action === "quickbuy" ? "Ambil 2 saham sekaligus · giliran berikutnya dilewati"
-      : card.action === "trading-fee" ? "Pajak " + keepFee + " koin bila disimpan · " +
-        sectorName(card.sector) + " (" + tradingFeeDescription(card) + ")"
-      : card.action === "acquisition" ? "Klik untuk memilih saham pemain lain"
-      : card.action === "rumor" ? "Klik untuk menggerakkan harga saham"
-      : "Klik kartu untuk memilih aksi";
+    const hint = card.action === "info-bursa" ? "Gunakan efek untuk mengintip 3 sektor · bonus 2 koin"
+      : card.action === "quickbuy" ? "Gunakan efek untuk mengambil 2 kartu lain · giliran berikutnya dilewati"
+      : card.action === "trading-fee" ? "Biaya simpan " + keepFee + " koin · gunakan efek untuk menjual aset"
+      : card.action === "acquisition" ? "Gunakan efek untuk mengambil 1 saham pemain lain"
+      : card.action === "rumor" ? "Gunakan efek untuk mengubah harga saham"
+      : "Simpan menjadi aset atau gunakan efek kartu";
     panel.append(makeElement("small", "action-hint", hint));
     const actions = makeElement("div", "action-card-buttons");
     actions.hidden = !isActive;
     const keepButton = makeElement("button", "button secondary",
       card.action === "trading-fee"
-        ? "Simpan · bayar " + keepFee + " koin"
-        : card.sector === "mutual_fund" ? "Simpan Reksa Dana" : "Simpan saham");
+        ? "Simpan · " + keepFee + " koin"
+        : card.sector === "mutual_fund" ? "Simpan RD" : "Simpan saham");
     keepButton.type = "button";
+    keepButton.title = card.action === "trading-fee"
+      ? "Simpan sebagai saham " + sectorName(card.sector) + " dan bayar " + keepFee + " koin."
+      : card.sector === "mutual_fund"
+        ? "Simpan kartu sebagai aset Reksa Dana."
+        : "Simpan kartu sebagai aset saham " + sectorName(card.sector) + ".";
     if (card.action === "trading-fee" && playerCoins < keepFee) {
       keepButton.disabled = true;
       keepButton.title = "Saldo kurang. Pajak sektor " + sectorName(card.sector) + " adalah " +
