@@ -608,8 +608,8 @@ function renderMarket(market, state) {
     const heading = makeElement("div", "market-unit-heading");
     heading.append(makeElement("strong", "", sector.name));
     const remaining = economyCardsRemaining(state, sector.id);
-    heading.append(makeElement("small", "deck-count",
-      remaining > 0 ? "SISA " + remaining : "HABIS"));
+    heading.append(makeElement("small", "deck-count" + (remaining === 0 ? " is-empty" : ""),
+      remaining > 0 ? "SISA " + remaining + " KARTU" : "HABIS"));
     const art = makeElement("div", "market-unit-art");
     appendCardImage(art, sectorBoardAsset(sector.id),
       "Papan sektor " + sector.name, "market-board-image");
@@ -630,7 +630,7 @@ function renderMarket(market, state) {
       economySlot.append(makeElement("small", "sector-economy-caption",
         "TERAKHIR · " + (lastCard.card.name || "Kartu ekonomi")));
     } else {
-      appendCardImage(economySlot, "./assets/cards/components/stocklab-back-red.webp",
+      appendCardImage(economySlot, "./assets/cards/components/stocklab-back-dark.webp",
         "Kartu ekonomi tertutup sektor " + sector.name, "sector-economy-image is-back");
       economySlot.append(makeElement("small", "sector-economy-caption", "KARTU EKONOMI"));
     }
@@ -1067,8 +1067,11 @@ function appendCardImage(parent, src, alt, className) {
 function economyCardsRemaining(state, sectorId) {
   if (!state || state.phase === "finished") return 0;
   const stored = state.economy_remaining && sectorId ? state.economy_remaining[sectorId] : null;
-  if (Number.isFinite(Number(stored))) return Math.max(0, Number(stored));
-  return Math.max(0, 7 - Number(state.round || 1));
+  if (stored !== null && stored !== undefined && stored !== "" && Number.isFinite(Number(stored))) {
+    return Math.max(0, Number(stored));
+  }
+  // Seven cards per sector: before the first economy reveal, all seven remain.
+  return Math.max(0, 8 - Number(state.round || 1));
 }
 
 function currentPlayer(view) {
@@ -1532,7 +1535,7 @@ function renderPhaseControls(view, own, coins) {
     if(isHost) {
       const reveal=makeElement("button","economy-open-card");
       reveal.type="button";
-      appendCardImage(reveal,"./assets/cards/components/stocklab-back-red.webp",
+      appendCardImage(reveal,"./assets/cards/components/stocklab-back-dark.webp",
         "Buka empat kartu ekonomi StockLab","economy-open-card-image");
       const caption=makeElement("span","economy-open-caption","BUKA 4 KARTU EKONOMI");
       reveal.append(caption);
